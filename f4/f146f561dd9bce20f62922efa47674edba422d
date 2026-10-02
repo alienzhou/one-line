@@ -1,0 +1,177 @@
+README.zh_CN.md
+  s_290530285adada::t_0c17fe476ff161 60-63
+  s_290530285adada::t_e2acdb48d44145 1-59,64-111
+README.md
+  s_290530285adada::t_0c17fe476ff161 74-79
+  s_290530285adada::t_e2acdb48d44145 1-73,80-129
+.gitignore
+  s_290530285adada::t_1db0edd2b158de 8-11
+assets/README.md
+  s_290530285adada::t_9fc42cea3139a8 15-40
+assets/README.zh_CN.md
+  s_290530285adada::t_8b2b6898ebbe1f 13-34
+assets/fonts/OFL.txt
+  s_290530285adada::t_fee3184ba18ed8 1-92
+assets/fonts/clock-characters.txt
+  s_290530285adada::t_fc24ec425395cc 1
+assets/fonts/clock_characters.h
+  s_290530285adada::t_d3d59456162b9b 1-28
+assets/fonts/clock_font_14.c
+  s_290530285adada::t_9fc35c25c2da74 1-3881
+assets/fonts/clock_font_20.c
+  s_290530285adada::t_6f0f662b2d1aba 1-6158
+assets/fonts/goal-characters.txt
+  s_290530285adada::t_de361953312332 1
+assets/fonts/goal_font_14.c
+  s_290530285adada::t_249abca13a93f6 1-3028
+assets/fonts/goal_font_22.c
+  s_290530285adada::t_e0b909d7157be1 1-495211
+companion/ios/TodayGoals.xcodeproj/project.pbxproj
+  s_290530285adada::t_db9f10b08265da 1-250
+companion/ios/TodayGoals.xcodeproj/xcshareddata/xcschemes/TodayGoals.xcscheme
+  s_290530285adada::t_4665cc89d0ca3e 1-17
+companion/ios/TodayGoals/Assets.xcassets/AppIcon.appiconset/Contents.json
+  s_290530285adada::t_18c183e25e4dbd 1-14
+companion/ios/TodayGoals/Assets.xcassets/Contents.json
+  s_290530285adada::t_544f564eca23de 1-6
+companion/ios/TodayGoals/GoalProtocol.swift
+  s_290530285adada::t_e022a5aca43e46 1-186
+companion/ios/TodayGoals/GoalRefinement.swift
+  s_290530285adada::t_baa5eb196167ff 1-227
+companion/ios/TodayGoals/GoalRefinementSettings.swift
+  s_290530285adada::t_2c34ebe911d991 1-90
+companion/ios/TodayGoals/Info.plist
+  s_290530285adada::t_05855c368f155c 1-21
+companion/ios/TodayGoals/PassportCompanion.swift
+  s_290530285adada::t_3ee43e2fb70b7b 1-438
+companion/ios/TodayGoals/RefinementSettingsView.swift
+  s_290530285adada::t_5a7ba2ed84db33 1-74
+companion/ios/TodayGoals/SpeechBridge.swift
+  s_290530285adada::t_c0bd87170e421f 1-112
+companion/ios/TodayGoals/TodayGoalsApp.swift
+  s_290530285adada::t_a8d3112b572c6a 1-179
+docs/README.md
+  s_290530285adada::t_9caaf1c3a9c257 209-211
+docs/README.zh_CN.md
+  s_290530285adada::t_cc14508af15f42 203-205
+docs/slowpoke-clock.md
+  s_290530285adada::t_dbe1c44cb4d59f 1-108
+docs/slowpoke-clock.zh_CN.md
+  s_290530285adada::t_729c481bc9f600 1-94
+docs/today-goals-ios.md
+  s_290530285adada::t_6523f7e7cfc051 1-208
+docs/today-goals-ios.zh_CN.md
+  s_290530285adada::t_84828de877d838 1-164
+docs/today-goals-protocol.md
+  s_290530285adada::t_1f7278b5366b15 1-62
+docs/today-goals-protocol.zh_CN.md
+  s_290530285adada::t_c876798bc9bd83 1-58
+docs/today-goals.md
+  s_290530285adada::t_cac8c7b0047de7 1-162
+docs/today-goals.zh_CN.md
+  s_290530285adada::t_0ed5c5cde957d3 1-133
+main/CMakeLists.txt
+  s_290530285adada::t_4aa9b2820a9b76 1,4-7,9,11-19
+main/Kconfig.projbuild
+  s_290530285adada::t_12f9d66a43c70c 1-10
+main/clock_model.c
+  s_290530285adada::t_7cfe7c9510bc9e 1-194
+main/clock_model.h
+  s_290530285adada::t_e62fcfc416af51 1-38
+main/clock_text.h
+  s_290530285adada::t_a411c69f3fa41d 1-32
+main/clock_ui.c
+  s_290530285adada::t_7ba64e7cd52aa2 1-167
+main/clock_ui.h
+  s_290530285adada::t_f5dc22a7c4394b 1-7
+main/goal_adpcm.c
+  s_290530285adada::t_69e94631cf7e4c 1-53
+main/goal_adpcm.h
+  s_290530285adada::t_4afc74f0cc9c0a 1-8
+main/goal_audio.c
+  s_290530285adada::t_49da024ab0184e 1-123
+main/goal_audio.h
+  s_290530285adada::t_ee7eb24dee8ed1 1-20
+main/goal_ble.c
+  s_290530285adada::t_cbf9e3411f6b39 1-228
+main/goal_ble.h
+  s_290530285adada::t_dabc4328cf97fe 1-24
+main/goal_model.c
+  s_290530285adada::t_4fe2de4a0d88ab 1-151
+main/goal_model.h
+  s_290530285adada::t_94d0b81e31f1a6 1-36
+main/goal_ui.c
+  s_290530285adada::t_89d80c6410b85e 1-166
+main/goal_ui.h
+  s_290530285adada::t_2f41001641433a 1-17
+main/goal_wire.c
+  s_290530285adada::t_ea7821aef5a3fc 1-64
+main/goal_wire.h
+  s_290530285adada::t_e9441af8cca9eb 1-21
+main/main.c
+  s_290530285adada::t_82cc8b611df367 1-2,6-9,11-13,17-18,20-22,24-30,33-40,42-49,52-59,62-84,87,90-91,93-103,105-110,112-117,119-154,156-158,161-168
+main/today_main.c
+  s_290530285adada::t_8301500f4a72bc 1-364
+sdkconfig.defaults
+  s_290530285adada::t_0c84d19ccb5c69 27-32,42,51-53
+tests/clock_ui_host/CMakeLists.txt
+  s_290530285adada::t_408ceb8e0abf92 1-32
+tests/clock_ui_host/lv_conf.h
+  s_290530285adada::t_64122d991f80ec 1-18
+tests/goals_ios/main.swift
+  s_290530285adada::t_e14ec888295917 1-62
+tests/goals_refinement/main.swift
+  s_290530285adada::t_498c15a187971d 1-129
+tests/test_clock_inventory.py
+  s_290530285adada::t_f340f4c57b28f8 1-21
+tests/test_clock_model.c
+  s_290530285adada::t_dc0b4dde7c587a 1-92
+tests/test_clock_ui.c
+  s_290530285adada::t_12fd7cb754b94c 1-154
+tests/test_goal_inventory.py
+  s_290530285adada::t_10577b30082d93 1-18
+tests/test_goal_ui.c
+  s_290530285adada::t_3c8215423c8bce 1-137
+tests/test_goals.c
+  s_290530285adada::t_3fc572b3e03de6 1-126
+tests/test_goals_ios.py
+  s_290530285adada::t_372759d240d566 1-55
+tests/test_goals_protocol.py
+  s_290530285adada::t_a9252ce7ee6636 1-95
+tools/generate_clock_fonts.py
+  s_290530285adada::t_b8d9f307ceb791 1-46
+tools/generate_goal_fonts.py
+  s_290530285adada::t_28b975486a5379 1-46
+tools/goals_peer.py
+  s_290530285adada::t_96f5bde30f326d 1-143
+tools/goals_protocol.py
+  s_290530285adada::t_e21bd6a4a6a9a7 1-122
+tools/requirements-goals-peer.txt
+  s_290530285adada::t_69e7a1fb86aed8 1-4
+tools/sync_clock.py
+  s_290530285adada::t_b86cb4dfafa75b 1-37
+tools/test_clock_ui.sh
+  s_290530285adada::t_cfa6855dbc4978 1-11
+tools/test_goal_ui.sh
+  s_290530285adada::t_204b10a6ae2b55 1-11
+tools/test_goals_ios.sh
+  s_290530285adada::t_e7eb330484143d 1-5
+tools/validate.sh
+  s_290530285adada::t_099c3a7f07fd0b 14-15,29-38,72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f4f146f561dd9bce20f62922efa47674edba422d",
+  "prompts": {},
+  "sessions": {
+    "s_290530285adada": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0f5df-ce1f-7cc0-b123-6ed3c8d0654f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
