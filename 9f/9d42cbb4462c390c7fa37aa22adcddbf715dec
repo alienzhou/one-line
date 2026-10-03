@@ -1,0 +1,32 @@
+companion/TokenDashboard.py
+  s_486a6121e241d0::t_1d648038d22ce1 10-19
+companion/launch_macos.py
+  s_486a6121e241d0::t_fea5e466f6d1bd 30
+  s_486a6121e241d0::t_1d648038d22ce1 1-29,31-61
+docs/token-dashboard.zh_CN.md
+  s_486a6121e241d0::t_13377954415b16 35
+README.md
+  s_486a6121e241d0::t_51bf155e39dc78 46
+README.zh_CN.md
+  s_486a6121e241d0::t_51bf155e39dc78 46
+docs/token-dashboard.md
+  s_486a6121e241d0::t_13377954415b16 59-61,69
+tools/run-token-dashboard.sh
+  s_486a6121e241d0::t_1d648038d22ce1 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f9d42cbb4462c390c7fa37aa22adcddbf715dec",
+  "prompts": {},
+  "sessions": {
+    "s_486a6121e241d0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a101d5-6150-7ec1-8905-857173d3a89a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
