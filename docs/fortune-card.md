@@ -200,8 +200,8 @@ These are host renders, not photographs.
 The current delivery identity and test status are in ignored `build/delivery.json`.
 The verified merged `build/FoloToy-AI-Passport-full.bin` is for offset **0x0**;
 its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
-A merged flash can reset existing NVS data. **Device tests: NOT RUN for the 320-skin
-revision.** The first release was flashed with user approval on 2026-10-03 and passed
+A merged flash can reset existing NVS data. **Device tests: PASS for the 320-skin revision’s segmented write, hash verification and 15-second startup observation on 2026-10-04.**
+The verified component images were written without touching NVS. The matching application completed initialization, with 223164 bytes of free heap and a largest free block of 114688 bytes. Screen and button acceptance remain unverified. The first release was flashed with user approval on 2026-10-03 and passed
 write verification and a 15-second clean startup observation. That result applies
 to the old firmware only; its record is in ignored `build/device-test-pixel.json`.
 The first community submission (project 914, revision 1910) also uses that prior

@@ -117,7 +117,7 @@ before writing a device.
 | --- | --- |
 | Build | **PASS** — complete gate and merged-image verification |
 | Host tests | **PASS** — all text layouts and active fonts, controls and animations, 64 shuffled-skin seeds, all 1920 new renders, legacy save compatibility and unchanged legacy pixels |
-| Device tests | **NOT RUN** for the 320-skin revision; the first release passed flashing and startup observation on 2026-10-03 |
+| Device tests | **PASS** for segmented flashing, write-hash verification and 15 seconds of clean startup observation on 2026-10-04; visual/button acceptance remains unverified |
 | Unverified | Physical button interactions, on-device Chinese legibility and clipping, animation smoothness, saved-signature recovery after restart or interrupted writes, idle/wake behavior, battery accuracy, power consumption, and endurance |
 
 The complete encoded text bank takes **57.3 KiB**. Artwork is drawn from scene

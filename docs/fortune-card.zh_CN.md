@@ -167,7 +167,8 @@ build/gallery-venv/bin/python tools/render_fortune_gallery.py
 本次交付身份和测试状态写在忽略目录的 `build/delivery.json`。
 验证后的合并镜像 `build/FoloToy-AI-Passport-full.bin` 从 **0x0** 刷写，
 匹配的 ELF/MAP 与清单位于 `build/firmware/<完整镜像 SHA256>/`。
-合并刷写可能重置原有 NVS 数据。**本次 320 款皮肤版本 Device tests：NOT RUN。**
+合并刷写可能重置原有 NVS 数据。**本次 320 款皮肤版本 Device tests：PASS，仅限 2026-10-04 分段写入、哈希校验及 15 秒无错误启动观察。**
+使用已校验的组件镜像，未写入 NVS；匹配的应用完成初始化，剩余堆 223164 字节，最大空闲块 114688 字节。画面与实体按键验收仍未验证。
 2026-10-03 经用户确认烧录的首版通过写入校验及 15 秒无错误启动观察，此结果仅适用于旧固件；
 记录保存在忽略目录的 `build/device-test-pixel.json`。首次社区提交（项目 914、修订 1910）
 也使用此前的镜像，与本次皮肤扩展版本分开。
