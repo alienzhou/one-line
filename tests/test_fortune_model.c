@@ -1,7 +1,41 @@
 #include "fortune_model.h"
+#include "fortune_pixels.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include "fortune_ui_host/legacy_save.h"
+
+static void test_skins(uint32_t seed) {
+    fortune_state_t s;fortune_defaults(&s,seed);
+    s.current.quote=100;s.pinned=(fortune_card_t){100,2976};
+    bool all[FORTUNE_NEW_ART_COUNT]={0};uint32_t previous=UINT32_MAX;
+    for(unsigned i=0;i<FORTUNE_NEW_ART_COUNT*2;++i) {
+        if(i==FORTUNE_NEW_ART_COUNT)memset(all,0,sizeof(all));
+        fortune_remix(&s,&s.current);
+        assert(s.current.quote==100 && s.pinned.quote==100 && s.pinned.art==2976);
+        assert(s.current.art>=FORTUNE_LEGACY_ART_COUNT && s.current.art<FORTUNE_ART_COUNT);
+        unsigned offset=s.current.art-FORTUNE_LEGACY_ART_COUNT;
+        assert(!all[offset]);all[offset]=true;
+        uint32_t scene=offset%FORTUNE_SCENE_COUNT;
+        assert(scene!=previous);previous=scene;
+        assert(fortune_valid(&s));
+    }
+    /* Every scene and every scene/subject skin once in their own batches. */
+    fortune_defaults(&s,seed);
+    for(unsigned batch=0;batch<6;++batch) {
+        bool skins[FORTUNE_SKIN_COUNT]={0};
+        for(unsigned block=0;block<4;++block) {
+            bool scenes[FORTUNE_SCENE_COUNT]={0};
+            for(unsigned j=0;j<FORTUNE_SCENE_COUNT;++j) {
+                fortune_remix(&s,&s.current);
+                unsigned offset=s.current.art-FORTUNE_LEGACY_ART_COUNT;
+                assert(!scenes[offset%FORTUNE_SCENE_COUNT] && !skins[offset%FORTUNE_SKIN_COUNT]);
+                scenes[offset%FORTUNE_SCENE_COUNT]=true;skins[offset%FORTUNE_SKIN_COUNT]=true;
+            }
+        }
+        for(unsigned i=0;i<FORTUNE_SKIN_COUNT;++i)assert(skins[i]);
+    }
+}
 
 static void test_deck(uint32_t seed) {
     fortune_state_t s;
@@ -48,11 +82,22 @@ int main(void) {
     for (size_t i = 0; i < n; ++i) {
         bytes[i] ^= 1; assert(!fortune_decode_state(&restored, bytes, n)); bytes[i] ^= 1;
     }
-    bool visuals[FORTUNE_ART_COUNT] = {0};
-    for (unsigned i = 0; i < FORTUNE_ART_COUNT; ++i) {
-        fortune_remix(&s, &s.current);
-        assert(!visuals[s.current.art]); visuals[s.current.art] = true;
-    }
-    puts("Fortune model: PASS (200 full decks, filter switching, corruption, restore, 24576 visual IDs)");
+    for(unsigned seed=0;seed<64;++seed)test_skins(seed*27449);
+    assert(fortune_decode_state(&restored,LEGACY_SAVE,sizeof(LEGACY_SAVE)));
+    fortune_card_t legacy_pin=restored.pinned;
+    assert(restored.art_cursor<FORTUNE_LEGACY_ART_COUNT);
+    uint8_t old_seen[FORTUNE_SEEN_BYTES];memcpy(old_seen,restored.seen,sizeof(old_seen));
+    fortune_remix(&restored,&restored.current);
+    assert(restored.current.art>=FORTUNE_LEGACY_ART_COUNT);
+    assert(restored.pinned.quote==legacy_pin.quote && restored.pinned.art==legacy_pin.art);
+    assert(!memcmp(old_seen,restored.seen,sizeof(old_seen)));
+    n=fortune_encode_state(&restored,bytes,sizeof(bytes));assert(n==sizeof(LEGACY_SAVE));
+    assert(fortune_decode_state(&s,bytes,n));
+    assert(s.art_cursor==restored.art_cursor && s.pinned.art==legacy_pin.art);
+    fortune_state_t a,b;fortune_defaults(&a,42);fortune_defaults(&b,43);
+    unsigned differences=0;
+    for(unsigned i=0;i<FORTUNE_SKIN_COUNT;++i){fortune_remix(&a,&a.current);fortune_remix(&b,&b.current);differences+=a.current.art!=b.current.art;}
+    assert(differences>100);
+    printf("Fortune model: PASS (200 text decks; 64 seeds, %u nonrepeating skins / %u appearances, different adjacent scenes, legacy save retained)\n",FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT);
     return 0;
 }

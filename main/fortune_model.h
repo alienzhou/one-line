@@ -1,10 +1,10 @@
 #pragma once
 #include "fortune_data.h"
+#include "fortune_art.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#define FORTUNE_ART_COUNT 24576U
 #define FORTUNE_NO_CARD UINT32_MAX
 #define FORTUNE_SEEN_BYTES ((FORTUNE_COUNT + 7U) / 8U)
 #define FORTUNE_ANY_STYLE 3U

@@ -201,7 +201,7 @@ LICENSE                  Repository license
 ## Documentation index
 
 Application design: [One Fortune product and engineering design](fortune-card.md)
-— 2112 complete fortunes, four pixel-art collections, letter-opening animation,
+— 2112 complete fortunes, 128 pixel-art skins, six palettes, letter-opening animation,
 storage measurements, controls, validation, and the longer-term 10001+ expansion.
 The fork's [application README](../README.md) provides a short illustrated
 introduction, quick start, and actual rendered interface previews.

@@ -20,6 +20,7 @@ void fortune_defaults(fortune_state_t *s, uint32_t seed) {
     s->corpus_id = FORTUNE_CORPUS_ID;
     s->seed = seed;
     s->style = FORTUNE_ANY_STYLE;
+    s->art_cursor = FORTUNE_LEGACY_ART_COUNT;
     s->current = s->pinned = (fortune_card_t){FORTUNE_NO_CARD, 0};
 }
 
@@ -77,9 +78,46 @@ uint32_t fortune_remaining(const fortune_state_t *s) {
     return n;
 }
 
+static uint32_t art_mix(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU;
+    return x ^ (x >> 16);
+}
+
+/* Keyed Feistel permutation, cycle-walked to 80 or 4 values. Unlike a fixed
+ * affine stride, adjacent items have no repeating family/color arithmetic. */
+static uint32_t shuffled(uint32_t x, uint32_t count, uint32_t key) {
+    unsigned bits = count == FORTUNE_SCENE_COUNT ? 4 : 1;
+    uint32_t mask = (1U << bits) - 1;
+    do {
+        uint32_t left = x >> bits, right = x & mask;
+        for (unsigned round = 0; round < 6; ++round) {
+            uint32_t next = left ^ (art_mix(key ^ (round * 0x9E3779B9U) ^ right) & mask);
+            left = right; right = next;
+        }
+        x = (left << bits) | right;
+    } while (x >= count);
+    return x;
+}
+
 void fortune_remix(fortune_state_t *s, fortune_card_t *c) {
-    c->art = permute(s->art_cursor, FORTUNE_ART_COUNT, s->seed ^ 0x9E3779B9U);
-    s->art_cursor = (s->art_cursor + 1) % FORTUNE_ART_COUNT;
+    /* Upgrade the old cursor lazily; quote history, current card and pin survive. */
+    uint32_t cursor = s->art_cursor < FORTUNE_LEGACY_ART_COUNT ? 0 :
+        s->art_cursor - FORTUNE_LEGACY_ART_COUNT;
+    uint32_t block = cursor / FORTUNE_SCENE_COUNT, position = cursor % FORTUNE_SCENE_COUNT;
+    uint32_t key = s->seed ^ art_mix(block + 719U);
+    uint32_t previous = (block + FORTUNE_NEW_ART_COUNT / FORTUNE_SCENE_COUNT - 1) %
+        (FORTUNE_NEW_ART_COUNT / FORTUNE_SCENE_COUNT);
+    uint32_t first = shuffled(0, FORTUNE_SCENE_COUNT, key);
+    uint32_t last = shuffled(FORTUNE_SCENE_COUNT-1, FORTUNE_SCENE_COUNT, s->seed ^ art_mix(previous + 719U));
+    /* A boundary swap keeps adjacent scenes different across blocks and wrap. */
+    if (first == last && position < 2) position = 1 - position;
+    uint32_t scene = shuffled(position, FORTUNE_SCENE_COUNT, key);
+    uint32_t batch = cursor / FORTUNE_SKIN_COUNT;
+    uint32_t subject = shuffled(block % 4, 4, s->seed ^ art_mix(scene + batch * 137U));
+    uint32_t skin = scene + subject * FORTUNE_SCENE_COUNT;
+    uint32_t palette = permute(batch, FORTUNE_PALETTE_COUNT, s->seed ^ art_mix(skin + 83U));
+    c->art = FORTUNE_LEGACY_ART_COUNT + palette * FORTUNE_SKIN_COUNT + skin;
+    s->art_cursor = FORTUNE_LEGACY_ART_COUNT + (cursor + 1) % FORTUNE_NEW_ART_COUNT;
 }
 
 bool fortune_draw(fortune_state_t *s) {

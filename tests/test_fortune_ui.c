@@ -1,5 +1,6 @@
 #include "fortune_ui.h"
 #include "fortune_text.h"
+#include "fortune_pixels.h"
 #include "lvgl.h"
 #include "bsp_display_rounding.h"
 #include <assert.h>
@@ -148,6 +149,35 @@ int main(int argc, char **argv) {
     for (unsigned i=0;i<sizeof(notices)/sizeof(notices[0]);++i) {
         fortune_ui_update(&s,FORTUNE_HOME,-1,notices[i]); lv_obj_update_layout(lv_screen_active()); check_labels();
     }
+    bool gallery=argc==3 && !strcmp(argv[2],"--skins");
+    FILE *catalog=NULL;
+    if(gallery) {
+        char path[1024];snprintf(path,sizeof(path),"%s/skin-catalog.json",argv[1]);
+        catalog=fopen(path,"w");assert(catalog);fputs("{\"families\":[",catalog);
+        for(unsigned f=0;f<FORTUNE_FAMILY_COUNT;++f) fprintf(catalog,"%s\"%s\"",f?",":"",fortune_family_name(f));
+        fputs("],\"skins\":[\n",catalog);
+    }
+    uint64_t new_hashes[FORTUNE_NEW_ART_COUNT];unsigned hash_count=0;
+    fortune_ui_motion(false);s.pinned.quote=0;
+    for(unsigned skin=0;skin<FORTUNE_SKIN_COUNT;++skin) {
+        if(catalog)fprintf(catalog,"%s{\"skin\":%u,\"scene\":%u,\"family\":%u,\"subject\":%u,\"name\":\"%s\",\"images\":[",
+            skin?",\n":"",skin,skin%FORTUNE_SCENE_COUNT,skin%FORTUNE_FAMILY_COUNT,skin/FORTUNE_SCENE_COUNT,fortune_scene_name(FORTUNE_LEGACY_ART_COUNT+skin));
+        for(unsigned tone=0;tone<FORTUNE_PALETTE_COUNT;++tone) {
+            s.pinned.art=FORTUNE_LEGACY_ART_COUNT+tone*FORTUNE_SKIN_COUNT+skin;
+            fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);advance(375);
+            lv_obj_update_layout(lv_screen_active());lv_refr_now(NULL);check_labels();
+            uint64_t h=14695981039346656037ULL;
+            for(unsigned y=38;y<154;++y)for(unsigned x=12;x<228;++x){h^=s_pixels[y*240+x];h*=1099511628211ULL;}
+            new_hashes[hash_count++]=h;
+            if(catalog){char name[64];snprintf(name,sizeof(name),"skin-%03u-%u",skin,tone);snapshot(argv[1],name);
+                fprintf(catalog,"%s\"%s.png\"",tone?",":"",name);}
+        }
+        if(catalog)fputs("]}",catalog);
+    }
+    if(catalog){fputs("\n]}\n",catalog);fclose(catalog);}
+    qsort(new_hashes,FORTUNE_NEW_ART_COUNT,sizeof(uint64_t),compare_hash);
+    for(unsigned i=1;i<FORTUNE_NEW_ART_COUNT;++i)assert(new_hashes[i]!=new_hashes[i-1]);
+    printf("Skin UI: PASS (%u skins, all %u palette renders, distinct artwork hashes, active fonts and bounds)%s\n",FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT,gallery?"; gallery captured":"");
     lv_mem_monitor_t m; lv_mem_monitor(&m);
     printf("Fortune UI: PASS (all %u texts, 36 filters, error states, six scenes, timed reveal/skip, paused motion; LVGL used=%u/%u largest=%u)\n",
            FORTUNE_COUNT, (unsigned)(m.total_size-m.free_size),(unsigned)m.total_size,(unsigned)m.free_biggest_size);

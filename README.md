@@ -14,13 +14,16 @@ and Chinese fortunes.
   <img src="assets/images/fortune-cover.png" alt="One Fortune illustrated cover: an open letter surrounded by pixel-art stamps" width="360">
 </p>
 
-| Complete fortunes | Voices | Pixel-art collections | Distinct generated scenes |
+| Complete fortunes | Voices | Pixel-art collections | Scenes and subjects |
 | --- | --- | --- | --- |
-| **2,112** independently authored lines | Warm and assertive, playful internet humor, restrained poetry | Night Radio, Wildland Letters, Cosmic Post, Pocket Garden | **24,576** base images |
+| **2,112** independently authored lines | Warm and assertive, playful internet humor, restrained poetry | Night Radio, Wildland Letters, Cosmic Post, Pocket Garden, Undersea Wandering, Cloud Islands, Corner Cafe, Vintage Fair, Glow Workshop, Winter Post | **320 skins**, each in **6 palettes** |
 
 The current release contains 2,112 complete fortunes. The original goal of more
 than 10,000 independently authored lines remains a future expansion. Scene
-variations are counted separately from written content.
+variations are counted separately from written content. The new collection combines
+80 distinct scenes with four companions: a cat, traveler, robot, and rabbit.
+Each 320-change batch covers all skins; adjacent scenes differ. Six
+palettes give 1920 selectable appearances before the appearance cycle repeats.
 
 ## A small ritual for a difficult day
 
@@ -41,15 +44,27 @@ streaks, rarity ranks, accounts, or payment steps.
   </tr>
   <tr><td>Choose a mood and unwrap a note.</td><td>Find a voice that fits the moment.</td></tr>
   <tr>
-    <td><img src="assets/images/fortune-collections.png" alt="Illustration of the four pixel-art collections" width="300"></td>
+    <td><img src="assets/images/skins/overview-0.png" alt="All 32 actual rendered Night Radio skins" width="300"></td>
     <td><img src="assets/images/fortune-signature.png" alt="Illustration of keeping a fortune as a personal signature" width="300"></td>
   </tr>
-  <tr><td>Four scenes, with small ambient movements.</td><td>Keep the words; change their setting.</td></tr>
+  <tr><td>Ten collections, with small ambient movements.</td><td>Keep the words; change their setting.</td></tr>
 </table>
 
-*The cover and four posters are AI-generated gameplay illustrations. Their
-Chinese copy describes the implemented experience. They are labeled as
-illustrations in the images.*
+*The cover and three explanatory posters are AI-generated gameplay illustrations.
+The Night Radio overview comes from the actual application renderer.*
+
+## Explore every skin
+
+![Ten collections of original pixel scenery](assets/images/fortune-ten-collections.png)
+
+[View all 320 skins in one full overview](assets/images/fortune-skins-overview.png).
+
+Open the [complete interactive gallery](assets/fortune/skin-gallery.html) locally
+in a browser to view all 320 full cards, switch among six palettes, filter by
+collection or companion, and click to enlarge. Keep the adjacent image directory
+when downloading it. The gallery includes all 1920 completed application renders.
+Existing saved cards retain their original artwork; drawing or changing the
+appearance enters the new collection.
 
 ## Start in five steps
 
@@ -67,14 +82,15 @@ promises about what will happen.
 These previews come from the application's host renderer, including its fonts,
 layout, and rounded display mask. They are not on-device photographs.
 
-![Actual rendered cards from all four collections](assets/images/fortune-ui-pixel-collection.png)
+![Actual rendered cards from all ten collections](assets/images/fortune-ui-pixel-collection.png)
 
 <p align="center">
   <img src="assets/images/fortune-ui-unwrap.gif" alt="Actual rendered letter-opening sequence" width="240">
   <img src="assets/images/fortune-ui-pixel-motion.gif" alt="Actual rendered ambient pixel-art animation" width="240">
 </p>
 
-*Letter opening and ambient scene motion. Text remains still and readable.*
+*Letter opening and ambient motion, shown with compatible original artwork.
+Text remains still and readable.*
 
 ## Build and verification
 
@@ -85,7 +101,10 @@ flow. Activate ESP-IDF 5.5.3, then run:
 
 ```bash
 ./tools/validate.sh
-./tools/test_fortune_ui.sh
+./tools/test_fortune_ui.sh --skins
+python3 -m venv build/gallery-venv
+build/gallery-venv/bin/pip install Pillow==11.3.0
+build/gallery-venv/bin/python tools/render_fortune_gallery.py
 ```
 
 The complete gate builds and verifies a merged image at
@@ -97,13 +116,16 @@ before writing a device.
 | Check | Current result |
 | --- | --- |
 | Build | **PASS** — complete gate and merged-image verification |
-| Host tests | **PASS** — corpus decoding, draw history, persistence, fonts, all 2,112 text layouts, controls, and animations; all 24,576 rendered base scenes have distinct image hashes |
-| Device tests | **PASS, limited** — authorized flashing with write verification and a 15-second clean startup observation on 2026-10-03 |
+| Host tests | **PASS** — all text layouts and active fonts, controls and animations, 64 shuffled-skin seeds, all 1920 new renders, legacy save compatibility and unchanged legacy pixels |
+| Device tests | **NOT RUN** for the 320-skin revision; the first release passed flashing and startup observation on 2026-10-03 |
 | Unverified | Physical button interactions, on-device Chinese legibility and clipping, animation smoothness, saved-signature recovery after restart or interrupted writes, idle/wake behavior, battery accuracy, power consumption, and endurance |
 
 The complete encoded text bank takes **57.3 KiB**. Artwork is drawn from scene
 rules rather than a library of stored backgrounds; the canvas uses **12,528
-bytes** of RAM. These measurements and test boundaries are detailed in the
+bytes** of RAM. The expanded application is **1,186,544 bytes**, an increase
+of **47,568 bytes (46.5 KiB)** over the previous release, including the new
+scene-title glyphs. Save data remains **312 bytes**. Gallery PNGs are excluded
+from the firmware. These measurements and test boundaries are detailed in the
 [product and engineering design](docs/fortune-card.md).
 
 ## Explore or extend

@@ -32,9 +32,17 @@ full string through lossless code-point encoding. The measured bank, dictionary
 and index occupy 58686 bytes. `--release` enforces the explicit current minimum
 of 2001. See [the product design](../docs/fortune-card.md).
 
-The four original pixel-scene families are drawn by `main/fortune_pixels.c`;
+The ten original pixel-scene families are drawn by `main/fortune_pixels.c`;
 no downloaded artwork or stored scene images enter the firmware. Previews under
 ignored `build/fortune-preview/` come from the actual LVGL host renderer.
+The extension combines 80 scenes and four subjects into 320 skins, each with six
+palettes. All 1920 complete card captures live in `images/skins/`. After
+`./tools/test_fortune_ui.sh --skins` completes, run
+`python3 tools/render_fortune_gallery.py` (requires Pillow) to package
+[`fortune/skin-gallery.html`](fortune/skin-gallery.html) and the per-image SHA-256
+manifest [`fortune/skin-catalog.json`](fortune/skin-catalog.json). These are completed
+application renders, not device screenshots, and are excluded from firmware.
+The previous `fortune-collections.png` poster is retained as first-release history.
 
 Store reusable font files and generated font sources in `fonts/`.
 
@@ -58,7 +66,11 @@ Store reusable source images and generated display assets in `images/`.
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448, PNG | Writing voices and moods illustration. |
 | [`images/fortune-collections.png`](images/fortune-collections.png) | 1086 × 1448, PNG | Four pixel-art collections illustration. |
 | [`images/fortune-signature.png`](images/fortune-signature.png) | 1086 × 1448, PNG | Saved personal-signature illustration. |
-| [`images/fortune-ui-pixel-collection.png`](images/fortune-ui-pixel-collection.png) | 960 × 350, PNG | Actual LVGL host-rendered contact sheet of four cards. |
+| [`images/fortune-ten-collections.png`](images/fortune-ten-collections.png) | 1086 × 1448, PNG | Ten collections sampled from finished application renders; MIT. |
+| [`images/fortune-skins-overview.png`](images/fortune-skins-overview.png) | 2172 × 7240, PNG | All 320 artwork regions from actual application renders; MIT. |
+| `images/skins/overview-0.png` through `overview-9.png` | Each 1086 × 1448, PNG | Ten series overviews with 32 skins each; actual renders, MIT. |
+| `images/skins/skin-000-0.png` through `skin-319-5.png` | Each 240 × 320, PNG | All 320 × 6 complete LVGL card captures; MIT. |
+| [`images/fortune-ui-pixel-collection.png`](images/fortune-ui-pixel-collection.png) | 1200 × 700, PNG | Actual LVGL host-rendered contact sheet of ten cards. |
 | [`images/fortune-ui-unwrap.gif`](images/fortune-ui-unwrap.gif) | 240 × 320, GIF | Actual host-rendered letter-opening sequence. |
 | [`images/fortune-ui-pixel-motion.gif`](images/fortune-ui-pixel-motion.gif) | 240 × 320, GIF | Actual host-rendered scene animation. |
 

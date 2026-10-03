@@ -25,8 +25,14 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 实测签文、字典和索引共 58686 字节。`--release` 执行当前明确的 2001 条最低门槛。
 详见[产品设计](../docs/fortune-card.zh_CN.md)。
 
-四个原创像素系列由 `main/fortune_pixels.c` 绘制，不嵌入下载的画作或场景图片。
+十个原创像素系列由 `main/fortune_pixels.c` 绘制，不嵌入下载的画作或场景图片。
 忽略目录 `build/fortune-preview/` 中的预览来自实际 LVGL 主机渲染。
+新版组合 80 种场景和 4 种主体，得到 320 款皮肤，每款 6 组配色；全部 1920 张完整签名卡
+保存在 `images/skins/`。使用 `./tools/test_fortune_ui.sh --skins` 完成渲染后，
+运行 `python3 tools/render_fortune_gallery.py` 转换并打包（需要 Pillow），生成
+[`fortune/skin-gallery.html`](fortune/skin-gallery.html) 与含每张图片 SHA-256 的
+[`fortune/skin-catalog.json`](fortune/skin-catalog.json)。图库是程序实际渲染，全部完成后检查；
+不作为真机截图，不进入固件。旧版发布海报 `fortune-collections.png` 作为首版历史素材保留。
 
 可复用的字库文件与生成的字库源码放在 `fonts/`。
 
@@ -50,7 +56,11 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 口吻与心情示意图。 |
 | [`images/fortune-collections.png`](images/fortune-collections.png) | 1086 × 1448，PNG | 四个像素系列示意图。 |
 | [`images/fortune-signature.png`](images/fortune-signature.png) | 1086 × 1448，PNG | 留作个人签名示意图。 |
-| [`images/fortune-ui-pixel-collection.png`](images/fortune-ui-pixel-collection.png) | 960 × 350，PNG | 实际 LVGL 主机渲染的四张卡片合集。 |
+| [`images/fortune-ten-collections.png`](images/fortune-ten-collections.png) | 1086 × 1448，PNG | 十个系列的实际程序渲染预览；MIT。 |
+| [`images/fortune-skins-overview.png`](images/fortune-skins-overview.png) | 2172 × 7240，PNG | 全部 320 款皮肤的实际插画区域总览，程序渲染；MIT。 |
+| `images/skins/overview-0.png` 至 `overview-9.png` | 各 1086 × 1448，PNG | 十个系列的 32 款皮肤总览，程序渲染；MIT。 |
+| `images/skins/skin-000-0.png` 至 `skin-319-5.png` | 各 240 × 320，PNG | 全部 320 × 6 张完整签名卡，实际 LVGL 渲染；MIT。 |
+| [`images/fortune-ui-pixel-collection.png`](images/fortune-ui-pixel-collection.png) | 1200 × 700，PNG | 实际 LVGL 主机渲染的十张卡片合集。 |
 | [`images/fortune-ui-unwrap.gif`](images/fortune-ui-unwrap.gif) | 240 × 320，GIF | 实际主机渲染的拆信过程。 |
 | [`images/fortune-ui-pixel-motion.gif`](images/fortune-ui-pixel-motion.gif) | 240 × 320，GIF | 实际主机渲染的场景微动效。 |
 

@@ -24,7 +24,6 @@ static unsigned s_wipe_step=3;
 static uint32_t s_old_id,s_quote_id=FORTUNE_NO_CARD;
 static fortune_page_t s_page=FORTUNE_HOME;
 static char s_final_quote[128],s_final_caption[128],s_final_help[128],s_final_hint[128];
-static const char *const SERIES[]={"夜航电台", "旷野来信", "宇宙邮局", "口袋花园"};
 
 static bool closing(uint32_t cp) {
     return cp==0xFF0C || cp==0x3002 || cp==0xFF01 || cp==0xFF1F || cp==0xFF1A || cp==0xFF1B;
@@ -174,7 +173,7 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     } else {
         if(!fortune_decode(card.quote,quote,sizeof(quote))) snprintf(quote,sizeof(quote),"暂无签文");
         char formatted[128]; format_quote(quote,formatted);
-        lv_label_set_text_fmt(s_meta,"一签 / %s",SERIES[id%4]); lv_label_set_text(s_quote,formatted);
+        lv_label_set_text_fmt(s_meta,"一签 / %s",fortune_scene_name(id)); lv_label_set_text(s_quote,formatted);
         lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)card.quote+1,page==FORTUNE_SHOWCASE?"此刻的我":"这一句送你");
         lv_label_set_text(s_help,page==FORTUNE_SHOWCASE?"慢慢来，也是一种风格":FT_REVEAL_HELP);
         lv_label_set_text(s_hint,notice?notice:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);

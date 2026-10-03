@@ -12,12 +12,14 @@
   <img src="assets/images/fortune-cover.png" alt="一签示意封面：打开的信封与四周的像素邮票" width="360">
 </p>
 
-| 完整签文 | 三种口吻 | 四个像素系列 | 不同的程序生成画面 |
+| 完整签文 | 三种口吻 | 十个像素系列 | 场景与主体组合 |
 | --- | --- | --- | --- |
-| **2,112** 条独立创作句子 | 温柔有锋芒、抽象嘴替、克制诗意 | 夜航电台、旷野来信、宇宙邮局、口袋花园 | **24,576** 个基础画面 |
+| **2,112** 条独立创作句子 | 温柔有锋芒、抽象嘴替、克制诗意 | 夜航电台、旷野来信、宇宙邮局、口袋花园、海底漫游、云端小岛、街角咖啡、复古游园、微光工坊、冬日慢邮 | **320 款皮肤**，各有 **6 组配色** |
 
 当前版本内置 2,112 条完整签文。最初提出的一万条以上独立签文仍是后续扩充目标；
-画面变化与签文数量分别统计。
+画面变化与签文数量分别统计。新版将 80 种明显不同的场景与猫、旅人、机器人、兔子四位
+小伙伴组合成 320 款皮肤。每轮 320 次换肤覆盖全部组合，相邻场景不同；六组配色共 1920 种可抽取外观，
+全部抽过后再循环。
 
 ## 给困难日子一个小仪式
 
@@ -36,13 +38,23 @@
   </tr>
   <tr><td>选一种心情，拆一封来信。</td><td>找到此刻适合自己的口吻。</td></tr>
   <tr>
-    <td><img src="assets/images/fortune-collections.png" alt="四个像素画面系列的玩法示意" width="300"></td>
+    <td><img src="assets/images/skins/overview-0.png" alt="夜航电台全部32款实际渲染皮肤" width="300"></td>
     <td><img src="assets/images/fortune-signature.png" alt="将选中的签文留作个人签名的玩法示意" width="300"></td>
   </tr>
-  <tr><td>四种场景，配一点安静的微动效。</td><td>喜欢这句话，可以只换它的风景。</td></tr>
+  <tr><td>十个系列，配一点安静的微动效。</td><td>喜欢这句话，可以只换它的风景。</td></tr>
 </table>
 
-*封面与四张海报是 AI 生成的玩法示意图，图中文字根据已实现功能整理，图中均标有“玩法示意”。*
+*封面与三张说明海报为 AI 玩法示意图；夜航电台总览来自程序实际渲染。*
+
+## 一眼看完全部皮肤
+
+![十个系列的原创像素风景](assets/images/fortune-ten-collections.png)
+
+[查看全部 320 款皮肤总览](assets/images/fortune-skins-overview.png)。
+
+将[完整互动图库](assets/fortune/skin-gallery.html)在本地浏览器中打开，可看全部 320 张签名卡、
+切换六组配色、按系列或小伙伴筛选，并点击放大。下载时保留旁边的图片目录；
+图库包含全部 1920 张已经完成的程序渲染。已有签名保留原画面，主动换肤或再抽才进入新图库。
 
 ## 五步上手
 
@@ -58,14 +70,14 @@
 
 以下预览来自程序的主机渲染，使用实际字体、排版和圆角屏幕遮罩；尚非真机照片。
 
-![四个系列的实际界面渲染](assets/images/fortune-ui-pixel-collection.png)
+![十个系列的实际界面渲染](assets/images/fortune-ui-pixel-collection.png)
 
 <p align="center">
   <img src="assets/images/fortune-ui-unwrap.gif" alt="实际渲染的拆信动效" width="240">
   <img src="assets/images/fortune-ui-pixel-motion.gif" alt="实际渲染的像素场景微动效" width="240">
 </p>
 
-*左侧拆信，右侧场景微动效；文字保持静止，便于阅读。*
+*左侧拆信，右侧场景微动效，使用仍兼容的原版画面演示；文字保持静止，便于阅读。*
 
 ## 构建与验证
 
@@ -75,7 +87,10 @@
 
 ```bash
 ./tools/validate.sh
-./tools/test_fortune_ui.sh
+./tools/test_fortune_ui.sh --skins
+python3 -m venv build/gallery-venv
+build/gallery-venv/bin/pip install Pillow==11.3.0
+build/gallery-venv/bin/python tools/render_fortune_gallery.py
 ```
 
 完整门禁生成并校验 `build/FoloToy-AI-Passport-full.bin`，从 **0x0** 刷写。
@@ -85,12 +100,14 @@
 | 检查 | 当前结果 |
 | --- | --- |
 | Build | **PASS**：完整门禁与合并镜像校验通过 |
-| Host tests | **PASS**：签库解码、抽签记录、持久化、字体、全部 2,112 条文字布局、按键与动画；全部 24,576 个实渲染基础画面的像素哈希不同 |
-| Device tests | **有限 PASS**：2026-10-03 经授权烧录，写入校验通过，启动观察 15 秒未见错误 |
+| Host tests | **PASS**：全部文字排版与控件字体、按键和动画、64 个换肤种子、全部 1920 个新外观渲染、旧存档兼容与旧画面像素一致 |
+| Device tests | 本次 320 款皮肤版本 **NOT RUN**；2026-10-03 首版通过烧录与启动观察 |
 | Unverified | 实体按键交互、真机中文可读性与裁切、动画流畅度、重启及写入断电后的签名恢复、闲置与唤醒、电量准确性、耗电和续航 |
 
 完整编码签库占 **57.3 KiB**；外观通过场景规则绘制，不存储整套背景图片，
-画布使用 **12,528 字节** RAM。存储测量与测试边界详见[产品与工程设计](docs/fortune-card.zh_CN.md)。
+画布使用 **12,528 字节** RAM。扩展后的应用固件为 **1,186,544 字节**，相比首版增加
+**47,568 字节（46.5 KiB）**，包含新增场景标题的字形。存档仍为 **312 字节**，图库 PNG
+不进入固件。存储测量与测试边界详见[产品与工程设计](docs/fortune-card.zh_CN.md)。
 
 ## 阅读与扩展
 
