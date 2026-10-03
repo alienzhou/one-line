@@ -1,0 +1,25 @@
+README.zh_CN.md
+  s_26dc6b056d30d4::t_bbdeeb46a976c1 3,5,7,9,11,15-34,37-38,42-84,92-94,98-101,104,108-120,122,124
+  s_26dc6b056d30d4::t_39b322beaf1cb5 13
+  s_26dc6b056d30d4::t_b979cd197ef05c 14
+README.md
+  s_26dc6b056d30d4::t_bbdeeb46a976c1 3,5,7,9,11,15-34,37-38,42-84,92-94,98-101,104,108-120,122,124
+  s_26dc6b056d30d4::t_39b322beaf1cb5 13
+  s_26dc6b056d30d4::t_dd5a74a799c368 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af96a550003f9bc69b988ebf14fdba8bf9abf25b",
+  "prompts": {},
+  "sessions": {
+    "s_26dc6b056d30d4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0fa86-d68e-7c20-81ed-4569b5be3056",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
