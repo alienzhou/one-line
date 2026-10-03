@@ -11,6 +11,10 @@ usage() {
 run_static_checks() {
     local actionlint_bin
     local test_dir
+    local linker_gc_flag="-Wl,--gc-sections"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        linker_gc_flag="-Wl,-dead_strip"
+    fi
 
     python3 tools/check_repo.py
 
@@ -24,6 +28,15 @@ run_static_checks() {
     "${actionlint_bin}" -color .github/workflows/*.yml
 
     test_dir="$(mktemp -d /tmp/ai-passport-host-tests.XXXXXX)"
+    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
+        tests/test_fortune_model.c main/fortune_model.c main/fortune_data.c \
+        -o "${test_dir}/test_fortune_model"
+    "${test_dir}/test_fortune_model"
+    PYTHONDONTWRITEBYTECODE=1 python3 tests/test_fortune_inventory.py
+    "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -Imain \
+        tests/test_fortune_pixels.c main/fortune_pixels.c \
+        -o "${test_dir}/test_fortune_pixels"
+    "${test_dir}/test_fortune_pixels"
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
         tests/test_ui_pixel_math.c main/ui_pixel_math.c \
         -o "${test_dir}/test_ui_pixel_math"
@@ -57,7 +70,7 @@ run_static_checks() {
     for demo in audio low_power ble wifi; do
         "${CC:-cc}" -std=c11 -Wall -Wextra -Werror \
             -ffunction-sections -fdata-sections -Itests/demo_stubs -Imain \
-            "tests/test_demo_${demo}_runtime.c" -Wl,--gc-sections \
+            "tests/test_demo_${demo}_runtime.c" "${linker_gc_flag}" \
             -o "${test_dir}/test_demo_${demo}_runtime"
         "${test_dir}/test_demo_${demo}_runtime"
     done

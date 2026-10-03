@@ -200,6 +200,12 @@ LICENSE                  Repository license
 
 ## Documentation index
 
+Application design: [One Fortune product and engineering design](fortune-card.md)
+— 2112 complete fortunes, four pixel-art collections, letter-opening animation,
+storage measurements, controls, validation, and the longer-term 10001+ expansion.
+The fork's [application README](../README.md) provides a short illustrated
+introduction, quick start, and actual rendered interface previews.
+
 Engineering and contribution guides define the rules; examples and archives
 provide reference material. Choose the entry that matches your task.
 

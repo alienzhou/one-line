@@ -1,0 +1,11 @@
+{
+  "stage": "pixel-collection-2k",
+  "independent_records": 2112,
+  "release_ready": true,
+  "utf8_bytes": 86490,
+  "packed_text_bytes": 38674,
+  "dictionary_bytes": 3116,
+  "index_metadata_bytes": 16896,
+  "bits_per_character": 11,
+  "corpus_id": 3420887641
+}
