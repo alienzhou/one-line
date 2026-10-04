@@ -6,7 +6,7 @@
 
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
-[Community play](https://ai-passport.folotoy.cn/plays/community-aeba5ed2/) · project **914**.
+[Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
 Submitted revision **1962** (firmware source `38ad745`) is **pending review**;
 public revision **1942** remains available. Description, five-step instructions,
 and this update's release notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the complete text.

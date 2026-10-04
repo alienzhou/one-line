@@ -6,7 +6,7 @@
 
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="一签新版社区封面，玩法示意" width="320"></p>
 
-[社区玩法](https://ai-passport.folotoy.cn/plays/community-aeba5ed2/) · 项目 **914**。
+[社区玩法](https://ai-passport.folotoy.cn/plays/914/) · 项目 **914**。
 本次提交版本 **1962**（固件代码 `38ad745`）为**待审核**；当前公开版本仍为 **1942**。
 简介、五步使用方法和本次更新日志分别提交，[中英文发布资料](assets/fortune/community-copy.json)保留完整文本。
 
