@@ -11,13 +11,13 @@
 #define CHUNK 160U
 #define IDLE_MS 2500U
 #define QUIET_MS 1000U
-#define VOLUME 60U
 typedef struct { fortune_sound_t sound; unsigned variant; uint32_t quiet_ticket; } command_t;
 static const char *TAG="fortune_audio";
 static QueueHandle_t s_mailbox;
 static SemaphoreHandle_t s_quiet;
 static atomic_bool s_enabled, s_paused, s_failed;
 static atomic_uint s_ack, s_requested;
+static atomic_uint s_volume=FORTUNE_VOLUME_DEFAULT;
 static uint32_t s_ticket;
 
 static void audio_worker(void *argument) {
@@ -25,6 +25,7 @@ static void audio_worker(void *argument) {
     bool initialized=false, opened=false, sleeping=false;
     command_t current={0}, next;
     uint32_t offset=0;
+    unsigned applied_volume=0;
     int16_t pcm[CHUNK], last=0;
     for(;;) {
         bool playing=offset<fortune_sound_samples(current.sound);
@@ -46,6 +47,7 @@ static void audio_worker(void *argument) {
                     /* 100 ms of zero PCM drains the BSP's <=90 ms DMA queue. */
                     for(unsigned i=0;i<10;++i) if(bsp_audio_write(pcm,sizeof(pcm))!=ESP_OK) break;
                     bsp_audio_set_volume(0);
+                    applied_volume=0;
                     if(bsp_audio_sleep()!=ESP_OK) atomic_store(&s_failed,true);
                     opened=false; sleeping=true;
                 }
@@ -61,12 +63,12 @@ static void audio_worker(void *argument) {
             }
             if(result==ESP_OK && !opened) {
                 bsp_audio_set_volume(0);
+                applied_volume=0;
                 result=sleeping?bsp_audio_wake():bsp_audio_set_format(FORTUNE_SOUND_HZ,16,1);
                 if(result==ESP_OK) {
                     opened=true; sleeping=false;
                     memset(pcm,0,sizeof(pcm));
                     result=bsp_audio_write(pcm,sizeof(pcm));
-                    bsp_audio_set_volume(VOLUME);
                 }
             }
             if(result!=ESP_OK) {
@@ -75,9 +77,12 @@ static void audio_worker(void *argument) {
                 if(initialized) { (void)bsp_audio_sleep(); sleeping=true; opened=false; }
                 continue;
             }
+            unsigned volume=atomic_load(&s_volume);
+            if(applied_volume!=volume) { bsp_audio_set_volume((uint8_t)volume); applied_volume=volume; }
             atomic_store(&s_failed,false);
         } else if(!playing && opened) {
             bsp_audio_set_volume(0);
+            applied_volume=0;
             if(bsp_audio_sleep()!=ESP_OK) atomic_store(&s_failed,true);
             opened=false; sleeping=true;
         }
@@ -111,6 +116,11 @@ void fortune_audio_play(fortune_sound_t sound,unsigned variant) {
 void fortune_audio_enable(bool enabled) {
     atomic_store(&s_enabled,enabled);
     if(!enabled && s_mailbox) { command_t stop={0}; xQueueOverwrite(s_mailbox,&stop); }
+}
+void fortune_audio_volume(uint8_t percent) {
+    unsigned volume=percent<FORTUNE_VOLUME_MIN?FORTUNE_VOLUME_MIN:
+                    percent>FORTUNE_VOLUME_MAX?FORTUNE_VOLUME_MAX:percent;
+    atomic_store(&s_volume,volume);
 }
 bool fortune_audio_failed(void) { return atomic_load(&s_failed); }
 bool fortune_audio_quiet(void) {

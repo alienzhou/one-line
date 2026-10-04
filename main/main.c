@@ -26,6 +26,8 @@ static int s_battery = -1;
 static const char *s_notice;
 static bool s_unwrap_requested;
 static bool s_sound_enabled=true;
+static uint8_t s_volume=FORTUNE_VOLUME_DEFAULT, s_volume_candidate;
+static bool s_volume_open;
 static uint8_t s_storage_bytes[48+FORTUNE_SEEN_BYTES];
 typedef struct { bsp_btn_t key; bsp_btn_ev_t event; } input_t;
 
@@ -35,6 +37,7 @@ static bool store(const fortune_state_t *state) {
     size_t n = fortune_encode_state(state, s_storage_bytes, sizeof(s_storage_bytes));
     esp_err_t err = n ? nvs_set_blob(s_nvs, "state", s_storage_bytes, n) : ESP_ERR_INVALID_ARG;
     if (err == ESP_OK) err = nvs_set_u8(s_nvs, "sound", s_sound_enabled?1:0);
+    if (err == ESP_OK) err = nvs_set_u8(s_nvs, "volume", s_volume);
     if (err == ESP_OK) err = nvs_commit(s_nvs);
     fortune_audio_resume();
     if (err != ESP_OK) ESP_LOGE(TAG, "Save failed: %s", esp_err_to_name(err));
@@ -42,6 +45,7 @@ static bool store(const fortune_state_t *state) {
 }
 
 static void load(void) {
+    s_sound_enabled=true; s_volume=FORTUNE_VOLUME_DEFAULT;
     fortune_defaults(&s_state, esp_random() ^ (uint32_t)esp_timer_get_time());
     esp_err_t err = nvs_flash_init();
     /* Do not erase existing user data to recover this app's storage. */
@@ -50,6 +54,9 @@ static void load(void) {
     if (!s_storage_ready) { s_save_error = true; return; }
     uint8_t sound=1;
     if (nvs_get_u8(s_nvs,"sound",&sound)==ESP_OK && sound<=1) s_sound_enabled=sound!=0;
+    uint8_t volume=FORTUNE_VOLUME_DEFAULT;
+    if (nvs_get_u8(s_nvs,"volume",&volume)==ESP_OK && volume>=FORTUNE_VOLUME_MIN &&
+        volume<=FORTUNE_VOLUME_MAX && volume%FORTUNE_VOLUME_STEP==0) s_volume=volume;
     size_t n = sizeof(s_storage_bytes);
     err = nvs_get_blob(s_nvs, "state", s_storage_bytes, &n);
     if (err == ESP_ERR_NVS_NOT_FOUND) return;
@@ -61,16 +68,46 @@ static void load(void) {
 
 static void render(void) {
     if (!bsp_lvgl_lock(1000)) return;
-    fortune_ui_sound_enabled(s_sound_enabled);
+    fortune_ui_sound_enabled(s_volume_open || s_sound_enabled);
     fortune_ui_update(&s_state, s_page, s_battery,
         s_input_error ? FT_INPUT_ERROR : s_save_error ? FT_SAVE_ERROR :
         s_sound_enabled && fortune_audio_failed() ? FT_SOUND_ERROR : s_notice);
+    fortune_ui_volume(s_volume_open,s_volume_candidate,
+        s_save_error?FT_SAVE_ERROR:fortune_audio_failed()?FT_SOUND_ERROR:NULL);
     if (s_unwrap_requested) { fortune_ui_begin_reveal(); s_unwrap_requested = false; }
     bsp_lvgl_unlock();
 }
 
 static void save_after_change(void) {
     s_save_error = !store(&s_state);
+}
+
+static void preview_volume(void) {
+    fortune_audio_volume(s_volume_candidate);
+    fortune_audio_enable(true);
+    fortune_card_t card=s_page==FORTUNE_SHOWCASE?s_state.pinned:s_state.current;
+    fortune_audio_play(FORTUNE_SOUND_SKIN,card.art);
+}
+
+static void volume_input(input_t in) {
+    if(in.event==BSP_BTN_LONG && in.key==BSP_BTN_OK) {
+        s_volume_open=false;
+        fortune_audio_enable(false); /* Cancel the preview even if sound was enabled. */
+        fortune_audio_volume(s_volume); fortune_audio_enable(s_sound_enabled);
+    } else if(in.event==BSP_BTN_CLICK && in.key==BSP_BTN_OK) {
+        uint8_t previous=s_volume; bool enabled=s_sound_enabled;
+        s_volume=s_volume_candidate; s_sound_enabled=true;
+        save_after_change();
+        if(s_save_error) { s_volume=previous; s_sound_enabled=enabled; }
+        else { s_volume_open=false; s_notice=FT_VOLUME_SAVED; preview_volume(); }
+    } else if(in.event==BSP_BTN_CLICK) {
+        if(in.key==BSP_BTN_UP && s_volume_candidate<FORTUNE_VOLUME_MAX)
+            s_volume_candidate+=FORTUNE_VOLUME_STEP;
+        else if(in.key==BSP_BTN_DOWN && s_volume_candidate>FORTUNE_VOLUME_MIN)
+            s_volume_candidate-=FORTUNE_VOLUME_STEP;
+        preview_volume();
+    }
+    render();
 }
 
 static void process(input_t in) {
@@ -81,6 +118,7 @@ static void process(input_t in) {
         if (opening) return; /* A repeated key must not consume another unseen record. */
     } else return;
     s_notice = NULL;
+    if(s_volume_open) { volume_input(in); return; }
     if (in.event == BSP_BTN_LONG) {
         if (in.key == BSP_BTN_OK) {
             if (s_page != FORTUNE_HOME) s_page = FORTUNE_HOME;
@@ -94,6 +132,8 @@ static void process(input_t in) {
             fortune_audio_enable(s_sound_enabled); save_after_change();
             s_notice=s_sound_enabled?FT_SOUND_ON:FT_SOUND_OFF;
             if(s_sound_enabled) fortune_audio_play(FORTUNE_SOUND_SKIN,s_state.current.art);
+        } else if (in.key == BSP_BTN_UP && s_page != FORTUNE_HOME) {
+            s_volume_open=true; s_volume_candidate=s_volume; preview_volume();
         } else if (in.key == BSP_BTN_UP && fortune_remaining(&s_state) == 0) {
             fortune_reset_deck(&s_state); save_after_change();
             s_page = FORTUNE_HOME; s_notice = "已重新洗牌";
@@ -168,6 +208,7 @@ void app_main(void) {
     s_battery_ready = bsp_battery_init() == ESP_OK;
     s_battery = s_battery_ready ? bsp_battery_soc() : -1;
     (void)fortune_audio_start(s_sound_enabled);
+    fortune_audio_volume(s_volume);
     if(bsp_lvgl_lock(1000)) { fortune_ui_sound_callback(fortune_audio_play); bsp_lvgl_unlock(); }
     s_inputs = xQueueCreate(8, sizeof(input_t));
     if (!s_inputs || bsp_button_init(on_key, NULL) != ESP_OK) s_input_error = true;

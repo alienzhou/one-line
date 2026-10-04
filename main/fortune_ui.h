@@ -16,3 +16,5 @@ void fortune_ui_finish_reveal(void);
 /* Callback must only post an event; it is invoked under the LVGL lock. */
 void fortune_ui_sound_callback(void (*callback)(fortune_sound_t, unsigned));
 void fortune_ui_sound_enabled(bool enabled);
+/* Uses the current card's artwork; call after fortune_ui_update under the lock. */
+void fortune_ui_volume(bool visible,unsigned percent,const char *notice);

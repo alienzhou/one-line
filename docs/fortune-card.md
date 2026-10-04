@@ -127,7 +127,7 @@ changing that metadata does not manufacture missing content.
 | Ten-collection application image | **1186544 bytes** |
 | Sound application image | **1252592 bytes** |
 | Sound increase, including playback support | **66048 bytes / 64.5 KiB** |
-| Sound preference, stored separately | **1-byte value** |
+| Sound preferences, stored separately | **Two 1-byte values (mute and volume)** |
 
 Measured with the complete ESP-IDF 5.5.3 gate on 2026-10-04. The 1920 gallery
 images and seven audition WAVs are development previews and are not linked into
@@ -152,8 +152,8 @@ LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 | --- | --- | --- | --- | --- |
 | Mood selection | Previous mood | Next mood | Draw | DOWN changes voice; OK opens saved signature; UP resets only an exhausted filter |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
-| Draw result | Draw again | New appearance | Save as signature | DOWN toggles sound; OK returns to selection |
-| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | DOWN toggles sound; OK returns to selection |
+| Draw result | Draw again | New appearance | Save as signature | UP opens volume; DOWN toggles sound; OK returns to selection |
+| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | UP opens volume; DOWN toggles sound; OK returns to selection |
 
 An affine permutation plus a persistent seen bitset avoids repeating texts across
 filter changes. Exhaustion requires explicit reshuffling. Appearance IDs have their
@@ -188,8 +188,12 @@ Each note has an 8 ms attack and a decaying envelope, and each cue ends with
 silence. `fortune_audio.c` owns one 4096-byte worker stack plus a single-slot
 mailbox and a stop acknowledgement; it reuses `bsp_audio_*` without changing BSP,
 pins, codec clocks, partitions, or the dependency lock. The existing BSP allocates
-its I2S DMA buffers when first needed. Device output volume is 60 percent; physical
-loudness remains unmeasured.
+its I2S DMA buffers when first needed. Default output volume is 80 percent after the first device audition found
+60 percent too quiet. Hold UP on a result or signature card to adjust 10–100%
+in 10% steps, previewing a short cue. OK saves and enables sound; hold OK
+cancels and restores the previous volume/mute state. Preview does not write NVS
+or alter the card/deck. A failed save leaves the panel open for retry. The audio
+worker applies gain at a cue boundary; no input callback touches the codec.
 
 New events replace queued older effects. Only the audio worker initializes,
 formats, writes, adjusts volume, sleeps, or wakes audio. Before any NVS write,
@@ -202,8 +206,9 @@ This is codec software suspend, not whole-device deep sleep or a claim about
 measured current. The externally powered amplifier remains outside software control.
 
 Sound starts enabled. Hold DOWN on a result or signature card to toggle it; the
-muted state is visible in the title. A separate NVS `sound` byte defaults to on
-for old saves; the 312-byte card format and existing signatures remain compatible.
+muted state is visible in the title. Separate NVS `sound` and `volume` bytes default to enabled and 80%
+for old saves; invalid/out-of-range volume values also use 80%. The 312-byte card
+format and existing signatures remain compatible. Mute preserves the selected volume.
 Audio failures leave drawing and saving available and show a short notice; later
 play requests retry the BSP path. No microphone capture is used.
 
@@ -221,7 +226,7 @@ scene/skin block coverage, different adjacent scenes, and a synthetic save encod
 by the original `38ded1a` model. A whole-bank pixel fingerprint at three animation
 phases confirms unchanged rendering of every legacy ID.
 The pixel renderer additionally passed AddressSanitizer and UndefinedBehaviorSanitizer.
-Input tests exercise the actual application controls, muted-setting reload, legacy
+Input tests exercise the actual application controls, volume preview/save/cancel/clamping/reload, failed-save retry, muted-setting reload, legacy
 defaults, voice selection, stop timeouts and failed-save silence.
 Audio tests exercise all 16 scores for bounded peaks/DC, silent tails, unique
 samples and arbitrary chunk boundaries. A threaded test runs the actual audio
@@ -248,7 +253,11 @@ These are host renders, not photographs.
 The current delivery identity and test status are in ignored `build/delivery.json`.
 The verified merged `build/FoloToy-AI-Passport-full.bin` is for offset **0x0**;
 its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
-A merged flash can reset existing NVS data. **Device tests: NOT RUN for this sound revision.**
+A merged flash can reset existing NVS data. **Device tests: NOT RUN for the adjustable-volume revision.**
+The first audio version `881fb43` passed segmented write and hash verification
+and a 20-second matching startup on 2026-10-04: free heap 216740 bytes, largest
+block 114688 bytes. The user confirmed audible sound but found 60% too quiet.
+The current control is the follow-up; its loudness and persistence need acceptance.
 The earlier 320-skin revision passed segmented write, hash verification and a
 15-second startup observation on 2026-10-04.
 The verified component images were written without touching NVS. The matching application completed initialization, with 223164 bytes of free heap and a largest free block of 114688 bytes. Screen and button acceptance remain unverified. The first release was flashed with user approval on 2026-10-03 and passed

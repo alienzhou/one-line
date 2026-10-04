@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
     assert(s_reveal_count==2); /* Skip produces one reveal, never a delayed duplicate. */
     assert(!strcmp(expected,lv_label_get_text(lv_obj_get_child(lv_screen_active(),2))));
     const char *notices[] = {FT_SAVE_ERROR,FT_INPUT_ERROR,FT_NO_PIN,FT_EXHAUSTED_HINT,
-        FT_SOUND_ON,FT_SOUND_OFF,FT_SOUND_ERROR,"旧存档不兼容，已使用新签库","已重新洗牌"};
+        FT_SOUND_ON,FT_SOUND_OFF,FT_SOUND_ERROR,FT_VOLUME_SAVED,"旧存档不兼容，已使用新签库","已重新洗牌"};
     for (unsigned i=0;i<sizeof(notices)/sizeof(notices[0]);++i) {
         fortune_ui_update(&s,FORTUNE_HOME,-1,notices[i]); lv_obj_update_layout(lv_screen_active()); check_labels();
     }
@@ -174,6 +174,13 @@ int main(int argc, char **argv) {
     s.pinned=s.current; fortune_ui_update(&s,FORTUNE_SHOWCASE,88,FT_SOUND_OFF);
     snapshot(argv[1],"sound-muted"); check_labels();
     fortune_ui_sound_enabled(true);
+    for(unsigned volume=10;volume<=100;volume+=10) {
+        fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);
+        fortune_ui_volume(true,volume,NULL); lv_obj_update_layout(lv_screen_active()); check_labels();
+        if(volume==80) snapshot(argv[1],"sound-volume");
+    }
+    fortune_ui_volume(true,100,FT_SAVE_ERROR); lv_obj_update_layout(lv_screen_active()); check_labels();
+    fortune_ui_volume(false,80,NULL); fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);
     bool gallery=argc==3 && !strcmp(argv[2],"--skins");
     FILE *catalog=NULL;
     if(gallery) {

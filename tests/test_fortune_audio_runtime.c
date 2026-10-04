@@ -18,6 +18,7 @@ static void (*task_entry)(void *);
 static void *task_argument;
 static atomic_bool stopping,hold_write,device_open;
 static atomic_uint writes,sleeps,wakes,nonzero_writes,fail_stage;
+static atomic_uint device_volume;
 static unsigned allocation_failure;
 static int16_t captured[100000]; static size_t captured_count;
 static void delay_us(long us) { struct timespec t={us/1000000,(us%1000000)*1000}; nanosleep(&t,NULL); }
@@ -71,7 +72,7 @@ esp_err_t bsp_audio_set_format(uint32_t hz,uint8_t bits,uint8_t channels) {
 }
 esp_err_t bsp_audio_wake(void) { owner(); atomic_fetch_add(&wakes,1); if(fail(3)) return ESP_FAIL; atomic_store(&device_open,true); return ESP_OK; }
 esp_err_t bsp_audio_sleep(void) { owner(); atomic_fetch_add(&sleeps,1); atomic_store(&device_open,false); return ESP_OK; }
-void bsp_audio_set_volume(uint8_t volume) { owner(); assert(volume==0 || volume==60); }
+void bsp_audio_set_volume(uint8_t volume) { owner(); assert(volume<=100); atomic_store(&device_volume,volume); }
 esp_err_t bsp_audio_write(const void *pcm,size_t bytes) {
     owner(); assert(atomic_load(&device_open)); assert(bytes>0 && bytes<=320 && bytes%2==0);
     atomic_fetch_add(&writes,1);
@@ -112,6 +113,22 @@ int main(void) {
     assert(found); /* Latest skin cue replaces the thirty queued reveals. */
     unsigned before=atomic_load(&writes); fortune_audio_play(FORTUNE_SOUND_KEEP,0); delay_us(10000);
     assert(atomic_load(&writes)==before); fortune_audio_resume();
+    /* Live cue replacement and wake apply the selected volume on the sole audio owner. */
+    fortune_audio_volume(30); before=atomic_load(&nonzero_writes);
+    fortune_audio_play(FORTUNE_SOUND_OPEN,0); until_at_least(&nonzero_writes,before+2);
+    assert(atomic_load(&device_volume)==30);
+    fortune_audio_volume(100); before=atomic_load(&nonzero_writes);
+    fortune_audio_play(FORTUNE_SOUND_OPEN,1); until_at_least(&nonzero_writes,before+3);
+    assert(atomic_load(&device_volume)==100);
+    assert(fortune_audio_quiet()); fortune_audio_resume();
+    fortune_audio_volume(0); before=atomic_load(&nonzero_writes);
+    fortune_audio_play(FORTUNE_SOUND_OPEN,0); until_at_least(&nonzero_writes,before+2);
+    assert(atomic_load(&device_volume)==10);
+    assert(fortune_audio_quiet()); fortune_audio_resume();
+    fortune_audio_volume(255); before=atomic_load(&nonzero_writes);
+    fortune_audio_play(FORTUNE_SOUND_OPEN,0); until_at_least(&nonzero_writes,before+2);
+    assert(atomic_load(&device_volume)==100);
+    assert(fortune_audio_quiet()); fortune_audio_resume(); fortune_audio_volume(80);
     fortune_audio_enable(false); assert(fortune_audio_quiet()); fortune_audio_resume();
     before=atomic_load(&writes); fortune_audio_play(FORTUNE_SOUND_REVEAL,0); delay_us(10000); assert(atomic_load(&writes)==before);
     fortune_audio_enable(true); fortune_audio_play(FORTUNE_SOUND_SKIN,0);

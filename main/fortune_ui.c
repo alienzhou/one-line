@@ -27,6 +27,8 @@ static char s_final_quote[128],s_final_caption[128],s_final_help[128],s_final_hi
 static lv_timer_t *s_timer;
 static void (*s_sound_callback)(fortune_sound_t,unsigned);
 static bool s_sound_enabled=true;
+static bool s_volume_visible;
+static unsigned s_volume_percent;
 void fortune_ui_sound_callback(void (*callback)(fortune_sound_t,unsigned)) { s_sound_callback=callback; }
 void fortune_ui_sound_enabled(bool enabled) { s_sound_enabled=enabled; }
 
@@ -68,6 +70,16 @@ static void artwork(lv_event_t *event) {
     d.src=&s_image; d.scale_x=d.scale_y=512; d.pivot.x=d.pivot.y=0; d.antialias=0;
     lv_area_t a={12,38,12+FORTUNE_PIXEL_W-1,38+FORTUNE_PIXEL_H-1};
     lv_draw_image(lv_event_get_layer(event),&d,&a);
+    if(s_volume_visible) {
+        fortune_colors_t p=fortune_pixel_colors(s_id);
+        lv_draw_rect_dsc_t bar; lv_draw_rect_dsc_init(&bar);
+        for(unsigned i=0;i<10;++i) {
+            bar.bg_color=lv_color_hex(i<s_volume_percent/10?p.ink:p.muted);
+            bar.bg_opa=i<s_volume_percent/10?LV_OPA_COVER:LV_OPA_30;
+            lv_area_t segment={22+(int)i*20,237,38+(int)i*20,252};
+            lv_draw_rect(lv_event_get_layer(event),&bar,&segment);
+        }
+    }
 }
 
 /* Called only under LVGL's lock. Each tick invalidates the illustration, never text. */
@@ -117,7 +129,7 @@ static void timer_tick(lv_timer_t *timer) {
 }
 static void cleanup(lv_event_t *event) {
     lv_timer_t *timer=lv_event_get_user_data(event); lv_timer_delete(timer); s_root=NULL;
-    s_timer=NULL; s_sound_callback=NULL; s_revealing=false;
+    s_timer=NULL; s_sound_callback=NULL; s_revealing=false; s_volume_visible=false;
 }
 static lv_obj_t *label(int x,int y,int width,const lv_font_t *font) {
     lv_obj_t *o=lv_label_create(s_root); if(!o) return NULL;
@@ -190,4 +202,16 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
         lv_label_set_text(s_hint,notice?notice:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);
     }
     lv_obj_invalidate(s_root);
+}
+void fortune_ui_volume(bool visible,unsigned percent,const char *notice) {
+    bool changed=s_volume_visible!=visible;
+    s_volume_visible=visible; s_volume_percent=percent;
+    if(visible) {
+        lv_label_set_text(s_meta,"一签 / 声音");
+        lv_label_set_text(s_caption,FT_VOLUME_CAPTION);
+        lv_label_set_text_fmt(s_quote,"音量 / %u%%",percent);
+        lv_label_set_text(s_help,FT_VOLUME_HELP);
+        lv_label_set_text(s_hint,notice?notice:FT_VOLUME_HINT);
+    }
+    if(visible || changed) lv_obj_invalidate(s_root);
 }

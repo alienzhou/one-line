@@ -61,6 +61,7 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | `images/skins/overview-0.png` 至 `overview-9.png` | 各 1086 × 1448，PNG | 十个系列的 32 款皮肤总览，程序渲染；MIT。 |
 | `images/skins/skin-000-0.png` 至 `skin-319-5.png` | 各 240 × 320，PNG | 全部 320 × 6 张完整签名卡，实际 LVGL 渲染；MIT。 |
 | [`images/fortune-ui-pixel-collection.png`](images/fortune-ui-pixel-collection.png) | 1200 × 700，PNG | 实际 LVGL 主机渲染的十张卡片合集。 |
+| [`images/fortune-volume.png`](images/fortune-volume.png) | 240 × 320，PNG | 实际 LVGL 主机渲染的音量面板；MIT，由 `tools/test_fortune_ui.sh` 生成，非实机照片。 |
 | [`images/fortune-ui-unwrap.gif`](images/fortune-ui-unwrap.gif) | 240 × 320，GIF | 实际主机渲染的拆信过程。 |
 | [`images/fortune-ui-pixel-motion.gif`](images/fortune-ui-pixel-motion.gif) | 240 × 320，GIF | 实际主机渲染的场景微动效。 |
 
