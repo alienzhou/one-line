@@ -8,10 +8,13 @@ from pack_fortunes import ROOT, load_records
 
 
 def inventory():
-    _, records = load_records(ROOT / 'assets/fortune/corpus.json')
+    document, records = load_records(ROOT / 'assets/fortune/corpus.json')
+    _, legacy = load_records(ROOT / 'assets/fortune/legacy-corpus.json')
     chars = set(range(32, 127))
-    for _, _, text in records:
+    for _, _, text in records + legacy:
         chars.update(map(ord, text))
+    for citation in document.get('citations', {}).values():
+        chars.update(map(ord, citation['display']))
     for path in (ROOT / 'main').glob('fortune_*.[ch]'):
         if path.name in ('fortune_data.c', 'fortune_data.h'):
             continue

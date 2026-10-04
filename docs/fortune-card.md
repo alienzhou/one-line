@@ -1,24 +1,24 @@
 [简体中文](fortune-card.zh_CN.md) · **English**
 
-# One Fortune: pixel collection
+# One Fortune: eight-theme pixel collection
 
-This iteration implements the user's later **2000+ complete-text milestone**:
-2112 individually authored sentences, 88 for each of 8 moods × 3 voices.
-The original request for more than 10000 independently authored sentences is
-still a longer-term expansion, not satisfied by visual combinations. The three
-voices are warm with agency, internet humor, and restrained poetry. Mood selection
-includes an unfiltered option. Content lives in `assets/fortune/corpus.json`.
+There are **2200 complete records**: 1980 original lines and 220 classical
+Chinese poetry excerpts. This update adds 1540 original lines and retains 440
+reassurance notes. Poetry displays its author and work title. Home selects a
+theme, with chance mode mixing the entire corpus. The original 10001+ target
+remains future work. Sources are `assets/fortune/corpus.json` and the checked
+`assets/fortune/poetry-sources.json`.
 
 ## Product
 
 Give someone under everyday pressure a sentence they can keep as a personal
-signature. Choose a mood, draw a letter, change its appearance if desired, and
+signature. Choose a theme, draw a letter, change its appearance if desired, and
 keep one card. Drawing does not replace the pinned signature; confirming does.
 Reboot opens the saved signature. The public card shows its collection and text,
 not the mood that led the user to draw it.
 
 No account, network, payment, daily quota, streak, rarity ranking, bad-luck draw,
-or guaranteed prediction is used. Audio and radio stacks remain off. Text is
+or guaranteed prediction is used. Radio stacks remain off; audio plays on demand. Text is
 written as complete sentences; no sentence parts are combined at runtime.
 
 ### 320 combinatorial pixel skins
@@ -33,8 +33,8 @@ written as complete sentences; no sentence parts are combined at runtime.
 Art is rendered at **108 × 58 RGB565**, scaled exactly 2× with antialiasing off.
 The illustration occupies (12,38)–(227,153) on the 240 × 320 panel. Chinese text
 uses separate 20 px type; labels use 12 px. The type remains still. Explicit
-wrapping uses measured glyph widths, favors short clauses, and keeps closing
-Chinese punctuation off line starts without changing source bytes.
+wrapping uses measured glyph widths, uses bounded dynamic programming to favor balanced clauses, avoid
+one-character tails, and keep closing punctuation off line starts without changing source bytes.
 
 There are **80 scene compositions × 4 subjects = 320 skins**. The four subjects
 are a cat with a lamp, a traveler with a lantern, a robot with a radio, and a rabbit
@@ -61,9 +61,15 @@ These are pseudorandom entertainment choices, not cryptographic randomness.
 The former 24576 IDs are retained only to render existing saved cards unchanged.
 New draws and appearance changes use the new 1920-ID bank. This is why a saved
 signature can initially show its old artwork until the user explicitly changes it.
-The 312-byte save layout and text corpus identity remain unchanged; the old cursor
-is converted lazily on the first appearance change. Downgrading to the old firmware
-cannot read new appearance IDs. A merged 0x0 flash may still reset NVS.
+This update changes the card save from 312 to 323 bytes and imports the old
+corpus fingerprint 3420887641. Existing current/pinned records use a separate
+legacy ID namespace, preserving their exact words and art. The 440 retained
+records import their old seen bits; new content starts unread. Old mood filters
+become reassurance, chance remains chance, and the artwork cursor is retained.
+The old bank serves existing cards only, never new draws. Separate NVS mute and
+volume keys are unchanged. Compatibility covers the identified old and current
+banks, not arbitrary future banks or downgrades. A merged 0x0 write can still
+reset NVS; this upgrade should use verified components with the same layout.
 
 The [complete interactive gallery](../assets/fortune/skin-gallery.html) contains
 all 320 skins in all six palettes, captured from the actual application renderer.
@@ -101,56 +107,70 @@ not evidence of therapeutic efficacy. Every drawing is local procedural code.
 
 ## Content and memory
 
-All 2112 records were authored as complete strings. The eight topics are depletion,
-boundaries, restarting, comparison, uncertainty, loneliness, small joys, and overload.
-The source has no exact duplicates; the longest current sentence is 21 characters.
-A near-text screen using character-bigram Jaccard ≥0.48 followed by sequence
-similarity >0.72 found no pairs. This detects close phrasing, not every repeated
-meaning. The voices and emotional themes deliberately recur; final reader
-preference and perceived repetition remain for user review.
+| Theme | Records | Proportion |
+| --- | ---: | ---: |
+| Gentle recharge | 440 | 20% |
+| Classical echoes | 220 | 10% |
+| Everyday observations | 330 | 15% |
+| Dry humor | 330 | 15% |
+| Surreal ideas | 330 | 15% |
+| Personal attitudes | 220 | 10% |
+| Relationship moments | 220 | 10% |
+| Small outings | 110 | 5% |
 
-`python3 tools/pack_fortunes.py --release` checks the source's explicit
-`production_minimum` (currently 2001). Host tests also require 2000+ records and
-roundtrip every byte through the C decoder. `long_term_target` records 10001;
-changing that metadata does not manufacture missing content.
+These are whole-corpus proportions, not guarantees for a small run of draws.
+Voices are straightforward, playful, and poetic. Voice cycling skips unavailable
+voices; selecting a theme falls back to any voice when the old voice is absent.
+Exhaustion requires changing filters or explicitly reshuffling.
 
-| Resource | Measured size |
+Original records are authored whole, without assembling sentence fragments.
+Classical excerpts use public-domain ancient works, checked against
+chinese-poetry commit `b8594f81a89752241442f2ce267d6f66f96704ee` for words,
+author, and title. opencc-python-reimplemented 0.1.7 converts Traditional to Simplified Chinese;
+punctuation is segmented for the excerpt. Normalized words must match the
+source. Full titles, context, pinned paths, and the collection's MIT license
+are retained. Long titles are abbreviated in the 12 px attribution label.
+
+There are no exact duplicate strings; the longest record is 24 characters.
+Bigram Jaccard ≥0.48 and sequence similarity >0.72 find no close-wording pairs.
+This does not prove semantic novelty; reader-perceived repetition remains open.
+`python3 tools/pack_fortunes.py --release` enforces the current 2001 minimum.
+Host checks roundtrip 2200 current and 2112 legacy strings, theme proportions,
+and all 220 poetry sources. The 10001 `long_term_target` is a target, not content.
+
+| Resource | Encoded size |
 | --- | ---: |
-| Original UTF-8 text, including terminators | 86490 bytes |
-| 11-bit packed code-point stream | 38674 bytes |
-| Character dictionary | 3116 bytes |
-| Record index and metadata | 16896 bytes |
-| Entire encoded text bank | **58686 bytes / 57.3 KiB** |
-| Pixel canvas, internal RAM | **12528 bytes** |
-| Serialized NVS state including seen bitset and CRC | **312 bytes** |
-| Original application image | **1138976 bytes** |
-| Ten-collection application image | **1186544 bytes** |
-| Sound application image | **1253840 bytes** |
-| Sound increase, including playback support | **67296 bytes / 65.7 KiB** |
-| Sound preferences, stored separately | **Two 1-byte values (mute and volume)** |
+| Current UTF-8 including terminators | 103669 bytes |
+| Current 11-bit character stream | 46507 bytes |
+| Current dictionary | 3808 bytes |
+| Current index and metadata | 17600 bytes |
+| Current encoded text subtotal | **67915 bytes / 66.3 KiB** |
+| Attribution strings and 32-bit pointers | 3744 bytes |
+| Old seen-record mapping | 4400 bytes |
+| Legacy text compatibility bank | **58686 bytes / 57.3 KiB** |
+| Read-only content total, before linker alignment | **134745 bytes / 131.6 KiB** |
+| Internal-RAM pixel canvas | **12528 bytes** |
+| NVS state including seen bitset and CRC | **323 bytes** |
+| Separate sound preferences | **Two one-byte values (mute and volume)** |
+| Current application image | Complete build measurement pending |
 
-Measured with the complete ESP-IDF 5.5.3 gate on 2026-10-04. The 1920 gallery
-images and seven audition WAVs are development previews and are not linked into
-firmware. Canvas RAM and the serialized card save size are unchanged.
-
-The decoder reads a single record into 128 bytes. It never assembles text and
-never loads the whole bank into RAM. The implementation supports up to 16384
-records. Subset fonts are generated from Noto Sans CJK SC Regular with
-`lv_font_conv 1.5.3`, 12/20 px, 4 bpp, with **1705 printable glyphs per size**.
-The source OTF is a development asset and is not embedded. License, source hash,
-and rebuilding instructions are in `assets/README.md`.
+Only one record is decoded into a 128-byte buffer; the entire bank is never
+loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
+`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2285 characters per
+size**, covering current/legacy text, attribution, and UI literals. The OTF,
+1920 gallery PNGs, and audition WAVs are excluded from firmware. Sources and
+regeneration are in `assets/README.md`.
 
 ## Firmware and controls
 
-The sound extension uses `codex/fortune-sound`, based on the ten-collection
-application at `dbc22f8`. Earlier skin work used `codex/fortune-skins`; the original
-checkout's unrelated edits were preserved. BSP is reused unchanged. Demo screens
+This update uses `codex/fortune-themes`, based on adjustable-volume `4da25a0`,
+preserving earlier changes. BSP is reused unchanged. Demo screens
 are not linked. Target remains ESP32-C3, 8 MB Flash, no PSRAM, ESP-IDF 5.5.3,
 LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 
 | Page | UP | DOWN | OK | Long press |
 | --- | --- | --- | --- | --- |
-| Mood selection | Previous mood | Next mood | Draw | DOWN changes voice; OK opens saved signature; UP resets only an exhausted filter |
+| Theme selection | Previous theme | Next theme | Draw | DOWN changes voice; OK opens saved signature; UP resets only an exhausted filter |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
 | Draw result | Draw again | New appearance | Save as signature | UP opens volume; DOWN toggles sound; OK returns to selection |
 | Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | UP opens volume; DOWN toggles sound; OK returns to selection |
@@ -164,9 +184,9 @@ Button callbacks enqueue bounded messages. The worker owns application state and
 NVS writes; all non-LVGL-task UI access holds the BSP lock. The LVGL timer handles
 art and posts nonblocking sound events; it is deleted with its screen. Draw history is committed before reveal.
 Save errors explicitly report that changes may be lost; NVS is never erased as
-error recovery. State is explicitly encoded and checksummed. A corpus fingerprint
-change currently resets the deck and pin, so stable-ID migration is required before
-promising future content upgrades will preserve saved signatures.
+error recovery. State is explicitly encoded and checksummed. Old and new banks have separate checked fingerprints; only the explicitly
+compatible format is imported. Unknown banks and corrupt saves are still rejected
+without erasing NVS.
 
 Backlight is 75% after input, 15% after 45 idle seconds, off after 120 seconds.
 The first event after darkness wakes without changing the card. This is display
@@ -207,8 +227,7 @@ measured current. The externally powered amplifier remains outside software cont
 
 Sound starts enabled. Hold DOWN on a result or signature card to toggle it; the
 muted state is visible in the title. Separate NVS `sound` and `volume` bytes default to enabled and 80%
-for old saves; invalid/out-of-range volume values also use 80%. The 312-byte card
-format and existing signatures remain compatible. Mute preserves the selected volume.
+for old saves; invalid/out-of-range volume values also use 80%. The 323-byte card format imports existing signatures. Mute preserves the selected volume.
 Audio failures leave drawing and saving available and show a short notice; later
 play requests retry the BSP path. No microphone capture is used.
 
@@ -253,22 +272,13 @@ These are host renders, not photographs.
 The current delivery identity and test status are in ignored `build/delivery.json`.
 The verified merged `build/FoloToy-AI-Passport-full.bin` is for offset **0x0**;
 its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
-A merged flash can reset existing NVS data. **Device tests: PASS for flashing and startup of adjustable volume `7db813f`.**
-Its three component hashes matched after segmented writing without touching NVS.
-A 20-second startup matched ELF `e94944f4b` with 216740 free heap bytes and
-a 114688-byte largest block, with no crash observed. Volume control and persistence
-still need user acceptance; raw evidence is in ignored `build/audio-volume/`.
-The first audio version `881fb43` passed segmented write and hash verification
-and a 20-second matching startup on 2026-10-04: free heap 216740 bytes, largest
-block 114688 bytes. The user confirmed audible sound but found 60% too quiet.
-The current control is the follow-up; its loudness and persistence need acceptance.
-The earlier 320-skin revision passed segmented write, hash verification and a
-15-second startup observation on 2026-10-04.
-The verified component images were written without touching NVS. The matching application completed initialization, with 223164 bytes of free heap and a largest free block of 114688 bytes. Screen and button acceptance remain unverified. The first release was flashed with user approval on 2026-10-03 and passed
-write verification and a 15-second clean startup observation. That result applies
-to the old firmware only; its record is in ignored `build/device-test-pixel.json`.
-The first community submission (project 914, revision 1910) also uses that prior
-image and is separate from this skin extension.
+A merged flash can reset NVS; this update's complete gate, flash, and startup
+results are pending. Prior adjustable-volume `7db813f` passed segmented hash
+verification and 20 seconds of startup, with 216740 free heap bytes and a
+114688-byte largest block. That result applies only to the prior firmware.
+The first audio version was audible but too quiet at 60%; 10–100% control
+followed. Volume operation and restart persistence still need user acceptance.
+Current raw evidence is kept in ignored `build/themes/`; binaries stay out of Git.
 
 Sound, visual and interaction acceptance
 still require user observation. Pending acceptance: speaker loudness, crackles and

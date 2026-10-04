@@ -1,39 +1,25 @@
 {
-  "corpus_sha256": "95762a489d30690151e0d3350eb0ab7da809ac6610c35d80ae9ec477fb1b8d67",
-  "records": 2112,
+  "corpus_sha256": "b6db971b23a744b6c482cd551d3f9b32385fc4d5029dd69182ed56c05215079c",
+  "records": 2200,
   "exact_duplicates": 0,
   "group_counts": {
-    "1/0": 88,
-    "1/1": 88,
-    "1/2": 88,
-    "2/0": 88,
-    "2/1": 88,
-    "2/2": 88,
-    "3/0": 88,
-    "3/1": 88,
-    "3/2": 88,
-    "4/0": 88,
-    "4/1": 88,
-    "4/2": 88,
-    "5/0": 88,
-    "5/1": 88,
-    "5/2": 88,
-    "6/0": 88,
-    "6/1": 88,
-    "6/2": 88,
-    "7/0": 88,
-    "7/1": 88,
-    "7/2": 88,
-    "8/0": 88,
-    "8/1": 88,
-    "8/2": 88
+    "1/0": 147,
+    "1/1": 147,
+    "1/2": 146,
+    "2/2": 220,
+    "3/2": 330,
+    "4/1": 330,
+    "5/1": 330,
+    "6/0": 220,
+    "7/2": 220,
+    "8/0": 110
   },
-  "max_characters": 21,
+  "max_characters": 24,
   "near_text_scan": {
     "bigram_jaccard_minimum": 0.48,
     "sequence_similarity_threshold": 0.72,
     "pairs_above_both_thresholds": 0,
     "pairs": []
   },
-  "method": "Complete sentences authored individually; no phrase assembly. Text-similarity checks do not establish semantic novelty or reader preference."
+  "method": "1980 individually authored complete sentences and 220 attributed classical excerpts; no phrase assembly. Text-similarity checks do not establish semantic novelty or reader preference."
 }

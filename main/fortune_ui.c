@@ -33,10 +33,12 @@ void fortune_ui_sound_callback(void (*callback)(fortune_sound_t,unsigned)) { s_s
 void fortune_ui_sound_enabled(bool enabled) { s_sound_enabled=enabled; }
 
 static bool closing(uint32_t cp) {
-    return cp==0xFF0C || cp==0x3002 || cp==0xFF01 || cp==0xFF1F || cp==0xFF1A || cp==0xFF1B;
+    return cp==0xFF0C || cp==0x3002 || cp==0xFF01 || cp==0xFF1F || cp==0xFF1A || cp==0xFF1B ||
+        cp==0x3001 || cp==0x201D || cp==0x300B || cp==0xFF09;
 }
 /* Explicit CJK wrapping keeps closing punctuation off the start of a line.
- * Short complete clauses are preferred; all source bytes remain intact. */
+ * Measured line breaks favor complete clauses and avoid a one-character tail.
+ * All source bytes remain intact; at most 32 characters, no heap allocation. */
 static void format_quote(const char *in,char out[128]) {
     unsigned offsets[33],count=0,pos=0; uint32_t points[32];
     while(in[pos] && count<32) {
@@ -45,19 +47,25 @@ static void format_quote(const char *in,char out[128]) {
         else if(cp>=0xC0) { cp=(cp&31)<<6; cp|=(unsigned char)in[pos++]&63; }
         points[count++]=cp;
     }
-    offsets[count]=pos; unsigned written=0,start=0;
+    offsets[count]=pos;
+    unsigned cost[33],next_break[32]; cost[count]=0;
+    for (unsigned cursor=count; cursor>0; --cursor) {
+        unsigned start=cursor-1; int width=0;
+        cost[start]=UINT32_MAX/4; next_break[start]=start+1;
+        for(unsigned end=start+1; end<=count; ++end) {
+            width+=lv_font_get_glyph_width(&fortune_font_20,points[end-1],0);
+            if(width>196) break;
+            if(end<count && closing(points[end])) continue;
+            unsigned slack=(unsigned)(196-width);
+            unsigned candidate=cost[end]+350+slack*slack/64;
+            if(end-start<3) candidate+=2000;
+            if(end<count && closing(points[end-1])) candidate-=60;
+            if(candidate<cost[start]) { cost[start]=candidate; next_break[start]=end; }
+        }
+    }
+    unsigned written=0,start=0;
     while(start<count) {
-        unsigned end=start,last_clause=start; int width=0;
-        while(end<count) {
-            int next=lv_font_get_glyph_width(&fortune_font_20,points[end],0);
-            if(width+next>196) break;
-            width+=next; if(closing(points[end])) last_clause=end+1; ++end;
-        }
-        if(end<count) {
-            if(count<=24 && last_clause>=start+3) end=last_clause;
-            else if(closing(points[end]) && end>start+1) --end;
-        }
-        if(end==start) ++end;
+        unsigned end=next_break[start];
         unsigned bytes=offsets[end]-offsets[start];
         memcpy(out+written,in+offsets[start],bytes); written+=bytes; start=end;
         if(start<count) out[written++]='\n';
@@ -197,8 +205,10 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
         if(!fortune_decode(card.quote,quote,sizeof(quote))) snprintf(quote,sizeof(quote),"暂无签文");
         char formatted[128]; format_quote(quote,formatted);
         lv_label_set_text_fmt(s_meta,"一签 / %s%s",fortune_scene_name(id),s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,formatted);
-        lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)card.quote+1,page==FORTUNE_SHOWCASE?"此刻的我":"这一句送你");
-        lv_label_set_text(s_help,page==FORTUNE_SHOWCASE?"慢慢来，也是一种风格":FT_REVEAL_HELP);
+        const char *citation = fortune_citation(card.quote);
+        if (*citation) lv_label_set_text(s_caption,citation);
+        else lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)(card.quote & ~FORTUNE_LEGACY_QUOTE)+1,page==FORTUNE_SHOWCASE?"此刻的我":"这一句送你");
+        lv_label_set_text(s_help,page==FORTUNE_SHOWCASE?"留下一句，展示此刻":FT_REVEAL_HELP);
         lv_label_set_text(s_hint,notice?notice:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);
     }
     lv_obj_invalidate(s_root);

@@ -28,7 +28,7 @@ report = {
     'max_characters': max(len(t) for _, _, t in records),
     'near_text_scan': {'bigram_jaccard_minimum': .48, 'sequence_similarity_threshold': .72,
                        'pairs_above_both_thresholds': len(pairs), 'pairs': pairs},
-    'method': 'Complete sentences authored individually; no phrase assembly. '
+    'method': '1980 individually authored complete sentences and 220 attributed classical excerpts; no phrase assembly. '
               'Text-similarity checks do not establish semantic novelty or reader preference.'
 }
 (ROOT / 'assets/fortune/editorial-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n')

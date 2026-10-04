@@ -91,10 +91,27 @@ int main(void) {
     assert(restored.current.art>=FORTUNE_LEGACY_ART_COUNT);
     assert(restored.pinned.quote==legacy_pin.quote && restored.pinned.art==legacy_pin.art);
     assert(!memcmp(old_seen,restored.seen,sizeof(old_seen)));
-    n=fortune_encode_state(&restored,bytes,sizeof(bytes));assert(n==sizeof(LEGACY_SAVE));
+    assert(legacy_pin.quote == (FORTUNE_LEGACY_QUOTE | 387U));
+    char legacy_text[128];
+    assert(fortune_decode(legacy_pin.quote, legacy_text, sizeof(legacy_text)));
+    assert(!strcmp(legacy_text,"欢迎沟通，拒绝精神卸货"));
+    assert(!*fortune_citation(legacy_pin.quote));
+    n=fortune_encode_state(&restored,bytes,sizeof(bytes));assert(n==sizeof(bytes));
     assert(fortune_decode_state(&s,bytes,n));
     assert(s.art_cursor==restored.art_cursor && s.pinned.art==legacy_pin.art);
+    /* Retained comfort quotes keep their seen bits when importing an old bank. */
+    for (unsigned id=0; id<FORTUNE_COUNT; ++id) {
+        unsigned old=FORTUNE_RETAINED_IDS[id];
+        bool expected=old<FORTUNE_LEGACY_COUNT && (LEGACY_SAVE[44+old/8]&(1U<<(old%8)));
+        assert(((s.seen[id/8]>>(id%8))&1U)==expected);
+    }
     fortune_state_t a,b;fortune_defaults(&a,42);fortune_defaults(&b,43);
+    a.style=0; fortune_select_topic(&a,2);
+    assert(a.mood==2 && a.style==FORTUNE_ANY_STYLE && fortune_remaining(&a)==220);
+    fortune_next_style(&a); assert(a.style==2);
+    fortune_next_style(&a); assert(a.style==FORTUNE_ANY_STYLE);
+    fortune_select_topic(&a,9); assert(a.mood==2);
+    fortune_select_topic(&a,0);
     unsigned differences=0;
     for(unsigned i=0;i<FORTUNE_SKIN_COUNT;++i){fortune_remix(&a,&a.current);fortune_remix(&b,&b.current);differences+=a.current.art!=b.current.art;}
     assert(differences>100);

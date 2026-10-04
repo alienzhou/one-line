@@ -17,20 +17,27 @@ under the SIL Open Font License in `fonts/OFL.txt`. Source SHA-256:
 Only generated 12/20 px, 4 bpp, uncompressed subsets are linked into the app;
 the 16 MB source OTF is a development asset, not firmware payload. Regenerate
 with `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv`
-using converter 1.5.3. The script collects every complete corpus record and
-displayed UI literal. `fonts/fortune-characters.txt` is the printable inventory;
+using converter 1.5.3. The script collects current and legacy records, poetry attribution, and
+displayed UI literals. `fonts/fortune-characters.txt` is the printable inventory;
 host LVGL tests check actual fonts, widget bindings, a missing-glyph negative
-case, and all 2112 text layouts. On-device Chinese output remains unverified.
+case, and all 2200 current and 2112 legacy text layouts. On-device Chinese output remains unverified.
 
 ## Fortune content
 
-`fortune/corpus.json` holds 2112 individually written complete sentences across
-eight moods and three voices (88 per pair). This meets the later 2000+ milestone;
-the original 10001+ aspiration remains a separate unfinished expansion. No runtime
-templates or phrase combinations are used. `tools/pack_fortunes.py` preserves each
-full string through lossless code-point encoding. The measured bank, dictionary
-and index occupy 58686 bytes. `--release` enforces the explicit current minimum
-of 2001. See [the product design](../docs/fortune-card.md).
+`fortune/corpus.json` holds 2200 complete records: 1980 original lines and 220
+classical Chinese poetry excerpts. Eight themes use 20/10/15/15/15/10/10/5 percent
+proportions, without runtime phrase assembly. The 2000+ milestone is met; 10001+
+remains future work. `fortune/legacy-corpus.json` freezes the old 2112-record bank
+solely to preserve saved signatures. `fortune/poetry-sources.json` retains each
+excerpt's author, full title, source paragraphs, and pinned source link, checked
+against [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry).
+Its MIT notice is in `fortune/sources/chinese-poetry-LICENSE.txt`. Ancient works
+are public-domain; opencc-python-reimplemented 0.1.7 converts Traditional to Simplified Chinese, and
+excerpt punctuation is resegmented. They are attributed quotations, not claimed
+original work. Long displayed titles are abbreviated; data retains full titles.
+The active text stream, dictionary, and index total 67915 bytes, plus attribution,
+legacy bank, and migration mapping. `tools/pack_fortunes.py --release` enforces
+2001 records. See [the product design](../docs/fortune-card.md).
 
 The ten original pixel-scene families are drawn by `main/fortune_pixels.c`;
 no downloaded artwork or stored scene images enter the firmware. Previews under
@@ -61,6 +68,8 @@ Store reusable source images and generated display assets in `images/`.
 | [`images/readme-hardware-specs.png`](images/readme-hardware-specs.png) | 2172 × 724, PNG RGBA | Optional technical infographic retained as a reference asset; it is no longer used as the homepage hero. Generated for this repository with the built-in image generation tool on 2026-09-17; the six labels and values were checked against the documented hardware contract. |
 | [`images/logo-wordmark.png`](images/logo-wordmark.png) | 1648 × 336, PNG RGBA | Transparent black wordmark extracted from the repository's original `images/logo.png`; embedded in both project README files for light backgrounds. |
 | [`images/logo-wordmark-dark.png`](images/logo-wordmark-dark.png) | 1648 × 336, PNG RGBA | White version of the extracted wordmark, used by the README `<picture>` element when GitHub is in dark mode. |
+| `images/fortune-themes.png` | 1160 × 960, PNG | Eight-theme overview from completed actual LVGL captures; MIT. |
+| `images/fortune-home.png` and `fortune-theme-1.png` through `fortune-theme-8.png` | 240 × 320, PNG | Theme selection and representative cards, rendered by the actual app; MIT. |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448, PNG | One Fortune community cover; original AI-generated gameplay illustration. |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448, PNG | Letter-opening gameplay illustration. |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448, PNG | Writing voices and moods illustration. |
@@ -80,7 +89,7 @@ generation tool on 2026-10-03. All five tasks explicitly completed, and the exac
 local upload files were visually inspected for finished artwork. They are labeled
 as gameplay illustrations, not device photographs. Prompts are retained in
 [`fortune/publication-image-prompts.json`](fortune/publication-image-prompts.json).
-They appear in the fork README and community submission; they are not linked into
+They are retained as prior-version community illustrations; the current README uses actual theme renders. they are not linked into
 firmware. These original project images follow the repository MIT license.
 The three UI previews come from the actual application renderer and carry the
 same license. The generated illustrations and host previews have different roles;

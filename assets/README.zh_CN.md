@@ -15,15 +15,19 @@
 固件只链接 12/20 px、4 bpp、未压缩的生成子集；16 MB 原始 OTF 是开发素材，不进入固件。
 使用 1.5.3 版转换器运行 `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv` 可重建。
 脚本收集完整签文与所有界面文本，字符清单为 `fonts/fortune-characters.txt`。
-LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2112 条文字布局；真机中文显示仍未验证。
+LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2200 条当前和 2112 条旧版文字布局；真机中文显示仍未验证。
 
 ## 签文内容
 
-`fortune/corpus.json` 保存八种心情、三种口吻的 2112 条逐条创作的完整句子，每组 88 条。
-达到用户后续提出的 2000 条以上阶段要求；最初 10001 条以上的扩充目标仍未完成。
-没有运行时模板或短句组合。`tools/pack_fortunes.py` 使用无损字符字典编码完整签文；
-实测签文、字典和索引共 58686 字节。`--release` 执行当前明确的 2001 条最低门槛。
-详见[产品设计](../docs/fortune-card.zh_CN.md)。
+`fortune/corpus.json` 保存 2200 张完整签文：1980 条原创短句与 220 条古诗词摘句。
+八主题比例为 20/10/15/15/15/10/10/5%，不使用运行时拼句；当前阶段超过 2000 条，10001 条目标待扩充。
+`fortune/legacy-corpus.json` 冻结旧版 2112 条，仅用于保留已固定的签名。
+`fortune/poetry-sources.json` 保留每条诗词的作者、完整篇名、源段落与固定提交链接，
+核对来源为 [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry)，
+其许可保存在 `fortune/sources/chinese-poetry-LICENSE.txt`。古代作品为公有领域，繁简转换采用 opencc-python-reimplemented 0.1.7，
+摘句只调整标点，不改写成原创；长篇名在界面缩略，源数据保留全名。
+当前文本流、字典与索引合计 67915 字节，另有出处、旧库和迁移映射。
+`tools/pack_fortunes.py --release` 仍执行 2001 条最低要求，完整测量见[产品设计](../docs/fortune-card.zh_CN.md)。
 
 十个原创像素系列由 `main/fortune_pixels.c` 绘制，不嵌入下载的画作或场景图片。
 忽略目录 `build/fortune-preview/` 中的预览来自实际 LVGL 主机渲染。
@@ -51,6 +55,8 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | [`images/readme-hardware-specs.png`](images/readme-hardware-specs.png) | 2172 × 724，PNG RGBA | 保留为可选技术参考图，不再用于首页主视觉。于 2026-09-17 使用内置图像生成工具为本仓库生成；已根据文档中的硬件能力契约核对图中的六项标签与参数。 |
 | [`images/logo-wordmark.png`](images/logo-wordmark.png) | 1648 × 336，PNG RGBA | 从仓库原始 `images/logo.png` 中精确裁切并去除背景的黑色字标；用于中英文项目 README 的浅色主题。 |
 | [`images/logo-wordmark-dark.png`](images/logo-wordmark-dark.png) | 1648 × 336，PNG RGBA | 提取字标的白色版本；README 使用 `<picture>` 在 GitHub 深色主题下显示。 |
+| `images/fortune-themes.png` | 1160 × 960，PNG | 已完成的实际 LVGL 渲染组成的八主题总览；MIT。 |
+| `images/fortune-home.png`、`fortune-theme-1.png`～`fortune-theme-8.png` | 240 × 320，PNG | 实际应用渲染的首页与主题示例；MIT。 |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448，PNG | 一签社区封面，原创 AI 玩法示意图。 |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448，PNG | 拆信玩法示意图。 |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 口吻与心情示意图。 |

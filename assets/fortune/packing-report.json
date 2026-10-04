@@ -1,11 +1,12 @@
 {
-  "stage": "pixel-collection-2k",
-  "independent_records": 2112,
+  "stage": "eight-themes-2200",
+  "independent_records": 2200,
   "release_ready": true,
-  "utf8_bytes": 86490,
-  "packed_text_bytes": 38674,
-  "dictionary_bytes": 3116,
-  "index_metadata_bytes": 16896,
+  "utf8_bytes": 103669,
+  "packed_text_bytes": 46507,
+  "dictionary_bytes": 3808,
+  "index_metadata_bytes": 17600,
   "bits_per_character": 11,
-  "corpus_id": 3420887641
+  "corpus_id": 3335999125,
+  "citation_utf8_bytes": 3228
 }

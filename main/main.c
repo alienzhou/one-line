@@ -125,7 +125,7 @@ static void process(input_t in) {
             else if (s_state.pinned.quote != FORTUNE_NO_CARD) s_page = FORTUNE_SHOWCASE;
             else s_notice = FT_NO_PIN;
         } else if (in.key == BSP_BTN_DOWN && s_page == FORTUNE_HOME) {
-            s_state.style = (s_state.style + 1) % 4;
+            fortune_next_style(&s_state);
             save_after_change();
         } else if (in.key == BSP_BTN_DOWN) {
             s_sound_enabled=!s_sound_enabled;
@@ -142,7 +142,7 @@ static void process(input_t in) {
     }
     if (in.event != BSP_BTN_CLICK) return;
     if (s_page == FORTUNE_HOME && in.key != BSP_BTN_OK) {
-        s_state.mood = (s_state.mood + (in.key == BSP_BTN_UP ? 8 : 1)) % 9;
+        fortune_select_topic(&s_state, (s_state.mood + (in.key == BSP_BTN_UP ? 8 : 1)) % 9);
         save_after_change();
     } else if ((s_page == FORTUNE_HOME && in.key == BSP_BTN_OK) ||
                (s_page != FORTUNE_HOME && in.key == BSP_BTN_UP)) {

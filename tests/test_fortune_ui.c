@@ -108,10 +108,24 @@ int main(int argc, char **argv) {
         rendered[n]=0; assert(!strcmp(decoded,rendered));
         assert(!strstr(label_text,"\n，") && !strstr(label_text,"\n。") && !strstr(label_text,"\n："));
         lv_obj_update_layout(lv_screen_active()); check_labels();
+        if (FORTUNE_RECORDS[id].mood==2) {
+            assert(!strcmp(lv_label_get_text(lv_obj_get_child(lv_screen_active(),3)),fortune_citation(id)));
+        }
+        if(id==0 || FORTUNE_RECORDS[id].mood != FORTUNE_RECORDS[id-1].mood) {
+            char name[64]; snprintf(name,sizeof(name),"theme-%u",FORTUNE_RECORDS[id].mood);
+            snapshot(argv[1],name);
+        }
+        if(id==458) snapshot(argv[1],"theme-2"); /* Wang Wei: a familiar complete couplet. */
         if (id==0 || id==88 || id==176) {
             char name[64]; snprintf(name,sizeof(name),"style-%u",FORTUNE_RECORDS[id].style);
             snapshot(argv[1],name);
         }
+    }
+    for(unsigned id=0; id<FORTUNE_LEGACY_COUNT; ++id) {
+        s.current.quote=FORTUNE_LEGACY_QUOTE|id;
+        s.pinned=s.current;
+        fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);
+        lv_obj_update_layout(lv_screen_active()); check_labels();
     }
     /* Exercise the supported 32-character upper bound, beyond current samples. */
     char longest[97];

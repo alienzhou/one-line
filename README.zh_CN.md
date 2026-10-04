@@ -2,142 +2,124 @@
 
 # 一签
 
-**抽一句懂你的话，留作自己的签名。**
+**拆开一句话，看看生活的另一面。喜欢，就留作签名。**
 
-把 AI Passport 变成随身的来信收藏夹。生活有点难、心里有点累的时候，选一种心情，
-拆开一封未知的信。抽到喜欢的句子，就把它留在像素卡片上，当作自己的个人签名展示。
-中文界面、中文签文，完全离线使用。
+一签是一只随身的文字盲盒。想被安慰时，可以抽「慢慢回血」；想换换脑子时，
+还有生活观察、冷幽默、荒诞脑洞、个人态度、关系切片、小小出走，以及标明出处的古诗词。
+封好的信轻轻晃动、拆开、揭晓。喜欢哪一句，就让它留在像素卡片上展示。
+中文界面，完全离线，无需配网。
 
-<p align="center">
-  <img src="assets/images/fortune-cover.png" alt="一签示意封面：打开的信封与四周的像素邮票" width="360">
-</p>
+![八种主题的实际界面与内容比例](assets/images/fortune-themes.png)
 
-| 完整签文 | 三种口吻 | 十个像素系列 | 场景与主体组合 |
-| --- | --- | --- | --- |
-| **2,112** 条独立创作句子 | 温柔有锋芒、抽象嘴替、克制诗意 | 夜航电台、旷野来信、宇宙邮局、口袋花园、海底漫游、云端小岛、街角咖啡、复古游园、微光工坊、冬日慢邮 | **320 款皮肤**，各有 **6 组配色** |
+## 每次打开，可以是不同的话题
 
-当前版本内置 2,112 条完整签文。最初提出的一万条以上独立签文仍是后续扩充目标；
-画面变化与签文数量分别统计。新版将 80 种明显不同的场景与猫、旅人、机器人、兔子四位
-小伙伴组合成 320 款皮肤。每轮 320 次换肤覆盖全部组合，相邻场景不同；六组配色共 1920 种可抽取外观，
-全部抽过后再循环。
+| 主题 | 数量与比例 | 抽到的感觉 |
+| --- | --- | --- |
+| 慢慢回血 | 440 张 · **20%** | 留一点支持和安慰 |
+| 诗词留声 | 220 张 · **10%** | 古诗词摘句，显示作者和篇名 |
+| 生活观察 | 330 张 · 15% | 看见街道、食物、天气里的小细节 |
+| 冷幽默 | 330 张 · 15% | 日常里的一个笑点 |
+| 荒诞脑洞 | 330 张 · 15% | 给熟悉的东西一个奇怪的新解释 |
+| 个人态度 | 220 张 · 10% | 表达自己的喜好、判断与风格 |
+| 关系切片 | 220 张 · 10% | 人与人相处的具体瞬间 |
+| 小小出走 | 110 张 · 5% | 一件可以亲自试的小事 |
 
-## 给困难日子一个小仪式
-
-选一种心情，也可以随缘。封好的信先轻轻晃动，封口打开，信纸升起，然后揭晓句子。
-拆信约 1.25 秒，按确定可直接看结果。重新抽签时，已保存的个人签名会保留，
-确定留下另一张才会替换。
-
-想被温柔接住、想要一句带网感的嘴替，或只想安静地读一点诗意，都有对应的口吻。
-同一轮抽签不重复，切换筛选也会记住已经抽过的句子。无需账号、联网或付费，
-没有每日额度、连续签到或稀有等级。
-
-<table>
-  <tr>
-    <td><img src="assets/images/fortune-letters.png" alt="选心情、拆信、揭晓签文的玩法示意" width="300"></td>
-    <td><img src="assets/images/fortune-voices.png" alt="三种口吻与八种心情的玩法示意" width="300"></td>
-  </tr>
-  <tr><td>选一种心情，拆一封来信。</td><td>找到此刻适合自己的口吻。</td></tr>
-  <tr>
-    <td><img src="assets/images/skins/overview-0.png" alt="夜航电台全部32款实际渲染皮肤" width="300"></td>
-    <td><img src="assets/images/fortune-signature.png" alt="将选中的签文留作个人签名的玩法示意" width="300"></td>
-  </tr>
-  <tr><td>十个系列，配一点安静的微动效。</td><td>喜欢这句话，可以只换它的风景。</td></tr>
-</table>
-
-*封面与三张说明海报为 AI 玩法示意图；夜航电台总览来自程序实际渲染。*
-
-## 一眼看完全部皮肤
-
-![十个系列的原创像素风景](assets/images/fortune-ten-collections.png)
-
-[查看全部 320 款皮肤总览](assets/images/fortune-skins-overview.png)。
-
-将[完整互动图库](assets/fortune/skin-gallery.html)在本地浏览器中打开，可看全部 320 张签名卡、
-切换六组配色、按系列或小伙伴筛选，并点击放大。下载时保留旁边的图片目录；
-图库包含全部 1920 张已经完成的程序渲染。已有签名保留原画面，主动换肤或再抽才进入新图库。
+共 **2,200 张完整签文**：1,980 条原创短句与 220 条古诗词摘句。
+这一轮新增 1,540 条原创内容，保留 440 条安慰签；各条均独立存储，不拼接句子。
+选择「随缘」可混抽全部主题；同一轮不重复，切换主题也记住已读记录。
+比例按整库数量统计，单次或少量抽取不保证相同比例。
+最初的一万条以上独立签文仍是后续目标，外观组合不计入签文数量。
 
 ## 五步上手
 
-1. 开机即可使用，完全离线，无需配网；若屏幕已熄灭，先按任意键唤醒。
-2. 心情页用上/下键选择心情，长按下键切换口吻，按确定抽签。
-3. 随着短小的旋律等待信封展开、签文揭晓；拆信时再按确定可直接看结果。
-4. 结果页按上键再抽，下键只换外观；喜欢这句话，按确定留作签名。卡片页长按上键调音量、长按下键静音，设置会记住。
-5. 长按确定回心情页；在心情页长按确定查看已留签名。重启会继续显示签名，再抽会保留它，确定留下另一张才会替换。
+1. 开机即可使用，无需配网；屏幕熄灭时先按任意键唤醒。
+2. 首页用上/下键选主题，也可以随缘；长按下键换口吻，按确定抽签。
+3. 等信封展开、签文揭晓，拆信时按确定可跳过动效。
+4. 结果页按上再抽、按下随机换肤；按确定留下这句话，作为个人签名展示。
+5. 长按确定返回首页；在首页长按确定查看签名。卡片页长按上调音量、长按下静音，重启会记住签名和设置。
 
-签文用于鼓励和娱乐，不作未来预测，也不承诺事情一定如何发生。
-
-## 给拆信配一点声音
-
-原创的柔和音乐盒音色随拆信逐渐蓄起期待，句子出现时轻轻落定。留下签名时有两声轻巧的
-落印音，换肤时有短促的闪光音；四组相关旋律给每次拆信一点变化。按确定提前拆开时，
-音效也会立即转入揭晓段。
-
-默认开启音效，音量为 80%。在**结果页或签名页长按上键**打开音量页，
-上下键每次加减 10%，范围为 10%～100%，每次调节都会短暂试听。
-按确定保存并开启音效，长按确定取消并恢复之前的音量和静音状态；重启后记住音量。
-
-**卡片页长按下键**仍可静音或恢复声音，不会丢掉选好的音量。心情页长按下键继续换口吻。
-
-<p align="center"><img src="assets/images/fortune-volume.png" alt="实际主机渲染的音量调节页，当前 80%" width="240"></p>
-
-[听完整试听](assets/music/fortune-audition.wav)：依次为拆信、揭晓、留签、换肤。
-也可以分别听四组抽签旋律：[第一组](assets/music/fortune-draw-1.wav)、
-[第二组](assets/music/fortune-draw-2.wav)、[第三组](assets/music/fortune-draw-3.wav)、
-[第四组](assets/music/fortune-draw-4.wav)。试听由固件实际音频生成器导出，扬声器音色和
-实际响度仍需真机试听；这些 WAV 文件不进入固件。
-
-## 看看实际界面
-
-以下预览来自程序的主机渲染，使用实际字体、排版和圆角屏幕遮罩；尚非真机照片。
-
-![十个系列的实际界面渲染](assets/images/fortune-ui-pixel-collection.png)
+口吻包括直白、俏皮和诗意，切换时跳过当前主题没有的口吻。
+再抽会保留原签名，只有确定留下另一张才会替换；换肤只改变外观。
+旧版已经固定的签名和皮肤可以继续显示。
 
 <p align="center">
-  <img src="assets/images/fortune-ui-unwrap.gif" alt="实际渲染的拆信动效" width="240">
-  <img src="assets/images/fortune-ui-pixel-motion.gif" alt="实际渲染的像素场景微动效" width="240">
+  <img src="assets/images/fortune-home.png" alt="实际渲染的主题选择首页" width="240">
+  <img src="assets/images/fortune-theme-2.png" alt="实际渲染的古诗词卡片，带作者与篇名" width="240">
 </p>
 
-*左侧拆信，右侧场景微动效，使用仍兼容的原版画面演示；文字保持静止，便于阅读。*
+## 给这句话，换一处风景
 
-## 构建与验证
+十个像素系列包含 **80 处场景 × 4 位小伙伴 = 320 款皮肤**，各有六组配色，
+共 **1,920 种外观**。随机换肤每轮覆盖全部组合，相邻场景不同；文字保持静止，
+风景带一点安静的微动效。
 
-先读 [AGENTS.md](AGENTS.md)、[环境准备](docs/development/engineering/environment-setup.zh_CN.md)
-和[构建指南](docs/development/engineering/build-and-test.zh_CN.md)。应用复用上游 BSP，
-拥有独立设计的页面和交互。激活 ESP-IDF 5.5.3 后运行：
+![十个系列的像素风景](assets/images/fortune-ten-collections.png)
+
+[看全部 320 款总览](assets/images/fortune-skins-overview.png)，或在本地浏览器打开
+[完整互动图库](assets/fortune/skin-gallery.html)，筛选系列、小伙伴与配色，点击放大。
+下载时保留旁边的图片目录。
+
+<p align="center">
+  <img src="assets/images/fortune-ui-unwrap.gif" alt="主机渲染的拆信动效" width="240">
+  <img src="assets/images/fortune-ui-pixel-motion.gif" alt="主机渲染的像素场景微动效" width="240">
+</p>
+
+以上都是程序主机渲染，非设备照片。动图保留旧版签文作动效示例。
+
+## 声音也由你决定
+
+拆信、揭晓、留签和换肤有短小的原创音乐盒音效。
+卡片页长按上键进入音量页，上下键以 10% 为一步调节，范围 10%～100%，调节时试听。
+按确定保存并开启声音；长按确定取消，恢复原音量和静音状态。默认音量 80%。
+卡片页长按下键可静音或恢复，不会丢掉选好的音量。
+
+<p align="center"><img src="assets/images/fortune-volume.png" alt="实际渲染的音量调节页" width="240"></p>
+
+[听完整试听](assets/music/fortune-audition.wav)。这些 WAV 由固件音频生成器导出，
+不进入固件；实际响度需通过设备扬声器试听。
+签文用于阅读、表达和娱乐，不作未来预测。
+
+## 开发、构建与测试
+
+先读 [AGENTS.md](AGENTS.md) 和[构建指南](docs/development/engineering/build-and-test.zh_CN.md)。
+应用复用 BSP，拥有独立页面。激活 ESP-IDF 5.5.3 后运行：
 
 ```bash
 ./tools/validate.sh
 ./tools/test_fortune_ui.sh --skins
-python3 -m venv build/gallery-venv
-build/gallery-venv/bin/pip install Pillow==11.3.0
-build/gallery-venv/bin/python tools/render_fortune_gallery.py
+# 使用安装了 Pillow 11.3.0 的 Python
+python3 tools/render_fortune_gallery.py
+python3 tools/render_fortune_topics.py
 ```
 
-完整门禁生成并校验 `build/FoloToy-AI-Passport-full.bin`，从 **0x0** 刷写。
-匹配的 ELF、MAP 和清单归档在 `build/firmware/` 下。固件与私有设备日志不提交 Git。
-操作设备前请遵循[刷写与数据政策](docs/development/engineering/firmware-layout.zh_CN.md#烧录与已存数据)。
+完整门禁生成从 **0x0** 刷写的 `build/FoloToy-AI-Passport-full.bin`，
+匹配的镜像、ELF、MAP 和清单归档于 `build/firmware/<完整镜像SHA256>/`。
+固件和私有日志不提交 Git。合并镜像可能覆盖已存数据；本次升级使用兼容的分段写入保留 NVS。
+详见[刷写与数据政策](docs/development/engineering/firmware-layout.zh_CN.md#烧录与已存数据)。
 
-| 检查 | 当前结果 |
+| 检查 | 本轮结果 |
 | --- | --- |
-| Build | **PASS**：完整门禁与合并镜像校验通过 |
-| Host tests | **PASS**：全部文字排版与控件字体、揭晓/跳过的声音事件、16 段合成音效、音量试听/保存/取消/恢复、播放任务的静音/取消/错误恢复、64 个换肤种子、全部 1920 个外观渲染、旧存档兼容与旧画面像素一致 |
-| Device tests | **PASS**：`7db813f` 通过分段写入、哈希校验与 20 秒匹配启动观察；音量页操作和响度待用户验收。首个音效版已确认出声，但 60% 偏轻 |
-| Unverified | 真机响度、爆音、声音与揭晓同步、静音设置恢复、连续操作播放；实体按键交互、真机中文可读性与裁切、动画流畅度、重启及写入断电后的签名恢复、闲置与唤醒、电量准确性、耗电和续航 |
+| Build | NOT RUN：待完整构建与合并镜像校验 |
+| Host tests | PASS：完整解码、主题比例与诗词来源、旧存档迁移、按键与存储；实际字体和全部签文排版、1,920 个外观渲染 |
+| Device tests | NOT RUN：待烧录与启动观察 |
+| Unverified | 真机主题切换与中文可读性、旧签名恢复、音量和静音恢复、声音质量、动效流畅度、断电恢复、闲置唤醒、电量与续航；文案的主观重复感 |
 
-完整编码签库占 **57.3 KiB**；外观通过场景规则绘制，不存储整套背景图片，
-画布使用 **12,528 字节** RAM。带音效的应用固件为 **1,253,840 字节**，相比十系列版增加
-**67,296 字节（65.7 KiB）**，包含完整播放支持；合成乐谱与波形表自身约 680 字节。卡片存档仍为 **312 字节**，另加独立的音效开关值与音量值，各一字节。图库 PNG 与试听 WAV
-不进入固件。存储测量与测试边界详见[产品与工程设计](docs/fortune-card.zh_CN.md)。
+当前编码文本占 **66.3 KiB**，另有出处与旧签名兼容数据。仅为兼容旧签名保留的旧签库占
+**57.3 KiB**，不会混入新抽取。两种字号各覆盖 **2,285 个字符**；无需加载整库到 RAM。
+卡片存档为 **323 字节**，音量和静音各用独立的一字节偏好值。
+外观由代码绘制，像素画布仍用 12,528 字节 RAM，图库图片不进入固件。
+完整测量和兼容边界见[产品与工程设计](docs/fortune-card.zh_CN.md)。
 
 ## 阅读与扩展
 
-- [产品设计、按键、存储与验收](docs/fortune-card.zh_CN.md)
-- [逐条创作的完整签库](assets/fortune/corpus.json)
+- [产品设计、存储、按键和验收](docs/fortune-card.zh_CN.md)
+- [完整主题签库](assets/fortune/corpus.json)与[古诗词来源](assets/fortune/poetry-sources.json)
 - [应用入口](main/main.c)与[像素画面生成器](main/fortune_pixels.c)
-- [素材来源、许可与图片记录](assets/README.zh_CN.md)
-- [AI 示意图提示词](assets/fortune/publication-image-prompts.json)
+- [素材来源与许可](assets/README.zh_CN.md)
 - [上游硬件与开发文档](docs/README.zh_CN.md)
 
-应用代码与本项目原创素材遵循仓库的 [MIT 许可证](LICENSE)；Noto Sans CJK 字库保留
-[SIL Open Font License](assets/fonts/OFL.txt)。上游平台为
-[FoloToy AI Passport](https://github.com/FoloToy/ai-passport)。
+本项目原创代码与素材使用 [MIT 许可证](LICENSE)。古诗词为公有领域作品，摘句、作者与篇名
+核对自 [chinese-poetry 数据库](https://github.com/chinese-poetry/chinese-poetry)，保留其
+[MIT 许可](assets/fortune/sources/chinese-poetry-LICENSE.txt)和固定版本来源记录；长篇名在卡片中缩略，源数据保留全名。
+Noto Sans CJK 字体保留 [SIL Open Font License](assets/fonts/OFL.txt)。
+上游平台为 [FoloToy AI Passport](https://github.com/FoloToy/ai-passport)。

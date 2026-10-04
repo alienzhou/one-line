@@ -108,6 +108,11 @@ int main(void) {
         saved_volume=(uint8_t)bad; load(); assert(s_volume==80);
     }
     volume_key=false; load(); assert(s_volume==80); /* Upgrade from pre-volume firmware. */
+    s_page=FORTUNE_HOME; s_state.style=0; s_state.mood=1;
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK});
+    assert(s_state.mood==2 && s_state.style==FORTUNE_ANY_STYLE);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==2);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==FORTUNE_ANY_STYLE);
     assert(commits>0);
     puts("Fortune input/storage: PASS (draw/skip/keep, mute, volume preview/save/cancel/bounds/reload, legacy and invalid defaults, unchanged cards, failed-save retry)");
     return 0;

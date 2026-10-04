@@ -37,11 +37,11 @@ run_static_checks() {
     "${test_dir}/test_fortune_audio_runtime"
     "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -ffunction-sections -fdata-sections \
         -Itests/fortune_app_stubs -Itests/fortune_audio_stubs -Imain \
-        tests/test_fortune_app.c main/fortune_model.c main/fortune_data.c \
+        tests/test_fortune_app.c main/fortune_model.c main/fortune_data.c main/fortune_legacy_data.c \
         "${linker_gc_flag}" -o "${test_dir}/test_fortune_app"
     "${test_dir}/test_fortune_app"
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_fortune_model.c main/fortune_model.c main/fortune_data.c \
+        tests/test_fortune_model.c main/fortune_model.c main/fortune_data.c main/fortune_legacy_data.c \
         -o "${test_dir}/test_fortune_model"
     "${test_dir}/test_fortune_model"
     PYTHONDONTWRITEBYTECODE=1 python3 tests/test_fortune_inventory.py
