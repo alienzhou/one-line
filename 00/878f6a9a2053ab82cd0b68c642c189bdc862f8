@@ -1,0 +1,92 @@
+docs/fortune-card.zh_CN.md
+  s_27b2034f3c68fa::t_2693a117e06a66 139-140
+  s_27b2034f3c68fa::t_d9783b185759c2 7,14,104-106,149,155-156,158-159,161-162,241,254-257
+main/fortune_model.h
+  s_27b2034f3c68fa::t_9ae33e7cbd8747 16
+tools/Launch-Fortune-Simulator.command
+  s_27b2034f3c68fa::t_974704056327e1 1-5
+assets/README.md
+  s_27b2034f3c68fa::t_95264d9176c3da 74-76
+docs/README.md
+  s_27b2034f3c68fa::t_d9783b185759c2 215
+docs/fortune-simulator.md
+  s_27b2034f3c68fa::t_80f8c1c0111611 1-83
+tools/render_fortune_release.py
+  s_27b2034f3c68fa::t_dda24b7047d69a 37,45-51,56,67
+main/fortune_ui.c
+  s_27b2034f3c68fa::t_9ae33e7cbd8747 179,200-201,203-209,213
+assets/README.zh_CN.md
+  s_27b2034f3c68fa::t_95264d9176c3da 61-62
+docs/README.zh_CN.md
+  s_27b2034f3c68fa::t_92a71dd9fb975a 205
+docs/fortune-card.md
+  s_27b2034f3c68fa::t_d9783b185759c2 7-8,126-132,181,188-189,191-198,297,316-320
+  s_27b2034f3c68fa::t_108b8f748e2994 17-18
+  s_27b2034f3c68fa::t_2693a117e06a66 169-170
+tests/test_fortune_model.c
+  s_27b2034f3c68fa::t_f4ed291f96aa40 40,52-54,58,66,127
+tests/test_fortune_simulator.py
+  s_27b2034f3c68fa::t_80f8c1c0111611 1-3,5-85,91-94
+  s_27b2034f3c68fa::t_c7ec4ba1fcec21 4,86-90
+tools/test_fortune_ui.sh
+  s_27b2034f3c68fa::t_95264d9176c3da 11
+main/main.c
+  s_27b2034f3c68fa::t_9ae33e7cbd8747 31,68-69,75-77,90-95,135,138-139,145,156-159,161-162,180
+  s_27b2034f3c68fa::t_f4ed291f96aa40 148-149,167-171
+main/fortune_text.h
+  s_27b2034f3c68fa::t_9ae33e7cbd8747 5-9
+main/fortune_model.c
+  s_27b2034f3c68fa::t_9ae33e7cbd8747 9,149-151,154
+tests/test_fortune_app.c
+  s_27b2034f3c68fa::t_f4ed291f96aa40 113-126,130
+tests/test_fortune_ui.c
+  s_27b2034f3c68fa::t_f4ed291f96aa40 102-107
+  s_27b2034f3c68fa::t_dda24b7047d69a 227-229
+docs/fortune-simulator.zh_CN.md
+  s_27b2034f3c68fa::t_80f8c1c0111611 1-65
+README.zh_CN.md
+  s_27b2034f3c68fa::t_2693a117e06a66 137
+  s_27b2034f3c68fa::t_95264d9176c3da 104-107
+  s_27b2034f3c68fa::t_d9783b185759c2 36-38,46,91-103,130
+  s_27b2034f3c68fa::t_67485c3b6b7353 10,12,141
+  s_27b2034f3c68fa::t_58dfa503bece9e 142
+assets/fortune/community-copy.json
+  s_27b2034f3c68fa::t_7884a4fc7c9886 3,7-12
+tools/fortune_simulator/server.py
+  s_27b2034f3c68fa::t_c7ec4ba1fcec21 142-155
+  s_27b2034f3c68fa::t_974704056327e1 1-78,86-141,156-233
+  s_27b2034f3c68fa::t_00af4b0af4f68e 79-85
+tools/fortune_simulator/index.html
+  s_27b2034f3c68fa::t_5757d5fe744823 82
+  s_27b2034f3c68fa::t_974704056327e1 1-51,54-57,61-68,72-81,83-92
+  s_27b2034f3c68fa::t_513189edecd98b 52-53,58-60,69-71
+tools/fortune_simulator/bridge.c
+  s_27b2034f3c68fa::t_9ae33e7cbd8747 183,209-210,214
+  s_27b2034f3c68fa::t_a1177cce906bb7 1-182,184-208,211-213,215-228
+README.md
+  s_27b2034f3c68fa::t_7b3c2fa202e74b 63
+  s_27b2034f3c68fa::t_d9783b185759c2 40-44,53,104-117,146
+  s_27b2034f3c68fa::t_67485c3b6b7353 10-11,13,162
+  s_27b2034f3c68fa::t_92a71dd9fb975a 139-140
+  s_27b2034f3c68fa::t_2693a117e06a66 156
+  s_27b2034f3c68fa::t_95264d9176c3da 118-121
+  s_27b2034f3c68fa::t_3d18ae58d52a18 163
+tests/fortune_ui_host/CMakeLists.txt
+  s_27b2034f3c68fa::t_a1177cce906bb7 22-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "00878f6a9a2053ab82cd0b68c642c189bdc862f8",
+  "prompts": {},
+  "sessions": {
+    "s_27b2034f3c68fa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10030-17b5-7b33-91e4-8a17c74ae20a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
