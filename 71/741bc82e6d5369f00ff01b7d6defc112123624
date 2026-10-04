@@ -1,0 +1,21 @@
+docs/README.md
+  s_27b2034f3c68fa::t_6654d49d5b3c85 204-205
+docs/README.zh_CN.md
+  s_27b2034f3c68fa::t_43f06ee9d3ffd7 198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "71741bc82e6d5369f00ff01b7d6defc112123624",
+  "prompts": {},
+  "sessions": {
+    "s_27b2034f3c68fa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10030-17b5-7b33-91e4-8a17c74ae20a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
