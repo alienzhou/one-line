@@ -142,13 +142,13 @@ before writing a device.
 | --- | --- |
 | Build | **PASS** — complete gate and merged-image verification |
 | Host tests | **PASS** — all text layouts and active fonts, reveal/skip sound events, 16 synthesized cues, volume preview/save/cancel/reload and worker mute/cancellation/fault recovery, 64 shuffled-skin seeds, all 1920 renders, legacy save compatibility and unchanged legacy pixels |
-| Device tests | **NOT RUN** for adjustable volume. The first audio revision passed segmented flashing and a 20-second startup observation; the user heard it but found 60% too quiet |
+| Device tests | **PASS** for segmented write, hashes and a 20-second matching startup of `7db813f`; volume-panel use and loudness await user acceptance. The first audio version was audible but too quiet at 60% |
 | Unverified | Speaker loudness, crackles, reveal synchronization, persisted mute and rapid-operation playback on hardware; physical button interactions, on-device Chinese legibility and clipping, animation smoothness, saved-signature recovery after restart or interrupted writes, idle/wake behavior, battery accuracy, power consumption, and endurance |
 
 The complete encoded text bank takes **57.3 KiB**. Artwork is drawn from scene
 rules rather than a library of stored backgrounds; the canvas uses **12,528
-bytes** of RAM. The application with sound is **1,252,592 bytes**, an increase
-of **66,048 bytes (64.5 KiB)** over the ten-collection release, including the
+bytes** of RAM. The application with sound is **1,253,840 bytes**, an increase
+of **67,296 bytes (65.7 KiB)** over the ten-collection release, including the
 audio playback stack. The synthesized scores and waveform tables use about 680 bytes. The card save remains **312 bytes**, with separate one-byte mute and volume preferences. Gallery PNGs and audition WAVs are excluded
 from the firmware. These measurements and test boundaries are detailed in the
 [product and engineering design](docs/fortune-card.md).

@@ -125,8 +125,8 @@ changing that metadata does not manufacture missing content.
 | Serialized NVS state including seen bitset and CRC | **312 bytes** |
 | Original application image | **1138976 bytes** |
 | Ten-collection application image | **1186544 bytes** |
-| Sound application image | **1252592 bytes** |
-| Sound increase, including playback support | **66048 bytes / 64.5 KiB** |
+| Sound application image | **1253840 bytes** |
+| Sound increase, including playback support | **67296 bytes / 65.7 KiB** |
 | Sound preferences, stored separately | **Two 1-byte values (mute and volume)** |
 
 Measured with the complete ESP-IDF 5.5.3 gate on 2026-10-04. The 1920 gallery
@@ -253,7 +253,11 @@ These are host renders, not photographs.
 The current delivery identity and test status are in ignored `build/delivery.json`.
 The verified merged `build/FoloToy-AI-Passport-full.bin` is for offset **0x0**;
 its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
-A merged flash can reset existing NVS data. **Device tests: NOT RUN for the adjustable-volume revision.**
+A merged flash can reset existing NVS data. **Device tests: PASS for flashing and startup of adjustable volume `7db813f`.**
+Its three component hashes matched after segmented writing without touching NVS.
+A 20-second startup matched ELF `e94944f4b` with 216740 free heap bytes and
+a 114688-byte largest block, with no crash observed. Volume control and persistence
+still need user acceptance; raw evidence is in ignored `build/audio-volume/`.
 The first audio version `881fb43` passed segmented write and hash verification
 and a 20-second matching startup on 2026-10-04: free heap 216740 bytes, largest
 block 114688 bytes. The user confirmed audible sound but found 60% too quiet.
