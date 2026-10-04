@@ -314,7 +314,14 @@ behavior, idle dim/off/wake, battery reporting, runtime heap, current and batter
 life. Any later flash requires applicable user authorization. The 10001+ expansion and
 reader review of tone/repetition are outside the completed 2000+ milestone.
 
-The default/selector changes and [Mac simulator](fortune-simulator.md) are later
-local changes, not included in community revision 1962. Device tests for these
-changes are NOT RUN. The simulator uses the actual application input, storage,
-model and LVGL renderer, and shows draw scope and categorized history.
+The default/selector firmware update `00878f6` is submitted as community revision
+1967, pending review; revision 1962 is still public. Its verified component images
+were flashed at 0x0, 0x8000 and 0x10000, with NVS and PHY excluded. All three write
+hashes matched. Twenty seconds of startup match ELF `d248cefc0dc`, 2200 records,
+216840 free heap bytes and a 114688-byte largest block; no crash or rejected state
+was observed. Device tests PASS for writing and startup only; physical readability,
+controls, saved-card identity and sound still need player acceptance. Full-image SHA256:
+`f7a38b3c91be059686ba0a413a595ee85a1bfab5603555d580e3d31a09977b34`.
+Current evidence lives in ignored `build/publish-simulator/`. The [Mac simulator](fortune-simulator.md)
+uses the actual application input, storage, model and LVGL renderer, and shows
+draw scope and categorized history. It is distributed in the source repository.

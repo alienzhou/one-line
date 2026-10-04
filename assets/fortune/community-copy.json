@@ -9,5 +9,15 @@
   "instructions_zh": "1. 开机即可使用，完全离线，无需配网；黑屏先按任意键唤醒。若显示已留签名，长按确定回首页。\n2. 首页按确定，从全库随机抽取。等信封揭晓；拆信时按确定可跳过。\n3. 想按主题抽取：首页按上／下进入主题页，上下选择、确定后抽签。长按确定返回全库随机；重启也恢复全库。\n4. 结果页按上再抽、下随机换肤、确定留作签名。再抽保留原签名。长按确定回首页，首页长按确定查看签名。\n5. 卡片长按上调音量，上下调节、确定保存；长按确定取消。长按下开关音效。签名、已读与声音设置重启保留。",
   "instructions_en": "1. Turn on the device; it works offline with no Wi-Fi setup. Press any button once to wake a dark display. If your saved signature is shown, hold OK to return home.\n2. Press OK on home to draw randomly from the whole collection. Wait for the letter to reveal its words, or press OK during opening to skip.\n3. For a specific theme, press UP/DOWN on home to open the selector. Browse with UP/DOWN and press OK to confirm and draw. Hold OK to return to whole-bank draws; restarting restores them too.\n4. On the result, press UP to draw again, DOWN for random artwork, or OK to keep the signature. Drawing preserves your old signature. Hold OK to return home; hold OK on home to view your saved card.\n5. On a card, hold UP for volume, adjust with UP/DOWN and press OK to save; hold OK to cancel. Hold DOWN to toggle sound. Your signature, read history and sound settings survive restarts.",
   "changelog_zh": "• 默认从整个签库随机抽取，不再被之前保存的主题限制。回首页或重启恢复全库随机，已读记录和已留签名继续保留。\n• 新增独立主题选择页，放大主题文字，按确定后才生效；卡片顶部显示当前抽取范围，避免误以为正在混抽。\n• 全库内容一起洗牌，取消每20张固定安排两首诗的规则。诗词仍占完整签库10%，短期抽取可能没有诗，也可能遇到多首。",
-  "changelog_en": "• Draws randomly from the whole collection by default, without restrictions from a previously saved theme. Returning home or restarting restores whole-bank draws while keeping read history and saved signatures.\n• Adds a separate selector with larger theme text. A theme takes effect only after OK confirms it, and the card header shows the current draw scope.\n• Shuffles all notes together and removes the rule placing exactly two poems in each 20-card block. Poetry still makes up 10% of the bank; a short run may contain no poems or several."
+  "changelog_en": "• Draws randomly from the whole collection by default, without restrictions from a previously saved theme. Returning home or restarting restores whole-bank draws while keeping read history and saved signatures.\n• Adds a separate selector with larger theme text. A theme takes effect only after OK confirms it, and the card header shows the current draw scope.\n• Shuffles all notes together and removes the rule placing exactly two poems in each 20-card block. Poetry still makes up 10% of the bank; a short run may contain no poems or several.",
+  "firmware_version": "00878f6",
+  "firmware_source_commit": "00878f6a9a2053ab82cd0b68c642c189bdc862f8",
+  "firmware_sha256": "f7a38b3c91be059686ba0a413a595ee85a1bfab5603555d580e3d31a09977b34",
+  "submission": {
+    "ok": true,
+    "projectId": 914,
+    "revisionId": 1967,
+    "status": "pending",
+    "allowRemix": true
+  }
 }

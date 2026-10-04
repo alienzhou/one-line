@@ -7,10 +7,10 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-Public revision **1962** (firmware source `38ad745`) is **approved**.
-This checkout prepares its next update. Description, five-step instructions,
+Submitted revision **1967** (firmware source `00878f6`) is **pending review**;
+public revision **1962** remains available. Description, five-step instructions,
 and this update's release notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the complete text.
-The whole-bank default and Mac simulator below are the changes since revision 1962.
+Revision 1967 contains the whole-bank default and explicit topic selector. The Mac simulator is available in this source repository.
 
 One Fortune is a pocket text surprise box. Choose reassurance when you need it,
 or explore everyday observations, dry humor, surreal ideas, small insights,
@@ -136,14 +136,14 @@ The complete gate produces `build/FoloToy-AI-Passport-full.bin` for **0x0**.
 Matching images, ELF, MAP, and manifest are archived under
 `build/firmware/<full-image-sha256>/`. Firmware and private logs stay out of Git.
 A merged write can overwrite stored data; preserving old signatures requires compatible segmented
-writing. Earlier device testing used that path and left NVS untouched; the current
-local changes have not been flashed. See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
+writing. This update used verified component images and left NVS and PHY untouched.
+See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
 
 | Check | This update |
 | --- | --- |
 | Build | **PASS** — ESP-IDF 5.5.3 complete gate and verified 0x0 merged image |
 | Host tests | PASS — exact decoding, proportions and poetry sources, legacy migration, input and storage; active fonts and all text layouts, 1,920 artwork renders |
-| Device tests | **NOT RUN** for the current local default/selector changes; earlier `38ad745` passed segmented write/startup checks |
+| Device tests | **PASS for write/startup only** — `00878f6`, three verified component writes and 20 seconds of startup observation; matching ELF, no crash or rejected save |
 | Unverified | Physical theme selection and Chinese readability, old-signature recovery, volume/mute recovery, sound quality, animation smoothness, interrupted writes, idle/wake, battery reporting and endurance; perceived text repetition |
 
 The active encoded text bank takes **67.0 KiB**, plus attribution and legacy
