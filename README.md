@@ -109,13 +109,13 @@ The complete gate produces `build/FoloToy-AI-Passport-full.bin` for **0x0**.
 Matching images, ELF, MAP, and manifest are archived under
 `build/firmware/<full-image-sha256>/`. Firmware and private logs stay out of Git.
 A merged write can overwrite stored data; preserving old signatures requires compatible segmented
-writing. This revision has not been flashed. See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
+writing; this revision used that path and left NVS untouched. See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
 
 | Check | This update |
 | --- | --- |
 | Build | **PASS** — ESP-IDF 5.5.3 complete gate and verified 0x0 merged image |
 | Host tests | PASS — exact decoding, proportions and poetry sources, legacy migration, input and storage; active fonts and all text layouts, 1,920 artwork renders |
-| Device tests | **NOT RUN** — this revision has not been flashed; earlier firmware results do not validate it |
+| Device tests | **PASS** for write/startup: `38ad745`, three verified component hashes and 20 seconds of matching startup, with NVS untouched; screen and controls await user acceptance |
 | Unverified | Physical theme selection and Chinese readability, old-signature recovery, volume/mute recovery, sound quality, animation smoothness, interrupted writes, idle/wake, battery reporting and endurance; perceived text repetition |
 
 The active encoded text bank takes **67.0 KiB**, plus attribution and legacy

@@ -95,14 +95,14 @@ python3 tools/render_fortune_topics.py
 
 完整门禁生成从 **0x0** 刷写的 `build/FoloToy-AI-Passport-full.bin`，
 匹配的镜像、ELF、MAP 和清单归档于 `build/firmware/<完整镜像SHA256>/`。
-固件和私有日志不提交 Git。合并镜像可能覆盖已存数据；保留旧签名时应使用兼容的分段写入，本轮尚未烧录。
+固件和私有日志不提交 Git。合并镜像可能覆盖已存数据；保留旧签名时应使用兼容的分段写入，本轮采用该方式，未覆盖 NVS。
 详见[刷写与数据政策](docs/development/engineering/firmware-layout.zh_CN.md#烧录与已存数据)。
 
 | 检查 | 本轮结果 |
 | --- | --- |
 | Build | **PASS**：ESP-IDF 5.5.3 完整门禁与 0x0 合并镜像校验 |
 | Host tests | PASS：完整解码、主题比例与诗词来源、旧存档迁移、按键与存储；实际字体和全部签文排版、1,920 个外观渲染 |
-| Device tests | **NOT RUN**：本轮尚未烧录，之前固件的启动结果不代表本轮 |
+| Device tests | **PASS**（写入与启动）：`38ad745` 三个组件哈希匹配、20 秒匹配启动，未覆盖 NVS；屏幕与操作仍待用户验收 |
 | Unverified | 真机主题切换与中文可读性、旧签名恢复、音量和静音恢复、声音质量、动效流畅度、断电恢复、闲置唤醒、电量与续航；文案的主观重复感 |
 
 当前编码文本占 **67.0 KiB**，另有出处与旧签名兼容数据。仅为兼容旧签名保留的旧签库占

@@ -291,10 +291,16 @@ its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
 Build and Host tests PASS: ESP-IDF 5.5.3 complete gate, byte-verified merge,
 current/legacy strings and poetry sources, old-save migration, fonts and actual
 UI layout, all 1920 appearances, and model AddressSanitizer/UndefinedBehaviorSanitizer.
-Device tests NOT RUN for this correction. Earlier eight-theme `15621c4` passed
-segmented write verification and 20 seconds of startup, but player feedback
-exposed the hidden voice filter and declaration-heavy content. That observation
-motivated this change; previous startup evidence does not validate this binary.
+Device tests PASS for write/startup: `38ad745` was flashed using its verified
+components, with three matching write hashes and the unchanged partition table.
+NVS was not written. Twenty seconds of observation match ELF `1cce326bad3`,
+2200 records, 216576 free heap bytes and a 114688-byte largest block; no crash
+or rejected state was observed. Full-image SHA256:
+`288d57d659e3a99993527f98567ba75e0b693e54cbf6d1d7a574b65751d49766`.
+Physical poetry/chance behavior, saved-signature identity, screen legibility
+and controls still require user acceptance; startup logs cannot establish them.
+Earlier eight-theme `15621c4` passed startup, but player feedback exposed the
+hidden voice filter and declaration-heavy content, motivating this correction.
 Current raw evidence is kept in ignored `build/mixing/`; binaries stay out of Git.
 
 Sound, visual and interaction acceptance
