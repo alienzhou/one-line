@@ -1,0 +1,34 @@
+assets/fortune/community-copy.json
+  s_27b2034f3c68fa::t_eb3d1a12f85623 1-12,28
+  s_27b2034f3c68fa::t_ab56e2bbf7f3eb 13-27
+assets/README.md
+  s_27b2034f3c68fa::t_ab56e2bbf7f3eb 75-76
+assets/fortune/community-artwork.json
+  s_27b2034f3c68fa::t_11b3a5dcdd1982 1-21
+README.zh_CN.md
+  s_27b2034f3c68fa::t_ab56e2bbf7f3eb 7-12,120-132
+  s_27b2034f3c68fa::t_47339390598d79 133
+README.md
+  s_27b2034f3c68fa::t_ab56e2bbf7f3eb 7-13,139-151
+  s_27b2034f3c68fa::t_3819e3b03e2d11 152
+tools/render_fortune_release.py
+  s_27b2034f3c68fa::t_f0ededcfa735c2 1-81
+assets/README.zh_CN.md
+  s_27b2034f3c68fa::t_ab56e2bbf7f3eb 61-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7f04849ee695967090100eea8557d3bb62e0e62b",
+  "prompts": {},
+  "sessions": {
+    "s_27b2034f3c68fa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10030-17b5-7b33-91e4-8a17c74ae20a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
