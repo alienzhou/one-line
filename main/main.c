@@ -2,6 +2,7 @@
 #include "fortune_model.h"
 #include "fortune_ui.h"
 #include "fortune_text.h"
+#include "fortune_audio.h"
 #include "bsp_display.h"
 #include "bsp_button.h"
 #include "bsp_battery.h"
@@ -24,14 +25,18 @@ static bool s_storage_ready, s_save_error, s_input_error, s_battery_ready;
 static int s_battery = -1;
 static const char *s_notice;
 static bool s_unwrap_requested;
+static bool s_sound_enabled=true;
 static uint8_t s_storage_bytes[48+FORTUNE_SEEN_BYTES];
 typedef struct { bsp_btn_t key; bsp_btn_ev_t event; } input_t;
 
 static bool store(const fortune_state_t *state) {
     if (!s_storage_ready) return false;
+    if (!fortune_audio_quiet()) { fortune_audio_resume(); return false; }
     size_t n = fortune_encode_state(state, s_storage_bytes, sizeof(s_storage_bytes));
     esp_err_t err = n ? nvs_set_blob(s_nvs, "state", s_storage_bytes, n) : ESP_ERR_INVALID_ARG;
+    if (err == ESP_OK) err = nvs_set_u8(s_nvs, "sound", s_sound_enabled?1:0);
     if (err == ESP_OK) err = nvs_commit(s_nvs);
+    fortune_audio_resume();
     if (err != ESP_OK) ESP_LOGE(TAG, "Save failed: %s", esp_err_to_name(err));
     return err == ESP_OK;
 }
@@ -43,6 +48,8 @@ static void load(void) {
     if (err == ESP_OK) err = nvs_open("fortune", NVS_READWRITE, &s_nvs);
     s_storage_ready = err == ESP_OK;
     if (!s_storage_ready) { s_save_error = true; return; }
+    uint8_t sound=1;
+    if (nvs_get_u8(s_nvs,"sound",&sound)==ESP_OK && sound<=1) s_sound_enabled=sound!=0;
     size_t n = sizeof(s_storage_bytes);
     err = nvs_get_blob(s_nvs, "state", s_storage_bytes, &n);
     if (err == ESP_ERR_NVS_NOT_FOUND) return;
@@ -54,8 +61,10 @@ static void load(void) {
 
 static void render(void) {
     if (!bsp_lvgl_lock(1000)) return;
+    fortune_ui_sound_enabled(s_sound_enabled);
     fortune_ui_update(&s_state, s_page, s_battery,
-        s_input_error ? FT_INPUT_ERROR : s_save_error ? FT_SAVE_ERROR : s_notice);
+        s_input_error ? FT_INPUT_ERROR : s_save_error ? FT_SAVE_ERROR :
+        s_sound_enabled && fortune_audio_failed() ? FT_SOUND_ERROR : s_notice);
     if (s_unwrap_requested) { fortune_ui_begin_reveal(); s_unwrap_requested = false; }
     bsp_lvgl_unlock();
 }
@@ -80,6 +89,11 @@ static void process(input_t in) {
         } else if (in.key == BSP_BTN_DOWN && s_page == FORTUNE_HOME) {
             s_state.style = (s_state.style + 1) % 4;
             save_after_change();
+        } else if (in.key == BSP_BTN_DOWN) {
+            s_sound_enabled=!s_sound_enabled;
+            fortune_audio_enable(s_sound_enabled); save_after_change();
+            s_notice=s_sound_enabled?FT_SOUND_ON:FT_SOUND_OFF;
+            if(s_sound_enabled) fortune_audio_play(FORTUNE_SOUND_SKIN,s_state.current.art);
         } else if (in.key == BSP_BTN_UP && fortune_remaining(&s_state) == 0) {
             fortune_reset_deck(&s_state); save_after_change();
             s_page = FORTUNE_HOME; s_notice = "已重新洗牌";
@@ -100,9 +114,11 @@ static void process(input_t in) {
     } else if (in.key == BSP_BTN_DOWN) {
         fortune_card_t *card = s_page == FORTUNE_SHOWCASE ? &s_state.pinned : &s_state.current;
         fortune_remix(&s_state, card); save_after_change();
+        fortune_audio_play(FORTUNE_SOUND_SKIN,card->art);
     } else if (in.key == BSP_BTN_OK) {
         if (s_page == FORTUNE_REVEAL) {
             s_state.pinned = s_state.current; save_after_change(); s_page = FORTUNE_SHOWCASE;
+            if(!s_save_error) fortune_audio_play(FORTUNE_SOUND_KEEP,s_state.pinned.art);
         } else s_page = FORTUNE_HOME;
     }
     render();
@@ -112,6 +128,7 @@ static void worker(void *argument) {
     (void)argument;
     int64_t last_input = esp_timer_get_time(), last_battery = last_input;
     uint8_t brightness = 75;
+    bool audio_failed=fortune_audio_failed();
     input_t in;
     for (;;) {
         if (xQueueReceive(s_inputs, &in, pdMS_TO_TICKS(100)) == pdTRUE) {
@@ -121,6 +138,7 @@ static void worker(void *argument) {
             if (!wake_only) process(in);
         }
         int64_t now = esp_timer_get_time();
+        if(audio_failed!=fortune_audio_failed()) { audio_failed=fortune_audio_failed(); render(); }
         if (now-last_battery >= 30000000) {
             last_battery = now; s_battery = s_battery_ready ? bsp_battery_soc() : -1; render();
         }
@@ -149,6 +167,8 @@ void app_main(void) {
     if (!created) { ESP_LOGE(TAG, "UI allocation or glyph inventory failed"); return; }
     s_battery_ready = bsp_battery_init() == ESP_OK;
     s_battery = s_battery_ready ? bsp_battery_soc() : -1;
+    (void)fortune_audio_start(s_sound_enabled);
+    if(bsp_lvgl_lock(1000)) { fortune_ui_sound_callback(fortune_audio_play); bsp_lvgl_unlock(); }
     s_inputs = xQueueCreate(8, sizeof(input_t));
     if (!s_inputs || bsp_button_init(on_key, NULL) != ESP_OK) s_input_error = true;
     render(); bsp_display_backlight(75);

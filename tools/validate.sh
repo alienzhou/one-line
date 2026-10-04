@@ -28,6 +28,18 @@ run_static_checks() {
     "${actionlint_bin}" -color .github/workflows/*.yml
 
     test_dir="$(mktemp -d /tmp/ai-passport-host-tests.XXXXXX)"
+    "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -Imain \
+        tests/test_fortune_sound.c main/fortune_sound.c -o "${test_dir}/test_fortune_sound"
+    "${test_dir}/test_fortune_sound"
+    "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -pthread \
+        -Itests/fortune_audio_stubs -Imain tests/test_fortune_audio_runtime.c main/fortune_sound.c \
+        -o "${test_dir}/test_fortune_audio_runtime"
+    "${test_dir}/test_fortune_audio_runtime"
+    "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -ffunction-sections -fdata-sections \
+        -Itests/fortune_app_stubs -Itests/fortune_audio_stubs -Imain \
+        tests/test_fortune_app.c main/fortune_model.c main/fortune_data.c \
+        "${linker_gc_flag}" -o "${test_dir}/test_fortune_app"
+    "${test_dir}/test_fortune_app"
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
         tests/test_fortune_model.c main/fortune_model.c main/fortune_data.c \
         -o "${test_dir}/test_fortune_model"

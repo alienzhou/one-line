@@ -70,12 +70,31 @@ appearance enters the new collection.
 
 1. Turn on the device. It works offline without Wi-Fi setup. If the display is off, press any button once to wake it.
 2. On the mood page, use UP/DOWN to choose a mood. Hold DOWN to change the voice, then press OK to draw.
-3. Watch the envelope open and the note appear. Press OK during the opening animation to reveal it immediately.
-4. On the result page, press UP to draw again or DOWN to change only the artwork. Press OK to save this note and show it as your signature.
+3. Watch the envelope open with a short musical build-up and a reveal chime. Press OK during the opening animation to reveal it immediately.
+4. On the result page, press UP to draw again or DOWN to change only the artwork. Press OK to save this note as your signature. Hold DOWN on a card to mute or unmute; the setting is remembered.
 5. Hold OK to return to the mood page; hold OK there to view your saved signature. Restarting restores it. Drawing again keeps it until you save another note.
 
 Fortunes offer encouragement and entertainment. They make no predictions or
 promises about what will happen.
+
+## A little sound for the reveal
+
+Soft, original music-box notes build anticipation as the letter opens, then settle
+into a short chime as the words appear. Saving a signature has a gentle two-note
+stamp; changing artwork adds a tiny sparkle. Four related melodic variations keep
+the ritual fresh. Skipping the opening immediately switches to the reveal cue.
+
+Sound starts enabled. Hold **DOWN on the result or signature page** to toggle it;
+a muted card shows a quiet-state label, and the setting survives restarts.
+The mood page retains its existing hold-DOWN voice selection.
+
+[Listen to the complete audition](assets/music/fortune-audition.wav): opening,
+reveal, saved signature, then artwork change. Try the four draw variations:
+[1](assets/music/fortune-draw-1.wav), [2](assets/music/fortune-draw-2.wav),
+[3](assets/music/fortune-draw-3.wav), [4](assets/music/fortune-draw-4.wav).
+These files come from the firmware's actual sound renderer; the device speaker's
+tone and loudness still need on-device listening. WAV previews are not embedded
+in the firmware.
 
 ## See the actual interface
 
@@ -116,15 +135,15 @@ before writing a device.
 | Check | Current result |
 | --- | --- |
 | Build | **PASS** — complete gate and merged-image verification |
-| Host tests | **PASS** — all text layouts and active fonts, controls and animations, 64 shuffled-skin seeds, all 1920 new renders, legacy save compatibility and unchanged legacy pixels |
-| Device tests | **PASS** for segmented flashing, write-hash verification and 15 seconds of clean startup observation on 2026-10-04; visual/button acceptance remains unverified |
-| Unverified | Physical button interactions, on-device Chinese legibility and clipping, animation smoothness, saved-signature recovery after restart or interrupted writes, idle/wake behavior, battery accuracy, power consumption, and endurance |
+| Host tests | **PASS** — all text layouts and active fonts, reveal/skip sound events, 16 synthesized cues, worker mute/cancellation/fault recovery, 64 shuffled-skin seeds, all 1920 renders, legacy save compatibility and unchanged legacy pixels |
+| Device tests | **NOT RUN** for this audio revision; the prior skin revision passed a segmented write and a 15-second startup observation |
+| Unverified | Speaker loudness, crackles, reveal synchronization, persisted mute and rapid-operation playback on hardware; physical button interactions, on-device Chinese legibility and clipping, animation smoothness, saved-signature recovery after restart or interrupted writes, idle/wake behavior, battery accuracy, power consumption, and endurance |
 
 The complete encoded text bank takes **57.3 KiB**. Artwork is drawn from scene
 rules rather than a library of stored backgrounds; the canvas uses **12,528
-bytes** of RAM. The expanded application is **1,186,544 bytes**, an increase
-of **47,568 bytes (46.5 KiB)** over the previous release, including the new
-scene-title glyphs. Save data remains **312 bytes**. Gallery PNGs are excluded
+bytes** of RAM. The application with sound is **1,252,592 bytes**, an increase
+of **66,048 bytes (64.5 KiB)** over the ten-collection release, including the
+audio playback stack. The synthesized scores and waveform tables use about 680 bytes. The card save remains **312 bytes**, with a separate one-byte sound preference. Gallery PNGs and audition WAVs are excluded
 from the firmware. These measurements and test boundaries are detailed in the
 [product and engineering design](docs/fortune-card.md).
 

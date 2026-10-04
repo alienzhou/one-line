@@ -123,13 +123,15 @@ changing that metadata does not manufacture missing content.
 | Entire encoded text bank | **58686 bytes / 57.3 KiB** |
 | Pixel canvas, internal RAM | **12528 bytes** |
 | Serialized NVS state including seen bitset and CRC | **312 bytes** |
-| Previous application image | **1138976 bytes** |
-| Expanded application image | **1186544 bytes** |
-| Application increase, including new scene-title glyphs | **47568 bytes / 46.5 KiB** |
+| Original application image | **1138976 bytes** |
+| Ten-collection application image | **1186544 bytes** |
+| Sound application image | **1252592 bytes** |
+| Sound increase, including playback support | **66048 bytes / 64.5 KiB** |
+| Sound preference, stored separately | **1-byte value** |
 
 Measured with the complete ESP-IDF 5.5.3 gate on 2026-10-04. The 1920 gallery
-images are development previews and are not linked into firmware. Canvas RAM
-and the serialized save size are unchanged.
+images and seven audition WAVs are development previews and are not linked into
+firmware. Canvas RAM and the serialized card save size are unchanged.
 
 The decoder reads a single record into 128 bytes. It never assembles text and
 never loads the whole bank into RAM. The implementation supports up to 16384
@@ -140,8 +142,8 @@ and rebuilding instructions are in `assets/README.md`.
 
 ## Firmware and controls
 
-The skin extension uses `codex/fortune-skins`, based on application commit `38ded1a`
-and upstream `0b9e4c8`; the original
+The sound extension uses `codex/fortune-sound`, based on the ten-collection
+application at `dbc22f8`. Earlier skin work used `codex/fortune-skins`; the original
 checkout's unrelated edits were preserved. BSP is reused unchanged. Demo screens
 are not linked. Target remains ESP32-C3, 8 MB Flash, no PSRAM, ESP-IDF 5.5.3,
 LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
@@ -150,8 +152,8 @@ LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 | --- | --- | --- | --- | --- |
 | Mood selection | Previous mood | Next mood | Draw | DOWN changes voice; OK opens saved signature; UP resets only an exhausted filter |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
-| Draw result | Draw again | New appearance | Save as signature | OK returns to selection |
-| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | OK returns to selection |
+| Draw result | Draw again | New appearance | Save as signature | DOWN toggles sound; OK returns to selection |
+| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | DOWN toggles sound; OK returns to selection |
 
 An affine permutation plus a persistent seen bitset avoids repeating texts across
 filter changes. Exhaustion requires explicit reshuffling. Appearance IDs have their
@@ -160,7 +162,7 @@ no cryptographic randomness claim is made. See [ESP-IDF RNG prerequisites](https
 
 Button callbacks enqueue bounded messages. The worker owns application state and
 NVS writes; all non-LVGL-task UI access holds the BSP lock. The LVGL timer handles
-art only and is deleted with its screen. Draw history is committed before reveal.
+art and posts nonblocking sound events; it is deleted with its screen. Draw history is committed before reveal.
 Save errors explicitly report that changes may be lost; NVS is never erased as
 error recovery. State is explicitly encoded and checksummed. A corpus fingerprint
 change currently resets the deck and pin, so stable-ID migration is required before
@@ -171,6 +173,45 @@ The first event after darkness wakes without changing the card. This is display
 power management, not deep sleep. See [ESP-IDF NVS](https://docs.espressif.com/projects/esp-idf/en/v5.5.3/esp32c3/api-reference/storage/nvs_flash.html)
 for persistence APIs; physical power-loss behavior remains a device check.
 
+## Sound and playback ownership
+
+Four original cue types accompany opening (1.15 s), reveal (0.8 s), keeping a
+signature (0.58 s), and changing artwork (0.28 s), each in four related melodic
+variants. The actual LVGL start/completion events trigger the opening and reveal;
+pressing OK to skip replaces anticipation with exactly one reveal cue. Leaving a
+reveal programmatically cancels it without a completion sound. Music never loops.
+
+`fortune_sound.c` is a pure, allocation-free 16 kHz/16-bit mono renderer. Its
+scores, pitch increments, duration table and interpolated sine table total about
+680 bytes before alignment; samples are generated in 160-frame / 320-byte chunks.
+Each note has an 8 ms attack and a decaying envelope, and each cue ends with
+silence. `fortune_audio.c` owns one 4096-byte worker stack plus a single-slot
+mailbox and a stop acknowledgement; it reuses `bsp_audio_*` without changing BSP,
+pins, codec clocks, partitions, or the dependency lock. The existing BSP allocates
+its I2S DMA buffers when first needed. Device output volume is 60 percent; physical
+loudness remains unmeasured.
+
+New events replace queued older effects. Only the audio worker initializes,
+formats, writes, adjusts volume, sleeps, or wakes audio. Before any NVS write,
+the input worker pauses event admission, requests a smooth stop and drains the
+BSP's at-most-90-ms queue with 100 ms of silence. Only an acknowledged stop permits
+the save; a one-second timeout reports a save failure instead of writing during
+PCM playback. No LVGL lock is held while waiting. Idle playback sleeps the codec
+after 2.5 seconds; mute and storage stops sleep it immediately after draining.
+This is codec software suspend, not whole-device deep sleep or a claim about
+measured current. The externally powered amplifier remains outside software control.
+
+Sound starts enabled. Hold DOWN on a result or signature card to toggle it; the
+muted state is visible in the title. A separate NVS `sound` byte defaults to on
+for old saves; the 312-byte card format and existing signatures remain compatible.
+Audio failures leave drawing and saving available and show a short notice; later
+play requests retry the BSP path. No microphone capture is used.
+
+Recreate the seven completed audition WAVs with `python3 tools/render_fortune_audio.py`.
+The WAVs use the actual firmware renderer and are excluded from firmware; preview
+hashes are in `assets/music/fortune-audio.json`. Host playback cannot verify the
+speaker's tone, loudness or electrical clicks.
+
 ## Validation and delivery
 
 Run the complete repository gate with `./tools/validate.sh` under ESP-IDF 5.5.3.
@@ -180,11 +221,18 @@ scene/skin block coverage, different adjacent scenes, and a synthetic save encod
 by the original `38ded1a` model. A whole-bank pixel fingerprint at three animation
 phases confirms unchanged rendering of every legacy ID.
 The pixel renderer additionally passed AddressSanitizer and UndefinedBehaviorSanitizer.
+Input tests exercise the actual application controls, muted-setting reload, legacy
+defaults, voice selection, stop timeouts and failed-save silence.
+Audio tests exercise all 16 scores for bounded peaks/DC, silent tails, unique
+samples and arbitrary chunk boundaries. A threaded test runs the actual audio
+worker through mute, replacement of rapid events, drain-before-save, timeout,
+idle/wake and initialization/format/wake/write failures. The synth and worker also
+pass AddressSanitizer and UndefinedBehaviorSanitizer.
 
 `./tools/test_fortune_ui.sh` runs the actual LVGL renderer with the BSP rounded-panel
 mask. It checks every text, 36 selection states, maximum-length layout, error states,
-actual widget fonts and missing-glyph detection, timed opening, skip, and motion
-pause, and all 1920 new artwork-region hashes. Generate the complete gallery with:
+actual widget fonts and missing-glyph detection, timed opening, skip, cancellation,
+exactly-once reveal sound events, muted labels, motion pause, and all 1920 artwork-region hashes. Generate the complete gallery with:
 
 ```bash
 ./tools/test_fortune_ui.sh --skins
@@ -200,15 +248,18 @@ These are host renders, not photographs.
 The current delivery identity and test status are in ignored `build/delivery.json`.
 The verified merged `build/FoloToy-AI-Passport-full.bin` is for offset **0x0**;
 its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
-A merged flash can reset existing NVS data. **Device tests: PASS for the 320-skin revision’s segmented write, hash verification and 15-second startup observation on 2026-10-04.**
+A merged flash can reset existing NVS data. **Device tests: NOT RUN for this sound revision.**
+The earlier 320-skin revision passed segmented write, hash verification and a
+15-second startup observation on 2026-10-04.
 The verified component images were written without touching NVS. The matching application completed initialization, with 223164 bytes of free heap and a largest free block of 114688 bytes. Screen and button acceptance remain unverified. The first release was flashed with user approval on 2026-10-03 and passed
 write verification and a 15-second clean startup observation. That result applies
 to the old firmware only; its record is in ignored `build/device-test-pixel.json`.
 The first community submission (project 914, revision 1910) also uses that prior
 image and is separate from this skin extension.
 
-Visual and interaction acceptance
-still require user observation. Pending acceptance: physical buttons and repeat presses,
+Sound, visual and interaction acceptance
+still require user observation. Pending acceptance: speaker loudness, crackles and
+reveal synchronization, rapid draw/skip/mute/save sequences, persisted mute, physical buttons and repeat presses,
 Chinese legibility/corner clipping, opening/wipe smoothness, pin/restart and power-cut
 behavior, idle dim/off/wake, battery reporting, runtime heap, current and battery
 life. Any later flash requires applicable user authorization. The 10001+ expansion and

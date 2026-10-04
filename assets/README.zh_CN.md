@@ -78,6 +78,13 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 
 ## 音乐与音效（music）
 
+原创音乐盒音效由 `main/fortune_sound.c` 实时合成，采用仓库 MIT 许可证。
+`tools/render_fortune_audio.py` 将已经完成的 16 kHz、16-bit 单声道 WAV 试听导出到
+`music/`：`fortune-draw-1.wav` 至 `fortune-draw-4.wav`、`fortune-keep.wav`、
+`fortune-skin.wav`，以及组合试听 `fortune-audition.wav`。`fortune-audio.json` 记录完成状态、
+长度和哈希。没有下载采样或第三方乐曲。固件只链接紧凑乐谱与正弦表，试听 WAV 仅为
+开发和展示素材，不嵌入固件；试听不包含实体音频芯片和扬声器的音染。
+
 可复用的音乐与音效源码放在 `music/`。
 
 - 记录来源、许可、采样率、位深、声道、转换命令与目标路径。

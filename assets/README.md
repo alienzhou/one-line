@@ -92,6 +92,16 @@ on-device visual acceptance is still pending.
 
 ## Music and sound effects
 
+The original music-box cues are synthesized by `main/fortune_sound.c` under the
+repository MIT license. `tools/render_fortune_audio.py` exports completed,
+16 kHz, signed 16-bit mono WAV previews into `music/`: `fortune-draw-1.wav` through
+`fortune-draw-4.wav`, `fortune-keep.wav`, `fortune-skin.wav`, and the combined
+`fortune-audition.wav`. `fortune-audio.json` records completion, lengths and hashes.
+There are no downloaded samples or third-party compositions. The firmware links
+the compact scores and sine table; these preview WAVs are development/publication
+assets only and are not embedded. Listening previews omit physical codec and
+speaker coloration.
+
 Store reusable music and sound-effect sources in `music/`.
 
 - Document the source, license, sample rate, bit depth, channels, conversion command, and destination.

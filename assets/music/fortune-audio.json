@@ -1,0 +1,43 @@
+{
+  "render_status": "completed",
+  "source": "main/fortune_sound.c",
+  "format": "16000 Hz, signed 16-bit mono PCM WAV",
+  "files": {
+    "fortune-draw-1.wav": {
+      "sha256": "156252f97ebd57dcb14fb11f79087f72cd1a9f8a0b001e7419a0dcbca694bc14",
+      "frames": 32800,
+      "sample_rate": 16000
+    },
+    "fortune-draw-2.wav": {
+      "sha256": "5d17019d44565f90c3cc41b397d1c960ea1b669f3a56f408315c24b34e529b99",
+      "frames": 32800,
+      "sample_rate": 16000
+    },
+    "fortune-draw-3.wav": {
+      "sha256": "c2ce05dabcccf17c8d4406db9b6b6b2a24f6a0781e45fd2d5e85878e34fe8f54",
+      "frames": 32800,
+      "sample_rate": 16000
+    },
+    "fortune-draw-4.wav": {
+      "sha256": "d241122d1307656c83bc2ca06fdc73bfa725f0240c06593d59dccc32147c69ea",
+      "frames": 32800,
+      "sample_rate": 16000
+    },
+    "fortune-keep.wav": {
+      "sha256": "e4e5e88e8b6cd84ecccc07dc67b1f6adea61e03813e676df46f72a7db695566b",
+      "frames": 9280,
+      "sample_rate": 16000
+    },
+    "fortune-skin.wav": {
+      "sha256": "c2f3ed09267cd779db3349962d3c99b56cbed6ff84facce0a0a0a805c612b238",
+      "frames": 4480,
+      "sample_rate": 16000
+    },
+    "fortune-audition.wav": {
+      "sha256": "fb2fce59cc519b39ce8a9d114e9d41db35102a19f4e7b988f4bcf759cdd222f7",
+      "frames": 62560,
+      "sample_rate": 16000
+    }
+  },
+  "note": "Actual synthesized samples, without device speaker or codec coloration."
+}

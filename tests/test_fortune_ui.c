@@ -11,6 +11,12 @@
 LV_FONT_DECLARE(fortune_font_12);
 static uint16_t s_pixels[240*320];
 static uint8_t s_draw[240*40*2];
+static unsigned s_open_count,s_reveal_count;
+static void sound_event(fortune_sound_t cue,unsigned variant) {
+    assert(variant<FORTUNE_ART_COUNT);
+    if(cue==FORTUNE_SOUND_OPEN) ++s_open_count;
+    else { assert(cue==FORTUNE_SOUND_REVEAL); ++s_reveal_count; }
+}
 static void advance(unsigned milliseconds) {
     for(unsigned n=0;n<milliseconds;n+=125) { lv_tick_inc(125); lv_timer_handler(); }
 }
@@ -135,20 +141,39 @@ int main(int argc, char **argv) {
     s.current=s.pinned;
     fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL);
     char expected[128]; snprintf(expected,sizeof(expected),"%s",lv_label_get_text(lv_obj_get_child(lv_screen_active(),2)));
+    fortune_ui_sound_callback(sound_event);
     fortune_ui_begin_reveal(); assert(fortune_ui_revealing());
+    assert(s_open_count==1 && s_reveal_count==0);
     assert(strcmp(expected,lv_label_get_text(lv_obj_get_child(lv_screen_active(),2))));
     for(unsigned i=0;i<11;++i) {
         char name[64]; snprintf(name,sizeof(name),"unwrap-%02u",i); snapshot(argv[1],name); check_labels(); advance(125);
     }
     assert(!fortune_ui_revealing());
+    assert(s_open_count==1 && s_reveal_count==1);
     assert(!strcmp(expected,lv_label_get_text(lv_obj_get_child(lv_screen_active(),2))));
     fortune_ui_begin_reveal(); fortune_ui_finish_reveal(); assert(!fortune_ui_revealing());
+    assert(s_open_count==2 && s_reveal_count==2);
+    advance(1500); fortune_ui_finish_reveal();
+    assert(s_reveal_count==2); /* Skip produces one reveal, never a delayed duplicate. */
     assert(!strcmp(expected,lv_label_get_text(lv_obj_get_child(lv_screen_active(),2))));
     const char *notices[] = {FT_SAVE_ERROR,FT_INPUT_ERROR,FT_NO_PIN,FT_EXHAUSTED_HINT,
-        "旧存档不兼容，已使用新签库","已重新洗牌"};
+        FT_SOUND_ON,FT_SOUND_OFF,FT_SOUND_ERROR,"旧存档不兼容，已使用新签库","已重新洗牌"};
     for (unsigned i=0;i<sizeof(notices)/sizeof(notices[0]);++i) {
         fortune_ui_update(&s,FORTUNE_HOME,-1,notices[i]); lv_obj_update_layout(lv_screen_active()); check_labels();
     }
+    fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); fortune_ui_begin_reveal();
+    advance(500); fortune_ui_update(&s,FORTUNE_REVEAL,87,NULL);
+    assert(fortune_ui_revealing() && s_reveal_count==2);
+    fortune_ui_update(&s,FORTUNE_HOME,87,NULL); advance(1500);
+    assert(!fortune_ui_revealing() && s_reveal_count==2); /* Navigation cancels silently. */
+    fortune_ui_sound_enabled(false);
+    for(unsigned style=0;style<4;++style) {
+        s.style=style; fortune_ui_update(&s,FORTUNE_HOME,100,FT_SOUND_OFF);
+        lv_obj_update_layout(lv_screen_active()); check_labels();
+    }
+    s.pinned=s.current; fortune_ui_update(&s,FORTUNE_SHOWCASE,88,FT_SOUND_OFF);
+    snapshot(argv[1],"sound-muted"); check_labels();
+    fortune_ui_sound_enabled(true);
     bool gallery=argc==3 && !strcmp(argv[2],"--skins");
     FILE *catalog=NULL;
     if(gallery) {

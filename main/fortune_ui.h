@@ -1,5 +1,6 @@
 #pragma once
 #include "fortune_model.h"
+#include "fortune_sound.h"
 #include <stdbool.h>
 bool fortune_ui_create(void);
 void fortune_ui_update(const fortune_state_t *state, fortune_page_t page,
@@ -12,3 +13,6 @@ void fortune_ui_motion(bool enabled);
 void fortune_ui_begin_reveal(void);
 bool fortune_ui_revealing(void);
 void fortune_ui_finish_reveal(void);
+/* Callback must only post an event; it is invoked under the LVGL lock. */
+void fortune_ui_sound_callback(void (*callback)(fortune_sound_t, unsigned));
+void fortune_ui_sound_enabled(bool enabled);

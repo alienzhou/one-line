@@ -24,6 +24,11 @@ static unsigned s_wipe_step=3;
 static uint32_t s_old_id,s_quote_id=FORTUNE_NO_CARD;
 static fortune_page_t s_page=FORTUNE_HOME;
 static char s_final_quote[128],s_final_caption[128],s_final_help[128],s_final_hint[128];
+static lv_timer_t *s_timer;
+static void (*s_sound_callback)(fortune_sound_t,unsigned);
+static bool s_sound_enabled=true;
+void fortune_ui_sound_callback(void (*callback)(fortune_sound_t,unsigned)) { s_sound_callback=callback; }
+void fortune_ui_sound_enabled(bool enabled) { s_sound_enabled=enabled; }
 
 static bool closing(uint32_t cp) {
     return cp==0xFF0C || cp==0x3002 || cp==0xFF01 || cp==0xFF1F || cp==0xFF1A || cp==0xFF1B;
@@ -75,24 +80,28 @@ void fortune_ui_tick(void) {
 }
 void fortune_ui_motion(bool enabled) { s_motion=enabled; }
 bool fortune_ui_revealing(void) { return s_revealing; }
-void fortune_ui_finish_reveal(void) {
+static void finish_reveal(bool audible) {
     if(!s_revealing) return;
     s_revealing=false;
     lv_label_set_text(s_quote,s_final_quote); lv_label_set_text(s_caption,s_final_caption);
     lv_label_set_text(s_help,s_final_help); lv_label_set_text(s_hint,s_final_hint);
     fortune_pixels(s_pixels,s_id,0); lv_image_cache_drop(&s_image); lv_obj_invalidate(s_root);
+    if(audible && s_sound_callback) s_sound_callback(FORTUNE_SOUND_REVEAL,s_id);
 }
+void fortune_ui_finish_reveal(void) { finish_reveal(true); }
 void fortune_ui_begin_reveal(void) {
     snprintf(s_final_quote,sizeof(s_final_quote),"%s",lv_label_get_text(s_quote));
     snprintf(s_final_caption,sizeof(s_final_caption),"%s",lv_label_get_text(s_caption));
     snprintf(s_final_help,sizeof(s_final_help),"%s",lv_label_get_text(s_help));
     snprintf(s_final_hint,sizeof(s_final_hint),"%s",lv_label_get_text(s_hint));
     s_revealing=true; s_reveal_step=0;
+    lv_timer_reset(s_timer);
     s_wipe_step=3;
     lv_label_set_text(s_quote,"生活来信\n正在路上");
     lv_label_set_text(s_caption,"给此刻的你 / 待拆封");
     lv_label_set_text(s_help,"一点未知，一点期待"); lv_label_set_text(s_hint,"按确定可直接拆开");
     fortune_pixel_unwrap(s_pixels,s_id,0); lv_image_cache_drop(&s_image); lv_obj_invalidate(s_root);
+    if(s_sound_callback) s_sound_callback(FORTUNE_SOUND_OPEN,s_id);
 }
 static void timer_tick(lv_timer_t *timer) {
     (void)timer;
@@ -108,6 +117,7 @@ static void timer_tick(lv_timer_t *timer) {
 }
 static void cleanup(lv_event_t *event) {
     lv_timer_t *timer=lv_event_get_user_data(event); lv_timer_delete(timer); s_root=NULL;
+    s_timer=NULL; s_sound_callback=NULL; s_revealing=false;
 }
 static lv_obj_t *label(int x,int y,int width,const lv_font_t *font) {
     lv_obj_t *o=lv_label_create(s_root); if(!o) return NULL;
@@ -141,6 +151,7 @@ bool fortune_ui_create(void) {
     lv_timer_t *timer=lv_timer_create(timer_tick,125,NULL);
     if(!timer) { lv_obj_delete(s_root); s_root=NULL; return false; }
     lv_obj_add_event_cb(s_root,cleanup,LV_EVENT_DELETE,timer);
+    s_timer=timer;
     lv_screen_load(s_root); return true;
 }
 void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,const char *notice) {
@@ -150,7 +161,7 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
         if(battery<0) lv_label_set_text(s_battery,"--%"); else lv_label_set_text_fmt(s_battery,"%d%%",battery);
         return; /* Battery refresh must not shorten the opening sequence. */
     }
-    fortune_ui_finish_reveal();
+    finish_reveal(false);
     fortune_colors_t p=fortune_pixel_colors(id);
     if(id!=s_id) {
         s_wipe_step=s_id!=UINT32_MAX && page!=FORTUNE_HOME && page==s_page && card.quote==s_quote_id ? 0:3;
@@ -166,14 +177,14 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     if(battery<0) lv_label_set_text(s_battery,"--%"); else lv_label_set_text_fmt(s_battery,"%d%%",battery);
     char quote[128];
     if(page==FORTUNE_HOME) {
-        lv_label_set_text_fmt(s_meta,"一签 / %s",FORTUNE_STYLES[s->style]); lv_label_set_text(s_quote,FT_HOME);
+        lv_label_set_text_fmt(s_meta,"一签 / %s%s",FORTUNE_STYLES[s->style],s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,FT_HOME);
         lv_label_set_text_fmt(s_caption,"< %s >  ·  %lu 张未读",FORTUNE_MOODS[s->mood],(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_HOME_HELP);
         lv_label_set_text(s_hint,notice?notice:"长下换口吻 · 长确定看签名");
     } else {
         if(!fortune_decode(card.quote,quote,sizeof(quote))) snprintf(quote,sizeof(quote),"暂无签文");
         char formatted[128]; format_quote(quote,formatted);
-        lv_label_set_text_fmt(s_meta,"一签 / %s",fortune_scene_name(id)); lv_label_set_text(s_quote,formatted);
+        lv_label_set_text_fmt(s_meta,"一签 / %s%s",fortune_scene_name(id),s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,formatted);
         lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)card.quote+1,page==FORTUNE_SHOWCASE?"此刻的我":"这一句送你");
         lv_label_set_text(s_help,page==FORTUNE_SHOWCASE?"慢慢来，也是一种风格":FT_REVEAL_HELP);
         lv_label_set_text(s_hint,notice?notice:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);
