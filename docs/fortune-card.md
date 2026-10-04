@@ -152,7 +152,8 @@ and all 220 poetry sources. The 10001 `long_term_target` is a target, not conten
 | Internal-RAM pixel canvas | **12528 bytes** |
 | NVS state including seen bitset and CRC | **323 bytes** |
 | Separate sound preferences | **Two one-byte values (mute and volume)** |
-| Current application image | Complete build measurement pending |
+| Current application image | **1492416 bytes** |
+| Verified merged image | **1557952 bytes** |
 
 Only one record is decoded into a 128-byte buffer; the entire bank is never
 loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
@@ -272,8 +273,17 @@ These are host renders, not photographs.
 The current delivery identity and test status are in ignored `build/delivery.json`.
 The verified merged `build/FoloToy-AI-Passport-full.bin` is for offset **0x0**;
 its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
-A merged flash can reset NVS; this update's complete gate, flash, and startup
-results are pending. Prior adjustable-volume `7db813f` passed segmented hash
+Build and Host tests PASS: ESP-IDF 5.5.3 complete gate, byte-verified merge,
+current/legacy strings and poetry sources, old-save migration, fonts and actual
+UI layout, all 1920 appearances, and model AddressSanitizer/UndefinedBehaviorSanitizer.
+Device tests PASS for write and startup: `15621c4` has three verified component
+hashes, with NVS untouched. Twenty seconds of startup match ELF `3c3eb0f55a`,
+216576 free heap bytes and a 114688-byte largest block, without an observed crash
+or rejected save. Physical screen, old-signature content, and controls remain
+unverified. Full-image SHA256:
+`18e50f269cdb6ce9bca83ab018d32109950f1348500f797bfb053c68479b6ef8`.
+The merged image supports 0x0 but spans NVS; this data-preserving upgrade used
+matching component images and the unchanged partition table. Prior adjustable-volume `7db813f` passed segmented hash
 verification and 20 seconds of startup, with 216740 free heap bytes and a
 114688-byte largest block. That result applies only to the prior firmware.
 The first audio version was audible but too quiet at 60%; 10–100% control

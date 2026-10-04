@@ -14,7 +14,7 @@
 源文件 SHA-256：`2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b`。
 固件只链接 12/20 px、4 bpp、未压缩的生成子集；16 MB 原始 OTF 是开发素材，不进入固件。
 使用 1.5.3 版转换器运行 `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv` 可重建。
-脚本收集完整签文与所有界面文本，字符清单为 `fonts/fortune-characters.txt`。
+脚本收集当前与旧签文、诗词出处及所有界面文本，字符清单为 `fonts/fortune-characters.txt`。
 LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2200 条当前和 2112 条旧版文字布局；真机中文显示仍未验证。
 
 ## 签文内容
@@ -74,7 +74,7 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 五张竖版示意图于 2026-10-03 使用 Codex 内置图像生成工具制作。五个任务均明确完成后，
 逐张打开实际上传文件检查成品；图中标有“玩法示意”，不冒充真机照片。
 提示词保存在 [`fortune/publication-image-prompts.json`](fortune/publication-image-prompts.json)。
-图片用于分支项目 README 和社区提交，不嵌入固件；本项目原创图片遵循仓库 MIT 许可证。
+图片保留为旧版社区示意图，新版 README 使用实际主题渲染；不嵌入固件；本项目原创图片遵循仓库 MIT 许可证。
 三份界面预览来自实际应用渲染器，使用相同许可证。示意海报与主机预览各自注明用途，
 真机画面验收仍待完成。
 

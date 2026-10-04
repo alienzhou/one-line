@@ -111,9 +111,9 @@ writing to preserve NVS. See the [flashing and data policy](docs/development/eng
 
 | Check | This update |
 | --- | --- |
-| Build | NOT RUN — complete build and merged-image verification pending |
+| Build | **PASS** — ESP-IDF 5.5.3 complete gate and verified 0x0 merged image |
 | Host tests | PASS — exact decoding, proportions and poetry sources, legacy migration, input and storage; active fonts and all text layouts, 1,920 artwork renders |
-| Device tests | NOT RUN — flashing and startup observation pending |
+| Device tests | **PASS** — `15621c4` segmented write, three verified hashes and 20 seconds of matching startup; NVS untouched. Screen and controls await user acceptance |
 | Unverified | Physical theme selection and Chinese readability, old-signature recovery, volume/mute recovery, sound quality, animation smoothness, interrupted writes, idle/wake, battery reporting and endurance; perceived text repetition |
 
 The active encoded text bank takes **66.3 KiB**, plus attribution and legacy
@@ -122,6 +122,7 @@ excluded from new draws. Both font sizes cover **2,285 characters**; the whole
 bank is never loaded into RAM. The card save is **323 bytes**, with separate
 one-byte volume and mute preferences. Procedural artwork retains its
 12,528-byte canvas; gallery images stay out of firmware.
+The application is **1,492,416 bytes**; the merged image is **1,557,952 bytes**.
 See the [product and engineering design](docs/fortune-card.md) for measurements
 and compatibility boundaries.
 
