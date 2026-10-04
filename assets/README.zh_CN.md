@@ -21,12 +21,13 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 
 `fortune/corpus.json` 保存 2200 张完整签文：1980 条原创短句与 220 条古诗词摘句。
 八主题比例为 20/10/15/15/15/10/10/5%，不使用运行时拼句；当前阶段超过 2000 条，10001 条目标待扩充。
-`fortune/legacy-corpus.json` 冻结旧版 2112 条，仅用于保留已固定的签名。
+`fortune/legacy-corpus.json` 冻结旧版 2112 条；`fortune/previous-corpus.json` 冻结上一版
+2200 条，仅用于生成旧签名迁移表及被替换的 312 条兼容内容，不参加新抽取。
 `fortune/poetry-sources.json` 保留每条诗词的作者、完整篇名、源段落与固定提交链接，
 核对来源为 [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry)，
 其许可保存在 `fortune/sources/chinese-poetry-LICENSE.txt`。古代作品为公有领域，繁简转换采用 opencc-python-reimplemented 0.1.7，
 摘句只调整标点，不改写成原创；长篇名在界面缩略，源数据保留全名。
-当前文本流、字典与索引合计 67915 字节，另有出处、旧库和迁移映射。
+当前文本流、字典与索引合计 68600 字节，另有出处、旧库和迁移映射。
 `tools/pack_fortunes.py --release` 仍执行 2001 条最低要求，完整测量见[产品设计](../docs/fortune-card.zh_CN.md)。
 
 十个原创像素系列由 `main/fortune_pixels.c` 绘制，不嵌入下载的画作或场景图片。
@@ -59,7 +60,7 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | `images/fortune-home.png`、`fortune-theme-1.png`～`fortune-theme-8.png` | 240 × 320，PNG | 实际应用渲染的首页与主题示例；MIT。 |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448，PNG | 一签社区封面，原创 AI 玩法示意图。 |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448，PNG | 拆信玩法示意图。 |
-| [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 口吻与心情示意图。 |
+| [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 历史版本口吻与心情示意图，现版已取消口吻筛选。 |
 | [`images/fortune-collections.png`](images/fortune-collections.png) | 1086 × 1448，PNG | 四个像素系列示意图。 |
 | [`images/fortune-signature.png`](images/fortune-signature.png) | 1086 × 1448，PNG | 留作个人签名示意图。 |
 | [`images/fortune-ten-collections.png`](images/fortune-ten-collections.png) | 1086 × 1448，PNG | 十个系列的实际程序渲染预览；MIT。 |

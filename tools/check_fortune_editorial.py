@@ -25,6 +25,7 @@ report = {
     'records': len(records), 'exact_duplicates': 0,
     'group_counts': {f'{mood}/{voice}': count for (mood, voice), count in
                      sorted(Counter((m, s) for m, s, _ in records).items())},
+    'first_person_openings': {str(m):sum(t.startswith('我') for mood,_,t in records if mood==m) for m in range(1,9)},
     'max_characters': max(len(t) for _, _, t in records),
     'near_text_scan': {'bigram_jaccard_minimum': .48, 'sequence_similarity_threshold': .72,
                        'pairs_above_both_thresholds': len(pairs), 'pairs': pairs},

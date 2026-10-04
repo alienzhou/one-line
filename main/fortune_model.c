@@ -6,8 +6,7 @@ static uint32_t gcd(uint32_t a, uint32_t b) {
     return a;
 }
 
-/* A complete affine permutation: every card exactly once, constant RAM.
- * The global seen bits also prevent duplicates when changing mood/style filters. */
+/* Palette permutation only; text uses balanced shuffled theme blocks below. */
 static uint32_t permute(uint32_t position, uint32_t count, uint32_t seed) {
     uint32_t stride = seed % count;
     if (!stride) stride = 1;
@@ -24,10 +23,17 @@ void fortune_defaults(fortune_state_t *s, uint32_t seed) {
     s->current = s->pinned = (fortune_card_t){FORTUNE_NO_CARD, 0};
 }
 
+static bool valid_quote(uint32_t quote) {
+    if (quote==FORTUNE_NO_CARD || quote<FORTUNE_COUNT) return true;
+    if ((quote & 0xC0000000U)==FORTUNE_LEGACY_QUOTE)
+        return (quote & ~FORTUNE_LEGACY_QUOTE)<FORTUNE_LEGACY_COUNT;
+    if ((quote & 0xC0000000U)==FORTUNE_PREVIOUS_QUOTE)
+        return (quote & ~FORTUNE_PREVIOUS_QUOTE)<FORTUNE_PREVIOUS_COUNT;
+    return false;
+}
+
 static bool valid_card(fortune_card_t c) {
-    return (c.quote == FORTUNE_NO_CARD || c.quote < FORTUNE_COUNT ||
-        ((c.quote & FORTUNE_LEGACY_QUOTE) &&
-         (c.quote & ~FORTUNE_LEGACY_QUOTE) < FORTUNE_LEGACY_COUNT)) && c.art < FORTUNE_ART_COUNT;
+    return valid_quote(c.quote) && c.art < FORTUNE_ART_COUNT;
 }
 
 bool fortune_valid(const fortune_state_t *s) {
@@ -39,15 +45,16 @@ bool fortune_valid(const fortune_state_t *s) {
 bool fortune_decode(uint32_t id, char *out, size_t cap) {
     if (!out || !cap) return false;
     out[0] = 0;
+    if (!valid_quote(id) || id==FORTUNE_NO_CARD) return false;
     bool legacy = (id & FORTUNE_LEGACY_QUOTE) != 0;
-    id &= ~FORTUNE_LEGACY_QUOTE;
-    if (id >= (legacy ? FORTUNE_LEGACY_COUNT : FORTUNE_COUNT)) return false;
-    const fortune_record_t *r = &(legacy ? FORTUNE_LEGACY_RECORDS : FORTUNE_RECORDS)[id];
-    const uint8_t *payload = legacy ? FORTUNE_LEGACY_PAYLOAD : FORTUNE_PAYLOAD;
-    const uint16_t *dictionary = legacy ? FORTUNE_LEGACY_DICTIONARY : FORTUNE_DICTIONARY;
-    unsigned bits = legacy ? FORTUNE_LEGACY_BITS : FORTUNE_BITS;
-    unsigned payload_size = legacy ? FORTUNE_LEGACY_PAYLOAD_BYTES : FORTUNE_PAYLOAD_BYTES;
-    unsigned dictionary_size = legacy ? FORTUNE_LEGACY_DICTIONARY_COUNT : FORTUNE_DICTIONARY_COUNT;
+    bool previous = (id & FORTUNE_PREVIOUS_QUOTE) != 0;
+    id &= ~(FORTUNE_LEGACY_QUOTE | FORTUNE_PREVIOUS_QUOTE);
+    const fortune_record_t *r = &(previous ? FORTUNE_PREVIOUS_RECORDS : legacy ? FORTUNE_LEGACY_RECORDS : FORTUNE_RECORDS)[id];
+    const uint8_t *payload = previous ? FORTUNE_PREVIOUS_PAYLOAD : legacy ? FORTUNE_LEGACY_PAYLOAD : FORTUNE_PAYLOAD;
+    const uint16_t *dictionary = previous ? FORTUNE_PREVIOUS_DICTIONARY : legacy ? FORTUNE_LEGACY_DICTIONARY : FORTUNE_DICTIONARY;
+    unsigned bits = previous ? FORTUNE_PREVIOUS_BITS : legacy ? FORTUNE_LEGACY_BITS : FORTUNE_BITS;
+    unsigned payload_size = previous ? FORTUNE_PREVIOUS_PAYLOAD_BYTES : legacy ? FORTUNE_LEGACY_PAYLOAD_BYTES : FORTUNE_PAYLOAD_BYTES;
+    unsigned dictionary_size = previous ? FORTUNE_PREVIOUS_DICTIONARY_COUNT : legacy ? FORTUNE_LEGACY_DICTIONARY_COUNT : FORTUNE_DICTIONARY_COUNT;
     uint32_t bit = r->bit_offset;
     size_t written = 0;
     for (uint8_t i = 0; i < r->length; ++i) {
@@ -80,25 +87,13 @@ const char *fortune_citation(uint32_t id) {
 
 static bool matches(const fortune_state_t *s, uint32_t id) {
     const fortune_record_t *r = &FORTUNE_RECORDS[id];
-    return (!s->mood || r->mood == s->mood) &&
-        (s->style == FORTUNE_ANY_STYLE || r->style == s->style);
-}
-
-static bool style_available(const fortune_state_t *s, uint8_t style) {
-    for (uint32_t i=0; i<FORTUNE_COUNT; ++i)
-        if ((!s->mood || FORTUNE_RECORDS[i].mood == s->mood) &&
-            (style == FORTUNE_ANY_STYLE || FORTUNE_RECORDS[i].style == style)) return true;
-    return false;
+    return !s->mood || r->mood == s->mood;
 }
 
 void fortune_select_topic(fortune_state_t *s, uint8_t topic) {
     if (topic > 8) return;
     s->mood = topic;
-    if (!style_available(s, s->style)) s->style = FORTUNE_ANY_STYLE;
-}
-
-void fortune_next_style(fortune_state_t *s) {
-    do { s->style = (s->style + 1) % 4; } while (!style_available(s, s->style));
+    s->style = FORTUNE_ANY_STYLE; /* Retired preference must never hide a theme. */
 }
 
 uint32_t fortune_remaining(const fortune_state_t *s) {
@@ -113,10 +108,11 @@ static uint32_t art_mix(uint32_t x) {
     return x ^ (x >> 16);
 }
 
-/* Keyed Feistel permutation, cycle-walked to 80 or 4 values. Unlike a fixed
+/* Keyed Feistel permutation, cycle-walked to the requested count. Unlike a fixed
  * affine stride, adjacent items have no repeating family/color arithmetic. */
 static uint32_t shuffled(uint32_t x, uint32_t count, uint32_t key) {
-    unsigned bits = count == FORTUNE_SCENE_COUNT ? 4 : 1;
+    unsigned bits = 1;
+    while ((1U << (bits*2)) < count) ++bits;
     uint32_t mask = (1U << bits) - 1;
     do {
         uint32_t left = x >> bits, right = x & mask;
@@ -150,9 +146,25 @@ void fortune_remix(fortune_state_t *s, fortune_card_t *c) {
     s->art_cursor = FORTUNE_LEGACY_ART_COUNT + (cursor + 1) % FORTUNE_NEW_ART_COUNT;
 }
 
+/* Each fresh 20-card block has 4 comfort, 2 poetry, 3 each observation/humor/
+ * surreal, 2 each insight/relationship and 1 outing. Shuffle slots and each
+ * theme independently: exact deck coverage without allocating a shuffle array.
+ * Seen bits still take precedence after switching themes or migrating saves. */
+static uint32_t text_id(const fortune_state_t *s, uint32_t position) {
+    static const uint8_t quota[] = {0,4,2,3,3,3,2,2,1};
+    uint32_t key = s->seed ^ art_mix(s->cycle + 0xA123U);
+    uint32_t block = position/20;
+    uint32_t slot = shuffled(position%20,20,key ^ art_mix(block+83U));
+    uint32_t theme = 1;
+    while (slot >= quota[theme]) slot -= quota[theme++];
+    uint32_t local = shuffled(block*quota[theme]+slot,FORTUNE_THEME_COUNTS[theme],
+                              key ^ art_mix(theme+617U));
+    return FORTUNE_THEME_OFFSETS[theme]+local;
+}
+
 bool fortune_draw(fortune_state_t *s) {
     for (uint32_t i = 0; i < FORTUNE_COUNT; ++i) {
-        uint32_t id = permute(s->cursor, FORTUNE_COUNT, s->seed);
+        uint32_t id = text_id(s, s->cursor);
         s->cursor = (s->cursor + 1) % FORTUNE_COUNT;
         if (!matches(s, id) || (s->seen[id / 8] & (1U << (id % 8)))) continue;
         s->seen[id / 8] |= (uint8_t)(1U << (id % 8));
@@ -167,7 +179,7 @@ void fortune_reset_deck(fortune_state_t *s) {
     memset(s->seen, 0, sizeof(s->seen));
     ++s->cycle;
     /* Keep the visual permutation seed stable across text-deck resets. */
-    s->cursor = (uint32_t)(((uint64_t)s->cycle * 37U) % FORTUNE_COUNT);
+    s->cursor = 0;
 }
 
 uint32_t fortune_crc(const uint8_t *data, size_t n) {
@@ -219,7 +231,6 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
         migrated.art_cursor = get32(data+16); migrated.cycle = get32(data+20);
         migrated.current = (fortune_card_t){current==FORTUNE_NO_CARD?current:current|FORTUNE_LEGACY_QUOTE, get32(data+28)};
         migrated.pinned = (fortune_card_t){pinned==FORTUNE_NO_CARD?pinned:pinned|FORTUNE_LEGACY_QUOTE, get32(data+36)};
-        migrated.style = data[41];
         fortune_select_topic(&migrated, data[40] ? 1 : 0);
         for (uint32_t i=0; i<FORTUNE_COUNT; ++i) {
             uint32_t old_id = FORTUNE_RETAINED_IDS[i];
@@ -227,6 +238,32 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
                 migrated.seen[i/8] |= (uint8_t)(1U << (i%8));
         }
         *s = migrated;
+        return true;
+    }
+    if (get32(data+4) == FORTUNE_PREVIOUS_CORPUS_ID) {
+        if (n != 48+(FORTUNE_PREVIOUS_SOURCE_COUNT+7)/8 ||
+            get32(data+12)>=FORTUNE_PREVIOUS_SOURCE_COUNT || data[40]>8 || data[41]>FORTUNE_ANY_STYLE ||
+            get32(data+16)>=FORTUNE_ART_COUNT || get32(data+28)>=FORTUNE_ART_COUNT ||
+            get32(data+36)>=FORTUNE_ART_COUNT) return false;
+        uint32_t quotes[2] = {get32(data+24),get32(data+32)};
+        for (unsigned i=0;i<2;++i) {
+            if (quotes[i]==FORTUNE_NO_CARD) continue;
+            if (quotes[i]<FORTUNE_PREVIOUS_SOURCE_COUNT) quotes[i]=FORTUNE_PREVIOUS_MAP[quotes[i]];
+            else if ((quotes[i]&0xC0000000U)!=FORTUNE_LEGACY_QUOTE ||
+                     (quotes[i]&~FORTUNE_LEGACY_QUOTE)>=FORTUNE_LEGACY_COUNT) return false;
+        }
+        fortune_state_t migrated;
+        fortune_defaults(&migrated,get32(data+8));
+        migrated.art_cursor=get32(data+16); migrated.cycle=get32(data+20);
+        migrated.current=(fortune_card_t){quotes[0],get32(data+28)};
+        migrated.pinned=(fortune_card_t){quotes[1],get32(data+36)};
+        fortune_select_topic(&migrated,data[40]);
+        for (uint32_t old=0;old<FORTUNE_PREVIOUS_SOURCE_COUNT;++old) {
+            uint32_t id=FORTUNE_PREVIOUS_MAP[old];
+            if (id<FORTUNE_COUNT && (data[44+old/8]&(1U<<(old%8))))
+                migrated.seen[id/8] |= (uint8_t)(1U<<(id%8));
+        }
+        *s=migrated;
         return true;
     }
     if (n != 48 + FORTUNE_SEEN_BYTES) return false;
@@ -239,6 +276,7 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
     candidate.mood = data[40]; candidate.style = data[41];
     memcpy(candidate.seen, data+44, FORTUNE_SEEN_BYTES);
     if (!fortune_valid(&candidate)) return false;
+    candidate.style=FORTUNE_ANY_STYLE;
     *s = candidate;
     return true;
 }

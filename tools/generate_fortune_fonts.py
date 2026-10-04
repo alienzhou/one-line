@@ -10,8 +10,9 @@ from pack_fortunes import ROOT, load_records
 def inventory():
     document, records = load_records(ROOT / 'assets/fortune/corpus.json')
     _, legacy = load_records(ROOT / 'assets/fortune/legacy-corpus.json')
+    _, previous = load_records(ROOT / 'assets/fortune/previous-corpus.json')
     chars = set(range(32, 127))
-    for _, _, text in records + legacy:
+    for _, _, text in records + legacy + previous:
         chars.update(map(ord, text))
     for citation in document.get('citations', {}).values():
         chars.update(map(ord, citation['display']))

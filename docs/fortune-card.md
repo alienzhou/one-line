@@ -61,12 +61,17 @@ These are pseudorandom entertainment choices, not cryptographic randomness.
 The former 24576 IDs are retained only to render existing saved cards unchanged.
 New draws and appearance changes use the new 1920-ID bank. This is why a saved
 signature can initially show its old artwork until the user explicitly changes it.
-This update changes the card save from 312 to 323 bytes and imports the old
+The card save remains 323 bytes and imports the original 312-byte save with
 corpus fingerprint 3420887641. Existing current/pinned records use a separate
 legacy ID namespace, preserving their exact words and art. The 440 retained
 records import their old seen bits; new content starts unread. Old mood filters
 become reassurance, chance remains chance, and the artwork cursor is retained.
-The old bank serves existing cards only, never new draws. Separate NVS mute and
+The preceding 2200-record fingerprint 3335999125 also migrates: unchanged
+texts retain their read status; 312 retired texts use a compact compatibility
+bank for current and pinned cards only. Their exact words and artwork survive;
+new replacement texts start unread. Saved voice preferences are retired and
+reset to unrestricted; the theme and artwork cursor remain.
+The old banks serve existing cards only, never new draws. Separate NVS mute and
 volume keys are unchanged. Compatibility covers the identified old and current
 banks, not arbitrary future banks or downgrades. A merged 0x0 write can still
 reset NVS; this upgrade should use verified components with the same layout.
@@ -114,14 +119,19 @@ not evidence of therapeutic efficacy. Every drawing is local procedural code.
 | Everyday observations | 330 | 15% |
 | Dry humor | 330 | 15% |
 | Surreal ideas | 330 | 15% |
-| Personal attitudes | 220 | 10% |
+| Small insights | 220 | 10% |
 | Relationship moments | 220 | 10% |
 | Small outings | 110 | 5% |
 
-These are whole-corpus proportions, not guarantees for a small run of draws.
-Voices are straightforward, playful, and poetic. Voice cycling skips unavailable
-voices; selecting a theme falls back to any voice when the old voice is absent.
-Exhaustion requires changing filters or explicitly reshuffling.
+A fresh chance deck shuffles each 20-card block containing 4/2/3/3/3/2/2/1
+cards from these themes; poetry therefore appears twice per block. Seen cards
+are skipped across theme changes and imported saves, so those partial histories
+do not promise the same short-run proportions. The voice filter is retired:
+chance includes all themes regardless of old saved preferences. Hold DOWN on
+home to return to chance. Exhaustion requires changing themes or reshuffling.
+All 220 former personal declarations and 92 first-person humor openings were
+rewritten. First-person openings fell from 320 to 21, including three unchanged
+poetry excerpts; insights now cover concrete opinions across multiple subjects.
 
 Original records are authored whole, without assembling sentence fragments.
 Classical excerpts use public-domain ancient works, checked against
@@ -135,49 +145,54 @@ There are no exact duplicate strings; the longest record is 24 characters.
 Bigram Jaccard ≥0.48 and sequence similarity >0.72 find no close-wording pairs.
 This does not prove semantic novelty; reader-perceived repetition remains open.
 `python3 tools/pack_fortunes.py --release` enforces the current 2001 minimum.
-Host checks roundtrip 2200 current and 2112 legacy strings, theme proportions,
+Host checks roundtrip 2200 current and 2112 legacy strings, all 2200 preceding
+version cards through migration, theme proportions,
 and all 220 poetry sources. The 10001 `long_term_target` is a target, not content.
 
 | Resource | Encoded size |
 | --- | ---: |
-| Current UTF-8 including terminators | 103669 bytes |
-| Current 11-bit character stream | 46507 bytes |
-| Current dictionary | 3808 bytes |
+| Current UTF-8 including terminators | 105154 bytes |
+| Current 11-bit character stream | 47188 bytes |
+| Current dictionary | 3812 bytes |
 | Current index and metadata | 17600 bytes |
-| Current encoded text subtotal | **67915 bytes / 66.3 KiB** |
+| Current encoded text subtotal | **68600 bytes / 67.0 KiB** |
 | Attribution strings and 32-bit pointers | 3744 bytes |
 | Old seen-record mapping | 4400 bytes |
 | Legacy text compatibility bank | **58686 bytes / 57.3 KiB** |
-| Read-only content total, before linker alignment | **134745 bytes / 131.6 KiB** |
+| Retired 312-record bank and previous-ID mapping | **18978 bytes / 18.5 KiB** |
+| Theme offsets and counts | 36 bytes |
+| Read-only content total, before linker alignment | **154444 bytes / 150.8 KiB** |
 | Internal-RAM pixel canvas | **12528 bytes** |
 | NVS state including seen bitset and CRC | **323 bytes** |
 | Separate sound preferences | **Two one-byte values (mute and volume)** |
-| Current application image | **1492416 bytes** |
-| Verified merged image | **1557952 bytes** |
+| Current application image | **1515360 bytes** |
+| Verified merged image | **1580896 bytes** |
 
 Only one record is decoded into a 128-byte buffer; the entire bank is never
 loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
-`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2285 characters per
+`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2295 characters per
 size**, covering current/legacy text, attribution, and UI literals. The OTF,
 1920 gallery PNGs, and audition WAVs are excluded from firmware. Sources and
 regeneration are in `assets/README.md`.
 
 ## Firmware and controls
 
-This update uses `codex/fortune-themes`, based on adjustable-volume `4da25a0`,
+This correction uses `codex/fortune-mixing`, based on eight-theme `71741bc`,
 preserving earlier changes. BSP is reused unchanged. Demo screens
 are not linked. Target remains ESP32-C3, 8 MB Flash, no PSRAM, ESP-IDF 5.5.3,
 LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 
 | Page | UP | DOWN | OK | Long press |
 | --- | --- | --- | --- | --- |
-| Theme selection | Previous theme | Next theme | Draw | DOWN changes voice; OK opens saved signature; UP resets only an exhausted filter |
+| Theme selection | Previous theme | Next theme | Draw | DOWN returns to chance; OK opens saved signature; UP resets only an exhausted filter |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
 | Draw result | Draw again | New appearance | Save as signature | UP opens volume; DOWN toggles sound; OK returns to selection |
 | Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | UP opens volume; DOWN toggles sound; OK returns to selection |
 
-An affine permutation plus a persistent seen bitset avoids repeating texts across
-filter changes. Exhaustion requires explicit reshuffling. Appearance IDs have their
+Independent keyed Feistel permutations shuffle theme slots and the records
+within each theme. A persistent seen bitset avoids repeats across theme changes.
+Fresh 20-card blocks maintain the declared proportions without a RAM shuffle
+array. Reset starts a newly keyed order at the first block. Exhaustion requires explicit reshuffling. Appearance IDs have their
 own shuffled scene/subject/color order, unaffected by a text-deck reset. These are entertainment draws;
 no cryptographic randomness claim is made. See [ESP-IDF RNG prerequisites](https://docs.espressif.com/projects/esp-idf/en/v5.5.3/esp32c3/api-reference/system/random.html).
 
@@ -247,7 +262,7 @@ by the original `38ded1a` model. A whole-bank pixel fingerprint at three animati
 phases confirms unchanged rendering of every legacy ID.
 The pixel renderer additionally passed AddressSanitizer and UndefinedBehaviorSanitizer.
 Input tests exercise the actual application controls, volume preview/save/cancel/clamping/reload, failed-save retry, muted-setting reload, legacy
-defaults, voice selection, stop timeouts and failed-save silence.
+defaults, return-to-chance controls, stop timeouts and failed-save silence.
 Audio tests exercise all 16 scores for bounded peaks/DC, silent tails, unique
 samples and arbitrary chunk boundaries. A threaded test runs the actual audio
 worker through mute, replacement of rapid events, drain-before-save, timeout,
@@ -276,19 +291,11 @@ its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
 Build and Host tests PASS: ESP-IDF 5.5.3 complete gate, byte-verified merge,
 current/legacy strings and poetry sources, old-save migration, fonts and actual
 UI layout, all 1920 appearances, and model AddressSanitizer/UndefinedBehaviorSanitizer.
-Device tests PASS for write and startup: `15621c4` has three verified component
-hashes, with NVS untouched. Twenty seconds of startup match ELF `3c3eb0f55a`,
-216576 free heap bytes and a 114688-byte largest block, without an observed crash
-or rejected save. Physical screen, old-signature content, and controls remain
-unverified. Full-image SHA256:
-`18e50f269cdb6ce9bca83ab018d32109950f1348500f797bfb053c68479b6ef8`.
-The merged image supports 0x0 but spans NVS; this data-preserving upgrade used
-matching component images and the unchanged partition table. Prior adjustable-volume `7db813f` passed segmented hash
-verification and 20 seconds of startup, with 216740 free heap bytes and a
-114688-byte largest block. That result applies only to the prior firmware.
-The first audio version was audible but too quiet at 60%; 10–100% control
-followed. Volume operation and restart persistence still need user acceptance.
-Current raw evidence is kept in ignored `build/themes/`; binaries stay out of Git.
+Device tests NOT RUN for this correction. Earlier eight-theme `15621c4` passed
+segmented write verification and 20 seconds of startup, but player feedback
+exposed the hidden voice filter and declaration-heavy content. That observation
+motivated this change; previous startup evidence does not validate this binary.
+Current raw evidence is kept in ignored `build/mixing/`; binaries stay out of Git.
 
 Sound, visual and interaction acceptance
 still require user observation. Pending acceptance: speaker loudness, crackles and

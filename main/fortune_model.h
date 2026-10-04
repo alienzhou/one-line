@@ -1,6 +1,7 @@
 #pragma once
 #include "fortune_data.h"
 #include "fortune_legacy_data.h"
+#include "fortune_previous_data.h"
 #include "fortune_art.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -9,6 +10,7 @@
 #define FORTUNE_NO_CARD UINT32_MAX
 #define FORTUNE_SEEN_BYTES ((FORTUNE_COUNT + 7U) / 8U)
 #define FORTUNE_ANY_STYLE 3U
+#define FORTUNE_PREVIOUS_QUOTE 0x40000000U
 #define FORTUNE_LEGACY_QUOTE 0x80000000U
 
 typedef enum { FORTUNE_HOME, FORTUNE_REVEAL, FORTUNE_SHOWCASE } fortune_page_t;
@@ -26,7 +28,6 @@ bool fortune_valid(const fortune_state_t *state);
 bool fortune_decode(uint32_t id, char *out, size_t capacity);
 const char *fortune_citation(uint32_t id);
 void fortune_select_topic(fortune_state_t *state, uint8_t topic);
-void fortune_next_style(fortune_state_t *state);
 bool fortune_draw(fortune_state_t *state);
 void fortune_remix(fortune_state_t *state, fortune_card_t *card);
 void fortune_reset_deck(fortune_state_t *state);

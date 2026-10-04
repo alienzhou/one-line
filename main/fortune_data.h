@@ -3,12 +3,13 @@
 #include <stdint.h>
 #define FORTUNE_COUNT 2200U
 #define FORTUNE_BITS 11U
-#define FORTUNE_DICTIONARY_COUNT 1904U
-#define FORTUNE_PAYLOAD_BYTES 46507U
-#define FORTUNE_CORPUS_ID 3335999125U
+#define FORTUNE_DICTIONARY_COUNT 1906U
+#define FORTUNE_PAYLOAD_BYTES 47188U
+#define FORTUNE_CORPUS_ID 872204265U
 typedef struct { uint32_t bit_offset; uint8_t length, mood, style, citation; } fortune_record_t;
 extern const fortune_record_t FORTUNE_RECORDS[];
 extern const uint16_t FORTUNE_DICTIONARY[];
 extern const uint8_t FORTUNE_PAYLOAD[];
 extern const char *const FORTUNE_CITATIONS[];
 extern const uint16_t FORTUNE_RETAINED_IDS[];
+extern const uint16_t FORTUNE_THEME_OFFSETS[], FORTUNE_THEME_COUNTS[];

@@ -197,17 +197,17 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     if(battery<0) lv_label_set_text(s_battery,"--%"); else lv_label_set_text_fmt(s_battery,"%d%%",battery);
     char quote[128];
     if(page==FORTUNE_HOME) {
-        lv_label_set_text_fmt(s_meta,"一签 / %s%s",FORTUNE_STYLES[s->style],s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,FT_HOME);
+        lv_label_set_text_fmt(s_meta,"一签 / %s%s",FORTUNE_MOODS[s->mood],s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,FT_HOME);
         lv_label_set_text_fmt(s_caption,"< %s >  ·  %lu 张未读",FORTUNE_MOODS[s->mood],(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_HOME_HELP);
-        lv_label_set_text(s_hint,notice?notice:"长下换口吻 · 长确定看签名");
+        lv_label_set_text(s_hint,notice?notice:"长下回随缘 · 长确定看签名");
     } else {
         if(!fortune_decode(card.quote,quote,sizeof(quote))) snprintf(quote,sizeof(quote),"暂无签文");
         char formatted[128]; format_quote(quote,formatted);
         lv_label_set_text_fmt(s_meta,"一签 / %s%s",fortune_scene_name(id),s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,formatted);
         const char *citation = fortune_citation(card.quote);
         if (*citation) lv_label_set_text(s_caption,citation);
-        else lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)(card.quote & ~FORTUNE_LEGACY_QUOTE)+1,page==FORTUNE_SHOWCASE?"此刻的我":"这一句送你");
+        else lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)(card.quote & ~(FORTUNE_LEGACY_QUOTE | FORTUNE_PREVIOUS_QUOTE))+1,card.quote<FORTUNE_COUNT?FORTUNE_MOODS[FORTUNE_RECORDS[card.quote].mood]:"已留签名");
         lv_label_set_text(s_help,page==FORTUNE_SHOWCASE?"留下一句，展示此刻":FT_REVEAL_HELP);
         lv_label_set_text(s_hint,notice?notice:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);
     }

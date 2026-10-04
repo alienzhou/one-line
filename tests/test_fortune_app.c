@@ -71,8 +71,8 @@ int main(void) {
     s_sound_enabled=true; load(); assert(!s_sound_enabled);
     assert(s_state.pinned.quote==pin.quote && s_state.pinned.art==pin.art);
     sound_key=false; s_sound_enabled=true; load(); assert(s_sound_enabled); /* Legacy upgrade. */
-    s_page=FORTUNE_HOME; unsigned style=s_state.style;
-    process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==(style+1)%4);
+    s_page=FORTUNE_HOME; s_state.mood=6; s_state.style=0;
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.mood==0 && s_state.style==FORTUNE_ANY_STYLE);
     unsigned before=writes; quiet_ok=false;
     assert(!store(&s_state)); assert(writes==before && !quiet);
     quiet_ok=true; fail_commit=true; muted=false; s_page=FORTUNE_REVEAL;
@@ -111,7 +111,7 @@ int main(void) {
     s_page=FORTUNE_HOME; s_state.style=0; s_state.mood=1;
     process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK});
     assert(s_state.mood==2 && s_state.style==FORTUNE_ANY_STYLE);
-    process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==2);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.mood==0 && s_state.style==FORTUNE_ANY_STYLE);
     process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==FORTUNE_ANY_STYLE);
     assert(commits>0);
     puts("Fortune input/storage: PASS (draw/skip/keep, mute, volume preview/save/cancel/bounds/reload, legacy and invalid defaults, unchanged cards, failed-save retry)");

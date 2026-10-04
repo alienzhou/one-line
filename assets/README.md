@@ -28,14 +28,16 @@ case, and all 2200 current and 2112 legacy text layouts. On-device Chinese outpu
 classical Chinese poetry excerpts. Eight themes use 20/10/15/15/15/10/10/5 percent
 proportions, without runtime phrase assembly. The 2000+ milestone is met; 10001+
 remains future work. `fortune/legacy-corpus.json` freezes the old 2112-record bank
-solely to preserve saved signatures. `fortune/poetry-sources.json` retains each
+solely to preserve saved signatures. `fortune/previous-corpus.json` freezes the
+preceding 2200 records to generate migration IDs and a compact bank of 312
+retired records. Neither compatibility bank participates in new draws. `fortune/poetry-sources.json` retains each
 excerpt's author, full title, source paragraphs, and pinned source link, checked
 against [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry).
 Its MIT notice is in `fortune/sources/chinese-poetry-LICENSE.txt`. Ancient works
 are public-domain; opencc-python-reimplemented 0.1.7 converts Traditional to Simplified Chinese, and
 excerpt punctuation is resegmented. They are attributed quotations, not claimed
 original work. Long displayed titles are abbreviated; data retains full titles.
-The active text stream, dictionary, and index total 67915 bytes, plus attribution,
+The active text stream, dictionary, and index total 68600 bytes, plus attribution,
 legacy bank, and migration mapping. `tools/pack_fortunes.py --release` enforces
 2001 records. See [the product design](../docs/fortune-card.md).
 
@@ -72,7 +74,7 @@ Store reusable source images and generated display assets in `images/`.
 | `images/fortune-home.png` and `fortune-theme-1.png` through `fortune-theme-8.png` | 240 × 320, PNG | Theme selection and representative cards, rendered by the actual app; MIT. |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448, PNG | One Fortune community cover; original AI-generated gameplay illustration. |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448, PNG | Letter-opening gameplay illustration. |
-| [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448, PNG | Writing voices and moods illustration. |
+| [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448, PNG | Historical voices and moods illustration; the current app retires voice filtering. |
 | [`images/fortune-collections.png`](images/fortune-collections.png) | 1086 × 1448, PNG | Four pixel-art collections illustration. |
 | [`images/fortune-signature.png`](images/fortune-signature.png) | 1086 × 1448, PNG | Saved personal-signature illustration. |
 | [`images/fortune-ten-collections.png`](images/fortune-ten-collections.png) | 1086 × 1448, PNG | Ten collections sampled from finished application renders; MIT. |

@@ -1,12 +1,12 @@
 {
-  "stage": "eight-themes-2200",
+  "stage": "eight-themes-balanced-2200",
   "independent_records": 2200,
   "release_ready": true,
-  "utf8_bytes": 103669,
-  "packed_text_bytes": 46507,
-  "dictionary_bytes": 3808,
+  "utf8_bytes": 105154,
+  "packed_text_bytes": 47188,
+  "dictionary_bytes": 3812,
   "index_metadata_bytes": 17600,
   "bits_per_character": 11,
-  "corpus_id": 3335999125,
+  "corpus_id": 872204265,
   "citation_utf8_bytes": 3228
 }

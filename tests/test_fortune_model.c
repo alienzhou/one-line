@@ -41,10 +41,18 @@ static void test_deck(uint32_t seed) {
     fortune_state_t s;
     fortune_defaults(&s, seed);
     bool seen[FORTUNE_COUNT] = {0};
+    unsigned counts[9]={0};
+    static const unsigned quota[9]={0,4,2,3,3,3,2,2,1};
+    s.style=0; /* An old straight-talking preference must not exclude poetry. */
     for (unsigned i = 0; i < FORTUNE_COUNT; ++i) {
         assert(fortune_draw(&s));
         assert(!seen[s.current.quote]); seen[s.current.quote] = true;
         assert(fortune_valid(&s));
+        ++counts[FORTUNE_RECORDS[s.current.quote].mood];
+        if (i%20==19) {
+            for (unsigned theme=1;theme<=8;++theme) assert(counts[theme]==quota[theme]);
+            memset(counts,0,sizeof(counts));
+        }
     }
     assert(!fortune_draw(&s)); assert(fortune_remaining(&s) == 0);
     fortune_reset_deck(&s); assert(fortune_remaining(&s) == FORTUNE_COUNT);
@@ -52,6 +60,7 @@ static void test_deck(uint32_t seed) {
 }
 
 int main(void) {
+    test_deck(1); test_deck(2199);
     for (unsigned i = 0; i < 200; ++i) test_deck(i*27449);
     char text[128], tiny[2];
     for (unsigned id = 0; id < FORTUNE_COUNT; ++id) {
@@ -63,11 +72,11 @@ int main(void) {
     fortune_defaults(&s, 42);
     bool seen[FORTUNE_COUNT] = {0};
     /* Filtering never reintroduces a card drawn under another filter. */
-    for (unsigned style = 0; style < 3; ++style) for (unsigned mood = 1; mood <= 8; ++mood) {
-        s.style = style; s.mood = mood;
+    for (unsigned mood = 1; mood <= 8; ++mood) {
+        fortune_select_topic(&s,mood);
         while (fortune_draw(&s)) {
             unsigned id = s.current.quote;
-            assert(FORTUNE_RECORDS[id].style == style && FORTUNE_RECORDS[id].mood == mood);
+            assert(FORTUNE_RECORDS[id].mood == mood);
             assert(!seen[id]); seen[id] = true;
         }
     }
@@ -108,13 +117,11 @@ int main(void) {
     fortune_state_t a,b;fortune_defaults(&a,42);fortune_defaults(&b,43);
     a.style=0; fortune_select_topic(&a,2);
     assert(a.mood==2 && a.style==FORTUNE_ANY_STYLE && fortune_remaining(&a)==220);
-    fortune_next_style(&a); assert(a.style==2);
-    fortune_next_style(&a); assert(a.style==FORTUNE_ANY_STYLE);
     fortune_select_topic(&a,9); assert(a.mood==2);
     fortune_select_topic(&a,0);
     unsigned differences=0;
     for(unsigned i=0;i<FORTUNE_SKIN_COUNT;++i){fortune_remix(&a,&a.current);fortune_remix(&b,&b.current);differences+=a.current.art!=b.current.art;}
     assert(differences>100);
-    printf("Fortune model: PASS (200 text decks; 64 seeds, %u nonrepeating skins / %u appearances, different adjacent scenes, legacy save retained)\n",FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT);
+    printf("Fortune model: PASS (202 balanced text decks; 64 seeds, %u nonrepeating skins / %u appearances, different adjacent scenes, legacy save retained)\n",FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT);
     return 0;
 }

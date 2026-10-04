@@ -1,5 +1,5 @@
 {
-  "corpus_sha256": "b6db971b23a744b6c482cd551d3f9b32385fc4d5029dd69182ed56c05215079c",
+  "corpus_sha256": "2e0c4fe6ad1b1f4216b12738f7e7da777562380fe832b73c9138bd5472c095d8",
   "records": 2200,
   "exact_duplicates": 0,
   "group_counts": {
@@ -13,6 +13,16 @@
     "6/0": 220,
     "7/2": 220,
     "8/0": 110
+  },
+  "first_person_openings": {
+    "1": 18,
+    "2": 3,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0
   },
   "max_characters": 24,
   "near_text_scan": {

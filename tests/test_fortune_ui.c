@@ -127,6 +127,12 @@ int main(int argc, char **argv) {
         fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);
         lv_obj_update_layout(lv_screen_active()); check_labels();
     }
+    for(unsigned id=0; id<FORTUNE_PREVIOUS_COUNT; ++id) {
+        s.current.quote=FORTUNE_PREVIOUS_QUOTE|id;
+        s.pinned=s.current;
+        fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);
+        lv_obj_update_layout(lv_screen_active()); check_labels();
+    }
     /* Exercise the supported 32-character upper bound, beyond current samples. */
     char longest[97];
     for (unsigned i=0; i<32; ++i) memcpy(longest+3*i,"我",3);

@@ -5,7 +5,7 @@
 **Open a line. See another side of life. Keep it as your signature.**
 
 One Fortune is a pocket text surprise box. Choose reassurance when you need it,
-or explore everyday observations, dry humor, surreal ideas, personal attitudes,
+or explore everyday observations, dry humor, surreal ideas, small insights,
 relationship moments, small outings, and attributed classical Chinese poetry.
 A sealed letter shakes, opens, and reveals its words. Keep a line you like on a
 pixel-art card for display. The interface and texts are Chinese; it works
@@ -22,28 +22,30 @@ entirely offline without Wi-Fi setup.
 | Everyday observations | 330 · 15% | Details in streets, food, and weather |
 | Dry humor | 330 · 15% | A small everyday laugh |
 | Surreal ideas | 330 · 15% | An odd new angle on familiar things |
-| Personal attitudes | 220 · 10% | Taste, judgment, and individual style |
+| Small insights | 220 · 10% | Taste, cities, food, reading, technology, and everyday judgments |
 | Relationship moments | 220 · 10% | Specific moments between people |
 | Small outings | 110 · 5% | A small action to try yourself |
 
 There are **2,200 complete records**: 1,980 original lines and 220 classical
-excerpts. This update adds 1,540 original lines and retains 440 reassurance
-notes. Every record is stored whole; sentences are never assembled from parts.
+excerpts. The bank retains 440 reassurance notes, with 1,540 original lines across other
+subjects. Every record is stored whole; sentences are never assembled from parts.
 Chance mode draws from every theme. Records do not repeat within a cycle,
-even after changing filters. The percentages describe the whole corpus;
-a small set of draws need not have the same proportions.
+even after changing themes. A fresh chance deck has two poetry cards in every
+20-card block, with shuffled positions. Skipping previously read cards after
+theme changes alters short-run proportions. The hidden voice filter is retired.
+All 220 insight lines and 92 humor lines were rewritten; first-person openings
+fell from 320 to 21 across the bank, including three unchanged poetry excerpts.
 The original 10,001+ independently authored target remains future work.
 Visual combinations are counted separately from written content.
 
 ## Start in five steps
 
 1. Turn on the device; no Wi-Fi setup is needed. Press any button once to wake a dark display.
-2. Use UP/DOWN on the home page to select a theme, or leave it to chance. Hold DOWN to change voice, then press OK to draw.
+2. Use UP/DOWN on the home page to select a theme, or leave it to chance. Hold DOWN to return to chance, then press OK to draw.
 3. Wait for the letter to open and reveal its words. Press OK during opening to skip the animation.
 4. On the result, press UP to draw again or DOWN for random artwork. Press OK to keep this line as your displayed signature.
 5. Hold OK to return home; hold OK there to view your saved signature. On a card, hold UP for volume or DOWN to mute. Your signature and settings survive restarts.
 
-Voices are straightforward, playful, and poetic; unavailable voices are skipped.
 Drawing keeps your existing signature until you explicitly save a replacement.
 Changing artwork preserves the words. Previously saved signatures and artwork
 remain readable after this upgrade.
@@ -106,23 +108,24 @@ python3 tools/render_fortune_topics.py
 The complete gate produces `build/FoloToy-AI-Passport-full.bin` for **0x0**.
 Matching images, ELF, MAP, and manifest are archived under
 `build/firmware/<full-image-sha256>/`. Firmware and private logs stay out of Git.
-A merged write can overwrite stored data; this upgrade uses compatible segmented
-writing to preserve NVS. See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
+A merged write can overwrite stored data; preserving old signatures requires compatible segmented
+writing. This revision has not been flashed. See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
 
 | Check | This update |
 | --- | --- |
 | Build | **PASS** — ESP-IDF 5.5.3 complete gate and verified 0x0 merged image |
 | Host tests | PASS — exact decoding, proportions and poetry sources, legacy migration, input and storage; active fonts and all text layouts, 1,920 artwork renders |
-| Device tests | **PASS** — `15621c4` segmented write, three verified hashes and 20 seconds of matching startup; NVS untouched. Screen and controls await user acceptance |
+| Device tests | **NOT RUN** — this revision has not been flashed; earlier firmware results do not validate it |
 | Unverified | Physical theme selection and Chinese readability, old-signature recovery, volume/mute recovery, sound quality, animation smoothness, interrupted writes, idle/wake, battery reporting and endurance; perceived text repetition |
 
-The active encoded text bank takes **66.3 KiB**, plus attribution and legacy
+The active encoded text bank takes **67.0 KiB**, plus attribution and legacy
 compatibility data. The **57.3 KiB** old bank serves saved signatures only and is
-excluded from new draws. Both font sizes cover **2,285 characters**; the whole
+excluded from new draws. A further **18.5 KiB** retains the 312 replaced lines
+and their migration table. Both font sizes cover **2,295 characters**; the whole
 bank is never loaded into RAM. The card save is **323 bytes**, with separate
 one-byte volume and mute preferences. Procedural artwork retains its
 12,528-byte canvas; gallery images stay out of firmware.
-The application is **1,492,416 bytes**; the merged image is **1,557,952 bytes**.
+The application is **1,515,360 bytes**; the merged image is **1,580,896 bytes**.
 See the [product and engineering design](docs/fortune-card.md) for measurements
 and compatibility boundaries.
 

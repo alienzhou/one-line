@@ -125,7 +125,7 @@ static void process(input_t in) {
             else if (s_state.pinned.quote != FORTUNE_NO_CARD) s_page = FORTUNE_SHOWCASE;
             else s_notice = FT_NO_PIN;
         } else if (in.key == BSP_BTN_DOWN && s_page == FORTUNE_HOME) {
-            fortune_next_style(&s_state);
+            fortune_select_topic(&s_state,0);
             save_after_change();
         } else if (in.key == BSP_BTN_DOWN) {
             s_sound_enabled=!s_sound_enabled;
