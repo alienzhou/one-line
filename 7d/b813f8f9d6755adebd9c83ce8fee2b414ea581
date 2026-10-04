@@ -1,0 +1,52 @@
+main/fortune_ui.c
+  s_27b2034f3c68fa::t_d8d34b53cd0156 30-31,73-82,132,206-216
+  s_27b2034f3c68fa::t_b15505ffa86544 217
+docs/fortune-card.zh_CN.md
+  s_27b2034f3c68fa::t_91c080d8456ead 110,158-160,169-171,185,209-212
+  s_27b2034f3c68fa::t_a1ef1cb726c7b0 131-132
+  s_27b2034f3c68fa::t_b02e18da66ae5c 157
+README.zh_CN.md
+  s_27b2034f3c68fa::t_91c080d8456ead 64,75-81,123-124,129
+docs/fortune-card.md
+  s_27b2034f3c68fa::t_91c080d8456ead 155-156,191-196,209-211,229,256-260
+  s_27b2034f3c68fa::t_a1ef1cb726c7b0 130
+tests/test_fortune_audio_runtime.c
+  s_27b2034f3c68fa::t_d4ef7daed51f1b 21,75,116-131
+tests/test_fortune_app.c
+  s_27b2034f3c68fa::t_d4ef7daed51f1b 7,9,24-27,34-37,43,49-51,60,81-110,112
+README.md
+  s_27b2034f3c68fa::t_91c080d8456ead 74,87-92,95-96,144-145,152
+main/fortune_audio.h
+  s_27b2034f3c68fa::t_d8d34b53cd0156 5-9,15-16
+main/main.c
+  s_27b2034f3c68fa::t_d8d34b53cd0156 29-30,40,48,57-59,71,75-76,85-112,121,135-136,211
+main/fortune_text.h
+  s_27b2034f3c68fa::t_d8d34b53cd0156 10,12,22-25
+assets/README.zh_CN.md
+  s_27b2034f3c68fa::t_91c080d8456ead 64
+main/fortune_ui.h
+  s_27b2034f3c68fa::t_d8d34b53cd0156 19-20
+tests/test_fortune_ui.c
+  s_27b2034f3c68fa::t_4d2043ad99b217 160,177-183
+main/fortune_audio.c
+  s_27b2034f3c68fa::t_d8d34b53cd0156 20,28,50,66,80-81,85,120-123
+  s_27b2034f3c68fa::t_32749509583b90 124
+assets/README.md
+  s_27b2034f3c68fa::t_91c080d8456ead 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7db813f8f9d6755adebd9c83ce8fee2b414ea581",
+  "prompts": {},
+  "sessions": {
+    "s_27b2034f3c68fa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10030-17b5-7b33-91e4-8a17c74ae20a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
