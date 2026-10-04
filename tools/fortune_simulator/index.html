@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>一签 · Mac 模拟器</title>
+<style>
+:root{color-scheme:dark;--bg:#111722;--panel:#1b2330;--ink:#eee9dd;--muted:#b1bbca;--line:#374252;--accent:#f0c576;--poem:#a9d1bb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}main{max-width:1140px;margin:auto;padding:28px 24px}header{margin-bottom:22px}h1{font-size:24px;font-weight:600;margin:0 0 4px}h2{font-size:18px;margin:0 0 16px}p{margin:6px 0;color:var(--muted)}.layout{display:grid;grid-template-columns:360px 1fr;gap:36px;align-items:start}.device{background:#080b10;padding:14px;border:1px solid var(--line);border-radius:28px;width:fit-content;margin:auto}.device img{display:block;width:288px;height:384px;image-rendering:pixelated;border-radius:12px}.keys{display:flex;gap:12px;justify-content:center;margin:20px 0 10px}.keys button{width:78px;height:55px;font-size:18px;border-radius:15px;touch-action:none;user-select:none}.secondary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.secondary button{font-size:13px}button,select,input{font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:9px 12px;max-width:100%}button{cursor:pointer}button:hover{border-color:var(--accent)}button:disabled{opacity:.45;cursor:wait}:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}.caption{text-align:center;font-size:13px;margin:10px auto}.range{font-size:17px;color:var(--accent);text-align:center;margin:18px 0 4px}.status{min-height:26px}.diagnostics{border-top:1px solid var(--line);padding-top:22px;margin-top:24px}.controls{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:12px 0 16px}label{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:13px}.counts{display:flex;gap:18px;margin:12px 0;font-variant-numeric:tabular-nums}.counts strong{color:var(--ink)}.chart{display:flex;height:8px;gap:2px;margin:12px 0}.chart span{background:var(--line);min-width:0}.chart .poem{background:var(--poem)}.quote{font-size:20px;line-height:1.75;margin:8px 0}.theme{color:var(--accent);font-size:13px}.citation{color:var(--poem)}ol{padding-left:24px;margin:0}li{padding:10px 0;border-bottom:1px solid var(--line)}li span{display:block}.record-meta{color:var(--muted);font-size:12px}.empty{padding:24px 0}.subtle{font-size:13px}.tools{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}details{margin-top:14px}summary{cursor:pointer;color:var(--muted)}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 ui-monospace,monospace}.error{color:#ffafa3}.device-area{position:sticky;top:24px}.help{margin:18px 0}a{color:var(--accent)}@media(max-width:800px){.layout{grid-template-columns:1fr;gap:24px}.device-area{position:static}}@media(max-width:380px){main{padding:18px 12px}.device img{width:240px;height:320px}.device{padding:10px}.keys button{width:72px}}
+</style>
+<main>
+<header><h1>一签 · Mac 模拟器</h1><p>运行当前固件的抽签逻辑、中文字体与像素界面。先在这里试，再决定是否刷入设备。</p></header>
+<div class="layout">
+<section class="device-area" aria-label="设备模拟">
+  <div class="device"><img id="screen" src="/frame.bmp" alt="实时固件界面，240 × 320 像素"></div>
+  <div class="keys"><button data-key="up" aria-label="上键">↑</button><button class="primary" data-key="ok" aria-label="确定键">确定</button><button data-key="down" aria-label="下键">↓</button></div>
+  <div class="secondary"><button data-long="up">长按上</button><button data-long="ok">长按确定</button><button data-long="down">长按下</button></div>
+  <p class="caption">点击短按；按住 0.5 秒长按。键盘 ↑ / ↓ / Enter 同样可用。</p>
+  <div class="range" id="scope">正在连接…</div>
+  <p class="caption status" id="status" role="status" aria-live="polite"></p>
+  <p class="caption" id="sound-state"></p>
+  <div class="help"><p class="subtle">首页确定：全库随机。上／下：打开大字主题页，确定后才开始定向抽取。长按确定回到全库首页。</p><p class="subtle">结果页上再抽、下换肤、确定留下。卡片页长上调音量，长下静音。</p></div>
+  <p class="caption">电池为模拟值。Mac 声音可试听；设备响度、休眠与耗电仍需实测。</p>
+</section>
+<section aria-label="抽取核对">
+  <h2>当前这一句</h2>
+  <div id="current"><p>按确定，拆开第一封信。</p></div>
+  <div class="diagnostics">
+    <h2>看清实际抽到了什么</h2>
+    <p>全库共有 2,200 条，诗词 220 条。每条同等参与洗牌，同轮不重复；不再固定每 20 张配两张诗词。</p>
+    <div class="controls"><label>定位指定主题<select id="topic"></select></label><button id="choose">打开主题页</button><button id="batch" class="primary">连续抽 20 张</button></div>
+    <p class="subtle">批量抽取沿用当前范围；主题页上的选择在开始抽取时生效。批量操作跳过拆信，原签名保留。</p>
+    <div class="counts" aria-live="polite"><span>本次存档已抽 <strong id="total">0</strong></span><span>其中诗词 <strong id="poems">0</strong></span></div>
+    <div class="chart" id="chart" aria-label="本次存档抽取主题分布"></div>
+    <p class="subtle" id="distribution"></p>
+    <div class="tools"><button id="fresh">新建空白模拟</button><button id="reboot">重启模拟</button><button id="export">导出完整记录</button></div>
+    <p class="subtle">这些操作只影响 Mac 模拟存档，不连接或改动实体设备。刷新页面保留记录；新建空白模拟会清空本地模拟进度。</p>
+    <details><summary>复现同一个随机顺序</summary><div class="controls"><label>随机种子（0～4294967295）<input id="seed" type="number" min="0" max="4294967295" step="1"></label><button id="seed-run">用此种子新建</button></div><pre id="identity"></pre></details>
+    <h2 style="margin-top:24px">最近抽取记录</h2><ol id="history" reversed></ol>
+  </div>
+</section>
+</div>
+</main>
+<script>
+let currentState,queue=Promise.resolve(),audio,lastSound=-1,unlocked=false,frame=-1;
+const $=id=>document.getElementById(id);
+function text(tag,value,className){const n=document.createElement(tag);n.textContent=value;if(className)n.className=className;return n}
+function update(s){
+ currentState=s;
+ if(s.frame_id!==frame){frame=s.frame_id;$('screen').src='/frame.bmp?v='+frame}
+ const scope=s.topic?s.topics[s.topic]:'全库随机';
+ $('scope').textContent=s.page===3?'待确认：'+(s.topic_candidate?s.topics[s.topic_candidate]:'全库随机'):'抽取范围：'+scope;
+ const remaining=s.page===3?s.unread[s.topic_candidate]:s.remaining;
+ $('status').textContent=s.notice||`${remaining} 条未读 · 第 ${s.cycle+1} 轮${s.opening?' · 正在拆信':''}`;
+ $('status').classList.toggle('error',s.save_error);
+ $('sound-state').textContent=(s.sound_enabled?'音效开启':'静音')+' · 音量 '+(s.volume_open?s.candidate:s.volume)+'%'+(!unlocked?' · 操作后可试听':'');
+ const c=s.page===2?s.pinned:s.current;
+ $('current').replaceChildren();
+ if(s.page===3)$('current').append(text('p','按确定后才会从所选主题抽取；长按确定取消，回到全库。'));
+ else if(s.opening)$('current').append(text('p','信封正在展开，等待揭晓…'));
+ else if(c){$('current').append(text('div',c.theme?s.topics[c.theme]:'已留签名','theme'),text('div',c.text,'quote'));if(c.citation)$('current').append(text('div',c.citation,'citation'))}
+ else $('current').append(text('p','按确定，拆开第一封信。'));
+ if(!$('topic').options.length)s.topics.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=i?v:'全库随机';$('topic').append(o)});
+ $('total').textContent=s.history_count;$('poems').textContent=s.history_counts[2];
+ $('chart').replaceChildren();s.history_counts.slice(1).forEach((v,i)=>{if(v){const n=text('span','',i===1?'poem':'');n.style.flex=v;n.title=s.topics[i+1]+' '+v;$('chart').append(n)}});
+ $('distribution').textContent=s.history_counts.slice(1).map((v,i)=>s.topics[i+1]+' '+v).join(' / ');
+ $('identity').textContent=`签库 ${s.count} 条 / ID ${s.corpus_id}\n种子 ${s.seed} / 已读 ${s.seen} / 游标 ${s.cursor}\n当前源码指纹 ${s.source_identity}\n硬件状态、设备存档不在此模拟中。`;
+ if(document.activeElement!==$('seed'))$('seed').value=s.seed;
+ const history=$('history');history.replaceChildren();history.start=s.history_count;
+ const revealedHistory=s.opening?s.history.slice(0,-1):s.history;
+ if(s.opening)history.start=s.history_count-1;
+ [...revealedHistory].reverse().forEach(h=>{const li=document.createElement('li');li.append(text('span',h.text));if(h.citation)li.append(text('span',h.citation,'citation'));li.append(text('span',`${s.topics[h.theme]} · NO.${h.id+1} · 抽取范围：${h.scope?s.topics[h.scope]:'全库随机'}`,'record-meta'));history.append(li)});
+ if(!s.history.length)history.append(text('p','抽取后在这里逐条核对分类。','empty'));
+ if(s.sound_id!==lastSound){lastSound=s.sound_id;if(audio)audio.pause();if(unlocked&&s.audio_enabled&&s.sound_id){audio=new Audio('/sound.wav?v='+s.sound_id);audio.volume=s.audio_volume/100;audio.play().catch(()=>{$('sound-state').textContent+=' · 浏览器未允许试听'})}}
+ if(!s.audio_enabled&&audio)audio.pause();
+}
+async function request(body){const r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const s=await r.json();if(!r.ok)throw Error(s.error);update(s)}
+function action(body){unlocked=true;queue=queue.then(()=>request(body)).catch(e=>{$('status').textContent=e.message;$('status').classList.add('error')});return queue}
+function key(button,event='click'){return action({action:'key',button,event})}
+document.querySelectorAll('[data-key]').forEach(b=>{let timer,long=false,held=false;function cancel(){if(timer)clearTimeout(timer);timer=null;held=false}b.addEventListener('pointerdown',e=>{if(e.button!==0)return;b.setPointerCapture(e.pointerId);held=true;long=false;timer=setTimeout(()=>{long=true;key(b.dataset.key,'long')},500)});b.addEventListener('pointerup',()=>{if(held&&!long)key(b.dataset.key);cancel()});b.addEventListener('pointercancel',cancel);b.addEventListener('click',e=>{if(e.detail===0)key(b.dataset.key)})});
+document.querySelectorAll('[data-long]').forEach(b=>b.onclick=()=>key(b.dataset.long,'long'));
+const heldKeys=new Map();const keyMap={ArrowUp:'up',ArrowDown:'down',Enter:'ok'};
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||(e.target.tagName==='BUTTON'&&!e.target.dataset.key))return;const k=keyMap[e.key];if(!k)return;e.preventDefault();if(heldKeys.has(e.key))return;const h={long:false};h.timer=setTimeout(()=>{h.long=true;key(k,'long')},500);heldKeys.set(e.key,h)});
+document.addEventListener('keyup',e=>{const h=heldKeys.get(e.key);if(!h)return;e.preventDefault();clearTimeout(h.timer);heldKeys.delete(e.key);if(!h.long)key(keyMap[e.key])});
+window.addEventListener('blur',()=>{heldKeys.forEach(h=>clearTimeout(h.timer));heldKeys.clear()});
+$('choose').onclick=()=>action({action:'topic',topic:Number($('topic').value)});
+$('batch').onclick=async()=>{const b=$('batch');b.disabled=true;await action({action:'batch'});b.disabled=false};
+$('fresh').onclick=()=>action({action:'fresh'});$('reboot').onclick=()=>action({action:'reboot'});
+$('seed-run').onclick=()=>action({action:'fresh',seed:Number($('seed').value)});
+$('export').onclick=async()=>{await queue;const r=await fetch('/api/export');const blob=new Blob([JSON.stringify(await r.json(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='one-fortune-simulation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+async function poll(){queue=queue.then(async()=>{const r=await fetch('/api/state');const s=await r.json();if(!r.ok)throw Error(s.error);update(s)}).catch(e=>{$('status').textContent=e.message});await queue;setTimeout(poll,150)}poll();
+</script>
+</html>

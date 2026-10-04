@@ -13,7 +13,7 @@
 #define FORTUNE_PREVIOUS_QUOTE 0x40000000U
 #define FORTUNE_LEGACY_QUOTE 0x80000000U
 
-typedef enum { FORTUNE_HOME, FORTUNE_REVEAL, FORTUNE_SHOWCASE } fortune_page_t;
+typedef enum { FORTUNE_HOME, FORTUNE_REVEAL, FORTUNE_SHOWCASE, FORTUNE_TOPICS } fortune_page_t;
 typedef struct { uint32_t quote, art; } fortune_card_t;
 /* Stable disk record: explicit encoding in fortune_store, not raw enum/struct bytes. */
 typedef struct {

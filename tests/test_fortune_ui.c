@@ -99,6 +99,12 @@ int main(int argc, char **argv) {
         s.style=style; s.mood=mood;
         fortune_ui_update(&s,FORTUNE_HOME,-1,NULL); lv_obj_update_layout(lv_screen_active()); check_labels();
     }
+    for(unsigned mood=0;mood<9;++mood) {
+        s.mood=mood; fortune_ui_update(&s,FORTUNE_TOPICS,88,NULL);
+        lv_obj_update_layout(lv_screen_active()); check_labels();
+        char name[64]; snprintf(name,sizeof(name),"selector-%u",mood); snapshot(argv[1],name);
+    }
+    s.mood=0;
     for (unsigned id=0; id<FORTUNE_COUNT; ++id) {
         s.current.quote=id; s.current.art=id*113%FORTUNE_ART_COUNT;
         fortune_ui_update(&s,FORTUNE_REVEAL,100,NULL);
@@ -218,6 +224,9 @@ int main(int argc, char **argv) {
             s.pinned.art=FORTUNE_LEGACY_ART_COUNT+tone*FORTUNE_SKIN_COUNT+skin;
             fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);advance(375);
             lv_obj_update_layout(lv_screen_active());lv_refr_now(NULL);check_labels();
+            if(tone==0 && (skin==0 || skin==3 || skin==24 || skin==45 || skin==67 || skin==99)) {
+                char name[64];snprintf(name,sizeof(name),"release-skin-%03u",skin);snapshot(argv[1],name);
+            }
             uint64_t h=14695981039346656037ULL;
             for(unsigned y=38;y<154;++y)for(unsigned x=12;x<228;++x){h^=s_pixels[y*240+x];h*=1099511628211ULL;}
             new_hashes[hash_count++]=h;

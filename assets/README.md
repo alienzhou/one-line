@@ -71,7 +71,9 @@ Store reusable source images and generated display assets in `images/`.
 | [`images/logo-wordmark.png`](images/logo-wordmark.png) | 1648 × 336, PNG RGBA | Transparent black wordmark extracted from the repository's original `images/logo.png`; embedded in both project README files for light backgrounds. |
 | [`images/logo-wordmark-dark.png`](images/logo-wordmark-dark.png) | 1648 × 336, PNG RGBA | White version of the extracted wordmark, used by the README `<picture>` element when GitHub is in dark mode. |
 | `images/fortune-themes.png` | 1160 × 960, PNG | Eight-theme overview from completed actual LVGL captures; MIT. |
-| `images/fortune-home.png` and `fortune-theme-1.png` through `fortune-theme-8.png` | 240 × 320, PNG | Theme selection and representative cards, rendered by the actual app; MIT. |
+| `images/fortune-home.png` and `fortune-theme-1.png` through `fortune-theme-8.png` | 240 × 320, PNG | Whole-bank home and representative cards, rendered by the actual app; MIT. |
+| `images/fortune-topic-selector.png` | 240 × 320, PNG | Completed actual LVGL capture of the separate large-text topic selector; MIT. |
+| `images/fortune-simulator.jpg` | 578 × 984, JPEG | Mac local simulator browser capture, with the actual LVGL framebuffer; not a device photograph; MIT. |
 | [`images/fortune-cover-v2.png`](images/fortune-cover-v2.png) | 1086 × 1448, PNG | Updated 2200-record community cover; built-in imagegen gameplay-illustration edit, MIT. |
 | `images/community/*.png` | Four 1152 × 1536 PNGs | Themes, poetry, signatures/artwork and controls/volume detail panels; actual application host renders with explanatory graphics, MIT; regenerate with `tools/render_fortune_release.py`. |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448, PNG | One Fortune community cover; original AI-generated gameplay illustration. |

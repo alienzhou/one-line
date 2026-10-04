@@ -6,7 +6,7 @@ static uint32_t gcd(uint32_t a, uint32_t b) {
     return a;
 }
 
-/* Palette permutation only; text uses balanced shuffled theme blocks below. */
+/* Palette permutation only; text uses a keyed whole-bank shuffle below. */
 static uint32_t permute(uint32_t position, uint32_t count, uint32_t seed) {
     uint32_t stride = seed % count;
     if (!stride) stride = 1;
@@ -146,20 +146,12 @@ void fortune_remix(fortune_state_t *s, fortune_card_t *c) {
     s->art_cursor = FORTUNE_LEGACY_ART_COUNT + (cursor + 1) % FORTUNE_NEW_ART_COUNT;
 }
 
-/* Each fresh 20-card block has 4 comfort, 2 poetry, 3 each observation/humor/
- * surreal, 2 each insight/relationship and 1 outing. Shuffle slots and each
- * theme independently: exact deck coverage without allocating a shuffle array.
- * Seen bits still take precedence after switching themes or migrating saves. */
+/* Shuffle the entire bank. Category is metadata, not a scheduling quota.
+ * The persistent seen bitmap takes precedence across optional topic draws,
+ * migration and this change of ordering, without discarding saved cards. */
 static uint32_t text_id(const fortune_state_t *s, uint32_t position) {
-    static const uint8_t quota[] = {0,4,2,3,3,3,2,2,1};
     uint32_t key = s->seed ^ art_mix(s->cycle + 0xA123U);
-    uint32_t block = position/20;
-    uint32_t slot = shuffled(position%20,20,key ^ art_mix(block+83U));
-    uint32_t theme = 1;
-    while (slot >= quota[theme]) slot -= quota[theme++];
-    uint32_t local = shuffled(block*quota[theme]+slot,FORTUNE_THEME_COUNTS[theme],
-                              key ^ art_mix(theme+617U));
-    return FORTUNE_THEME_OFFSETS[theme]+local;
+    return shuffled(position,FORTUNE_COUNT,key);
 }
 
 bool fortune_draw(fortune_state_t *s) {

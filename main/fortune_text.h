@@ -2,9 +2,11 @@
 static const char *const FORTUNE_MOODS[] = {
     "随缘", "慢慢回血", "诗词留声", "生活观察", "冷幽默", "荒诞脑洞", "小见解", "关系切片", "小小出走"
 };
-#define FT_HOME "拆开一句话\n看看另一面"
-#define FT_HOME_HELP "上/下选主题 · 确定抽签"
-#define FT_HOME_HINT "长按下回随缘 · 长按确定看签名"
+#define FT_HOME "全库随机\n拆开一句话"
+#define FT_HOME_HELP "确定抽签 · 上/下选主题"
+#define FT_HOME_HINT "长确定看签名 · 同轮不重复"
+#define FT_TOPICS_HELP "上/下选择 · 确定抽签"
+#define FT_TOPICS_HINT "长确定返回全库随机"
 #define FT_REVEAL_HELP "上再抽 · 下换皮肤 · 确定留下"
 #define FT_REVEAL_HINT "长上音量 · 长下静音"
 #define FT_SHOW_HELP "上再抽 · 下换皮肤 · 确定返回"

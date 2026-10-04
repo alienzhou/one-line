@@ -28,6 +28,7 @@ static bool s_unwrap_requested;
 static bool s_sound_enabled=true;
 static uint8_t s_volume=FORTUNE_VOLUME_DEFAULT, s_volume_candidate;
 static bool s_volume_open;
+static uint8_t s_topic_candidate;
 static uint8_t s_storage_bytes[48+FORTUNE_SEEN_BYTES];
 typedef struct { bsp_btn_t key; bsp_btn_ev_t event; } input_t;
 
@@ -64,12 +65,16 @@ static void load(void) {
         ESP_LOGW(TAG, "State unavailable or corpus changed; using new deck");
         s_notice = "旧存档不兼容，已使用新签库";
     }
+    /* A restored topic must not silently restrict the default draw mode. */
+    fortune_select_topic(&s_state,0);
 }
 
 static void render(void) {
     if (!bsp_lvgl_lock(1000)) return;
     fortune_ui_sound_enabled(s_volume_open || s_sound_enabled);
-    fortune_ui_update(&s_state, s_page, s_battery,
+    fortune_state_t preview=s_state;
+    if(s_page==FORTUNE_TOPICS) preview.mood=s_topic_candidate;
+    fortune_ui_update(&preview, s_page, s_battery,
         s_input_error ? FT_INPUT_ERROR : s_save_error ? FT_SAVE_ERROR :
         s_sound_enabled && fortune_audio_failed() ? FT_SOUND_ERROR : s_notice);
     fortune_ui_volume(s_volume_open,s_volume_candidate,
@@ -80,6 +85,12 @@ static void render(void) {
 
 static void save_after_change(void) {
     s_save_error = !store(&s_state);
+}
+
+static void return_home(void) {
+    bool filtered=s_state.mood!=0;
+    fortune_select_topic(&s_state,0); s_topic_candidate=0; s_page=FORTUNE_HOME;
+    if(filtered) save_after_change();
 }
 
 static void preview_volume(void) {
@@ -121,36 +132,43 @@ static void process(input_t in) {
     if(s_volume_open) { volume_input(in); return; }
     if (in.event == BSP_BTN_LONG) {
         if (in.key == BSP_BTN_OK) {
-            if (s_page != FORTUNE_HOME) s_page = FORTUNE_HOME;
+            if (s_page != FORTUNE_HOME) return_home();
             else if (s_state.pinned.quote != FORTUNE_NO_CARD) s_page = FORTUNE_SHOWCASE;
             else s_notice = FT_NO_PIN;
-        } else if (in.key == BSP_BTN_DOWN && s_page == FORTUNE_HOME) {
-            fortune_select_topic(&s_state,0);
-            save_after_change();
+        } else if (in.key == BSP_BTN_DOWN && (s_page == FORTUNE_HOME || s_page==FORTUNE_TOPICS)) {
+            return_home();
         } else if (in.key == BSP_BTN_DOWN) {
             s_sound_enabled=!s_sound_enabled;
             fortune_audio_enable(s_sound_enabled); save_after_change();
             s_notice=s_sound_enabled?FT_SOUND_ON:FT_SOUND_OFF;
             if(s_sound_enabled) fortune_audio_play(FORTUNE_SOUND_SKIN,s_state.current.art);
-        } else if (in.key == BSP_BTN_UP && s_page != FORTUNE_HOME) {
+        } else if (in.key == BSP_BTN_UP && s_page != FORTUNE_HOME && s_page!=FORTUNE_TOPICS) {
             s_volume_open=true; s_volume_candidate=s_volume; preview_volume();
         } else if (in.key == BSP_BTN_UP && fortune_remaining(&s_state) == 0) {
-            fortune_reset_deck(&s_state); save_after_change();
+            fortune_reset_deck(&s_state); fortune_select_topic(&s_state,0);
+            s_topic_candidate=0; save_after_change();
             s_page = FORTUNE_HOME; s_notice = "已重新洗牌";
         }
         render(); return;
     }
     if (in.event != BSP_BTN_CLICK) return;
     if (s_page == FORTUNE_HOME && in.key != BSP_BTN_OK) {
-        fortune_select_topic(&s_state, (s_state.mood + (in.key == BSP_BTN_UP ? 8 : 1)) % 9);
-        save_after_change();
-    } else if ((s_page == FORTUNE_HOME && in.key == BSP_BTN_OK) ||
+        s_topic_candidate=0; s_page=FORTUNE_TOPICS;
+    } else if(s_page==FORTUNE_TOPICS && in.key!=BSP_BTN_OK) {
+        s_topic_candidate=(s_topic_candidate+(in.key==BSP_BTN_UP?8:1))%9;
+    } else if (((s_page == FORTUNE_HOME || s_page==FORTUNE_TOPICS) && in.key == BSP_BTN_OK) ||
                (s_page != FORTUNE_HOME && in.key == BSP_BTN_UP)) {
+        if(s_page==FORTUNE_HOME) fortune_select_topic(&s_state,0);
+        else if(s_page==FORTUNE_TOPICS) fortune_select_topic(&s_state,s_topic_candidate);
         if (fortune_draw(&s_state)) {
             save_after_change(); /* Commit seen state before reveal; never store while holding LVGL lock. */
             s_page = FORTUNE_REVEAL;
             s_unwrap_requested = true;
-        } else { s_page = FORTUNE_HOME; s_notice = FT_EXHAUSTED_HINT; }
+        } else {
+            s_topic_candidate=s_state.mood;
+            s_page=s_state.mood?FORTUNE_TOPICS:FORTUNE_HOME;
+            s_notice = FT_EXHAUSTED_HINT;
+        }
     } else if (in.key == BSP_BTN_DOWN) {
         fortune_card_t *card = s_page == FORTUNE_SHOWCASE ? &s_state.pinned : &s_state.current;
         fortune_remix(&s_state, card); save_after_change();
@@ -159,7 +177,7 @@ static void process(input_t in) {
         if (s_page == FORTUNE_REVEAL) {
             s_state.pinned = s_state.current; save_after_change(); s_page = FORTUNE_SHOWCASE;
             if(!s_save_error) fortune_audio_play(FORTUNE_SOUND_KEEP,s_state.pinned.art);
-        } else s_page = FORTUNE_HOME;
+        } else return_home();
     }
     render();
 }

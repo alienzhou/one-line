@@ -34,7 +34,7 @@ def capture(image, source, x, y, width):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     preview = ROOT / 'build/fortune-preview'
-    image, draw = panel('生活，不止一种说法', '2200张完整签文 · 八种主题 · 随缘混抽或按主题选')
+    image, draw = panel('生活，不止一种说法', '2200张完整签文 · 默认全库随机 · 也可确认主题后抽取')
     text(draw, (48, 222), '慢慢回血 / 诗词留声 / 生活观察 / 冷幽默', 25, MUTED)
     text(draw, (48, 264), '荒诞脑洞 / 小见解 / 关系切片 / 小小出走', 25, MUTED)
     for i, theme in enumerate((2, 4, 3, 6)):
@@ -42,20 +42,18 @@ def main():
     image.save(OUT/'themes.png', optimize=True)
 
     image, draw = panel('抽到一首诗，也知道它来自哪里', '220条古诗词摘句 · 作者与篇名随签显示')
-    capture(image, preview/'theme-2.ppm', 336, 264, 480)
-    text(draw, (48, 956), '全新随缘一轮：每20张中有2张诗词', 36)
-    for i in range(20):
-        x, y = 48+(i%10)*106, 1056+(i//10)*108
-        poetry = i in (3, 14)
-        draw.rectangle((x,y,x+90,y+86), fill='#b98d5a' if poetry else '#dce2d6')
-        text(draw, (x+15,y+22), '诗' if poetry else '签', 36, '#ffffff' if poetry else INK)
-    text(draw, (48, 1305), '顺序会打散，每次拆信都有一点期待。', 31)
-    text(draw, (48, 1380), '分组示意；切换主题后跳过已读，短期比例可能变化。', 25, MUTED)
+    capture(image, preview/'theme-2.ppm', 56, 264, 480)
+    capture(image, preview/'selector-2.ppm', 616, 264, 480)
+    text(draw, (48, 978), '诗词占完整签库的10%，一起随机洗牌。', 36)
+    text(draw, (48, 1068), '短期可能没遇见，也可能抽到好几首。', 32)
+    text(draw, (48, 1180), '想专门读诗？首页上 / 下打开主题页，', 32)
+    text(draw, (48, 1250), '选「诗词留声」，按确定再开始抽。', 32)
+    text(draw, (48, 1372), '回首页或重启恢复全库随机；已读与签名保留。', 27, MUTED)
     image.save(OUT/'poetry.png', optimize=True)
 
     image, draw = panel('同一句话，换一处风景', '10个像素系列 · 320款皮肤 · 1920种外观')
     for i, skin in enumerate((0, 3, 24, 45, 67, 99)):
-        capture(image, ROOT/f'assets/images/skins/skin-{skin:03}-0.png',
+        capture(image, preview/f'release-skin-{skin:03}.ppm',
                 56+(i%3)*364, 268+(i//3)*474, 312)
     text(draw, (48, 1216), '下键随机换肤，文字保持原样。', 38)
     text(draw, (48, 1288), '确定留下，重启继续展示。', 34)
@@ -66,7 +64,7 @@ def main():
     capture(image, preview/'home.ppm', 56, 260, 480)
     capture(image, preview/'sound-volume.ppm', 616, 260, 480)
     lines = [
-        '抽签：首页上下选主题，确定拆信。',
+        '抽签：首页确定全库随机；上下打开主题页。',
         '续抽 / 换肤：结果页上再抽、下换肤。',
         '留签：确定留下；长按确定回首页。',
         '音量：卡片长按上，上下调节，确定保存。',

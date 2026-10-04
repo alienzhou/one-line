@@ -37,24 +37,25 @@ static void test_skins(uint32_t seed) {
     }
 }
 
+static unsigned min_poetry=20,max_poetry;
 static void test_deck(uint32_t seed) {
     fortune_state_t s;
     fortune_defaults(&s, seed);
     bool seen[FORTUNE_COUNT] = {0};
     unsigned counts[9]={0};
-    static const unsigned quota[9]={0,4,2,3,3,3,2,2,1};
     s.style=0; /* An old straight-talking preference must not exclude poetry. */
     for (unsigned i = 0; i < FORTUNE_COUNT; ++i) {
         assert(fortune_draw(&s));
         assert(!seen[s.current.quote]); seen[s.current.quote] = true;
         assert(fortune_valid(&s));
         ++counts[FORTUNE_RECORDS[s.current.quote].mood];
-        if (i%20==19) {
-            for (unsigned theme=1;theme<=8;++theme) assert(counts[theme]==quota[theme]);
-            memset(counts,0,sizeof(counts));
+        if (i==19) {
+            if(counts[2]<min_poetry) min_poetry=counts[2];
+            if(counts[2]>max_poetry) max_poetry=counts[2];
         }
     }
     assert(!fortune_draw(&s)); assert(fortune_remaining(&s) == 0);
+    for(unsigned theme=1;theme<=8;++theme) assert(counts[theme]==FORTUNE_THEME_COUNTS[theme]);
     fortune_reset_deck(&s); assert(fortune_remaining(&s) == FORTUNE_COUNT);
     assert(fortune_draw(&s));
 }
@@ -62,6 +63,7 @@ static void test_deck(uint32_t seed) {
 int main(void) {
     test_deck(1); test_deck(2199);
     for (unsigned i = 0; i < 200; ++i) test_deck(i*27449);
+    assert(min_poetry==0 && max_poetry>2); /* Full-bank shuffle, no fixed per-block quotas. */
     char text[128], tiny[2];
     for (unsigned id = 0; id < FORTUNE_COUNT; ++id) {
         assert(fortune_decode(id, text, sizeof(text)) && strlen(text));
@@ -122,6 +124,6 @@ int main(void) {
     unsigned differences=0;
     for(unsigned i=0;i<FORTUNE_SKIN_COUNT;++i){fortune_remix(&a,&a.current);fortune_remix(&b,&b.current);differences+=a.current.art!=b.current.art;}
     assert(differences>100);
-    printf("Fortune model: PASS (202 balanced text decks; 64 seeds, %u nonrepeating skins / %u appearances, different adjacent scenes, legacy save retained)\n",FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT);
+    printf("Fortune model: PASS (202 whole-bank text decks, 20-card poetry counts %u..%u; 64 seeds, %u nonrepeating skins / %u appearances, different adjacent scenes, legacy save retained)\n",min_poetry,max_poetry,FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT);
     return 0;
 }

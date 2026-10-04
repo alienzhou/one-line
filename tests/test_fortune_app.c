@@ -110,10 +110,23 @@ int main(void) {
     volume_key=false; load(); assert(s_volume==80); /* Upgrade from pre-volume firmware. */
     s_page=FORTUNE_HOME; s_state.style=0; s_state.mood=1;
     process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK});
-    assert(s_state.mood==2 && s_state.style==FORTUNE_ANY_STYLE);
+    assert(s_page==FORTUNE_TOPICS && s_topic_candidate==0 && s_state.mood==1);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_topic_candidate==1);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_topic_candidate==2);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(opening && s_state.mood==2 && FORTUNE_RECORDS[s_state.current.quote].mood==2);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(!opening);
+    uint8_t history[FORTUNE_SEEN_BYTES]; memcpy(history,s_state.seen,sizeof(history));
+    load(); assert(s_state.mood==0 && !memcmp(history,s_state.seen,sizeof(history)));
+    s_page=FORTUNE_REVEAL; process((input_t){BSP_BTN_OK,BSP_BTN_LONG});
+    assert(s_page==FORTUNE_HOME && s_state.mood==0);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_topic_candidate==1);
+    process((input_t){BSP_BTN_OK,BSP_BTN_LONG});
+    assert(s_page==FORTUNE_HOME && s_state.mood==0); /* Cancel never applies hidden preview. */
     process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.mood==0 && s_state.style==FORTUNE_ANY_STYLE);
     process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==FORTUNE_ANY_STYLE);
     assert(commits>0);
-    puts("Fortune input/storage: PASS (draw/skip/keep, mute, volume preview/save/cancel/bounds/reload, legacy and invalid defaults, unchanged cards, failed-save retry)");
+    puts("Fortune input/storage: PASS (draw/skip/keep, explicit topic preview/confirm/cancel, global default after reload/return, mute, volume preview/save/cancel/bounds, saved cards, failed-save retry)");
     return 0;
 }

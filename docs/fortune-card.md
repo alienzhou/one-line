@@ -4,8 +4,8 @@
 
 There are **2200 complete records**: 1980 original lines and 220 classical
 Chinese poetry excerpts. This update adds 1540 original lines and retains 440
-reassurance notes. Poetry displays its author and work title. Home selects a
-theme, with chance mode mixing the entire corpus. The original 10001+ target
+reassurance notes. Poetry displays its author and work title. Home draws from the
+whole corpus by default; a separate large-text selector confirms optional topics. The original 10001+ target
 remains future work. Sources are `assets/fortune/corpus.json` and the checked
 `assets/fortune/poetry-sources.json`.
 
@@ -14,8 +14,8 @@ remains future work. Sources are `assets/fortune/corpus.json` and the checked
 Give someone under everyday pressure a sentence they can keep as a personal
 signature. Choose a theme, draw a letter, change its appearance if desired, and
 keep one card. Drawing does not replace the pinned signature; confirming does.
-Reboot opens the saved signature. The public card shows its collection and text,
-not the mood that led the user to draw it.
+Reboot opens the saved signature and restores whole-bank draws. The card header
+shows the current draw scope.
 
 No account, network, payment, daily quota, streak, rarity ranking, bad-luck draw,
 or guaranteed prediction is used. Radio stacks remain off; audio plays on demand. Text is
@@ -123,12 +123,13 @@ not evidence of therapeutic efficacy. Every drawing is local procedural code.
 | Relationship moments | 220 | 10% |
 | Small outings | 110 | 5% |
 
-A fresh chance deck shuffles each 20-card block containing 4/2/3/3/3/2/2/1
-cards from these themes; poetry therefore appears twice per block. Seen cards
-are skipped across theme changes and imported saves, so those partial histories
-do not promise the same short-run proportions. The voice filter is retired:
-chance includes all themes regardless of old saved preferences. Hold DOWN on
-home to return to chance. Exhaustion requires changing themes or reshuffling.
+Whole-bank mode shuffles every record together without theme quotas. Poetry
+accounts for 10% of the full bank, but a short run may contain zero or several
+poems. Seen records are skipped across topic changes and imported saves. The
+voice filter is retired. Returning home or restarting restores the whole-bank
+scope without resetting read history or the saved signature. An optional topic
+requires confirmation on a separate page with a 20 px topic label. Exhaustion
+requires changing topics or explicit reshuffling.
 All 220 former personal declarations and 92 first-person humor openings were
 rewritten. First-person openings fell from 320 to 21, including three unchanged
 poetry excerpts; insights now cover concrete opinions across multiple subjects.
@@ -165,8 +166,8 @@ and all 220 poetry sources. The 10001 `long_term_target` is a target, not conten
 | Internal-RAM pixel canvas | **12528 bytes** |
 | NVS state including seen bitset and CRC | **323 bytes** |
 | Separate sound preferences | **Two one-byte values (mute and volume)** |
-| Current application image | **1515360 bytes** |
-| Verified merged image | **1580896 bytes** |
+| Current application image | **1513840 bytes** |
+| Verified merged image | **1579376 bytes** |
 
 Only one record is decoded into a 128-byte buffer; the entire bank is never
 loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
@@ -177,22 +178,24 @@ regeneration are in `assets/README.md`.
 
 ## Firmware and controls
 
-This correction uses `codex/fortune-mixing`, based on eight-theme `71741bc`,
+The Mac/default correction uses `codex/mac-simulator`, based on `fff9cf9`,
 preserving earlier changes. BSP is reused unchanged. Demo screens
 are not linked. Target remains ESP32-C3, 8 MB Flash, no PSRAM, ESP-IDF 5.5.3,
 LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 
 | Page | UP | DOWN | OK | Long press |
 | --- | --- | --- | --- | --- |
-| Theme selection | Previous theme | Next theme | Draw | DOWN returns to chance; OK opens saved signature; UP resets only an exhausted filter |
+| Whole-bank home | Open topic selector | Open topic selector | Whole-bank draw | OK opens signature; UP reshuffles only after exhaustion |
+| Topic selector | Previous preview | Next preview | Confirm and draw | OK/DOWN cancels to whole-bank home; UP reshuffles an exhausted selection |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
-| Draw result | Draw again | New appearance | Save as signature | UP opens volume; DOWN toggles sound; OK returns to selection |
-| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to selection | UP opens volume; DOWN toggles sound; OK returns to selection |
+| Draw result | Draw again | New appearance | Save as signature | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
+| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to whole-bank home | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
 
-Independent keyed Feistel permutations shuffle theme slots and the records
-within each theme. A persistent seen bitset avoids repeats across theme changes.
-Fresh 20-card blocks maintain the declared proportions without a RAM shuffle
-array. Reset starts a newly keyed order at the first block. Exhaustion requires explicit reshuffling. Appearance IDs have their
+A keyed Feistel permutation shuffles the entire text bank. A persistent seen
+bitset avoids repeats across topic changes and preserves progress when upgrading
+from the earlier quota-based order. No per-topic schedule or RAM shuffle array
+is allocated. Reset starts a newly keyed order. Exhaustion requires explicit
+reshuffling. Appearance IDs have their
 own shuffled scene/subject/color order, unaffected by a text-deck reset. These are entertainment draws;
 no cryptographic randomness claim is made. See [ESP-IDF RNG prerequisites](https://docs.espressif.com/projects/esp-idf/en/v5.5.3/esp32c3/api-reference/system/random.html).
 
@@ -291,7 +294,7 @@ its matching ELF/MAP and manifest live in `build/firmware/<full-image-sha256>/`.
 Build and Host tests PASS: ESP-IDF 5.5.3 complete gate, byte-verified merge,
 current/legacy strings and poetry sources, old-save migration, fonts and actual
 UI layout, all 1920 appearances, and model AddressSanitizer/UndefinedBehaviorSanitizer.
-Device tests PASS for write/startup: `38ad745` was flashed using its verified
+Historical device tests PASS for write/startup: `38ad745` was flashed using its verified
 components, with three matching write hashes and the unchanged partition table.
 NVS was not written. Twenty seconds of observation match ELF `1cce326bad3`,
 2200 records, 216576 free heap bytes and a 114688-byte largest block; no crash
@@ -310,3 +313,8 @@ Chinese legibility/corner clipping, opening/wipe smoothness, pin/restart and pow
 behavior, idle dim/off/wake, battery reporting, runtime heap, current and battery
 life. Any later flash requires applicable user authorization. The 10001+ expansion and
 reader review of tone/repetition are outside the completed 2000+ milestone.
+
+The default/selector changes and [Mac simulator](fortune-simulator.md) are later
+local changes, not included in community revision 1962. Device tests for these
+changes are NOT RUN. The simulator uses the actual application input, storage,
+model and LVGL renderer, and shows draw scope and categorized history.

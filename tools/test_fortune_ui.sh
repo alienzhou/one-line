@@ -8,3 +8,4 @@ cmake -S tests/fortune_ui_host -B build/fortune-ui-host -G Ninja \
 cmake --build build/fortune-ui-host
 mkdir -p build/fortune-preview
 build/fortune-ui-host/test_fortune_ui "${repo_root}/build/fortune-preview" "$@"
+PYTHONDONTWRITEBYTECODE=1 python3 tests/test_fortune_simulator.py

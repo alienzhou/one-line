@@ -19,3 +19,18 @@ if(UNIX AND NOT APPLE)
     target_link_libraries(test_fortune_ui PRIVATE m)
 endif()
 target_compile_options(test_fortune_ui PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+
+# Interactive desktop adapter: the application, draw model and UI remain shared.
+add_executable(fortune_simulator ../../tools/fortune_simulator/bridge.c
+    ../../main/fortune_ui.c ../../main/fortune_pixels.c ../../main/fortune_sound.c
+    ../../main/fortune_model.c ../../main/fortune_data.c
+    ../../main/fortune_legacy_data.c ../../main/fortune_previous_data.c
+    ../../components/bsp/src/bsp_display_rounding.c
+    ../../assets/fonts/fortune_font_12.c ../../assets/fonts/fortune_font_20.c)
+target_include_directories(fortune_simulator PRIVATE ../../main ../../assets/fonts
+    ../fortune_app_stubs ../fortune_audio_stubs ../../components/bsp/src)
+target_link_libraries(fortune_simulator PRIVATE fortune_lvgl)
+target_compile_options(fortune_simulator PRIVATE -Wall -Wextra -Werror -UNDEBUG)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(fortune_simulator PRIVATE m)
+endif()
