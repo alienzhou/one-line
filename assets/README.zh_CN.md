@@ -58,6 +58,8 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | [`images/logo-wordmark-dark.png`](images/logo-wordmark-dark.png) | 1648 × 336，PNG RGBA | 提取字标的白色版本；README 使用 `<picture>` 在 GitHub 深色主题下显示。 |
 | `images/fortune-themes.png` | 1160 × 960，PNG | 已完成的实际 LVGL 渲染组成的八主题总览；MIT。 |
 | `images/fortune-home.png`、`fortune-theme-1.png`～`fortune-theme-8.png` | 240 × 320，PNG | 实际应用渲染的首页与主题示例；MIT。 |
+| [`images/fortune-cover-v2.png`](images/fortune-cover-v2.png) | 1086 × 1448，PNG | 2200 条新版社区封面；内置 imagegen 编辑的玩法示意，MIT。 |
+| `images/community/*.png` | 四张 1152 × 1536，PNG | 八主题、诗词、留签换肤和按键音量详情图；实际程序主机渲染与说明，MIT；用 `tools/render_fortune_release.py` 重建。 |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448，PNG | 一签社区封面，原创 AI 玩法示意图。 |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448，PNG | 拆信玩法示意图。 |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 历史版本口吻与心情示意图，现版已取消口吻筛选。 |

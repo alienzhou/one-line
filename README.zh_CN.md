@@ -4,6 +4,12 @@
 
 **拆开一句话，看看生活的另一面。喜欢，就留作签名。**
 
+<p align="center"><img src="assets/images/fortune-cover-v2.png" alt="一签新版社区封面，玩法示意" width="320"></p>
+
+[社区玩法](https://ai-passport.folotoy.cn/plays/community-aeba5ed2/) · 项目 **914**。
+本次提交版本 **1962**（固件代码 `38ad745`）为**待审核**；当前公开版本仍为 **1942**。
+简介、五步使用方法和本次更新日志分别提交，[中英文发布资料](assets/fortune/community-copy.json)保留完整文本。
+
 一签是一只随身的文字盲盒。想被安慰时，可以抽「慢慢回血」；想换换脑子时，
 还有生活观察、冷幽默、荒诞脑洞、小见解、关系切片、小小出走，以及标明出处的古诗词。
 封好的信轻轻晃动、拆开、揭晓。喜欢哪一句，就让它留在像素卡片上展示。
@@ -110,6 +116,20 @@ python3 tools/render_fortune_topics.py
 卡片存档为 **323 字节**，音量和静音各用独立的一字节偏好值。
 外观由代码绘制，像素画布仍用 12,528 字节 RAM，图库图片不进入固件。
 应用镜像为 **1,515,360 字节**，合并固件为 **1,580,896 字节**。完整测量和兼容边界见[产品与工程设计](docs/fortune-card.zh_CN.md)。
+
+## 社区玩法图
+
+新版封面由内置 imagegen 编辑；四张详情图使用实际程序主机渲染，非设备照片。
+[制作方法与封面提示词](assets/fortune/community-artwork.json)保留来源与生成记录。
+
+<p align="center">
+  <img src="assets/images/community/themes.png" alt="八主题与四张代表性签文" width="280">
+  <img src="assets/images/community/poetry.png" alt="古诗词出处与随缘抽取说明" width="280">
+</p>
+<p align="center">
+  <img src="assets/images/community/signature-skins.png" alt="留签与随机换肤" width="280">
+  <img src="assets/images/community/controls-volume.png" alt="上手按键与音量调节" width="280">
+</p>
 
 ## 阅读与扩展
 

@@ -1,0 +1,28 @@
+{
+  "project_id": 914,
+  "base_public_revision": 1942,
+  "firmware_version": "38ad745",
+  "source_url": "https://github.com/alienzhou/one-line",
+  "title_zh": "一签｜文字盲盒与像素签名",
+  "title_en": "One Fortune | Notes to Draw and Keep",
+  "description_zh": "一签是一只随身文字盲盒。按下抽签，拆开一封未知的信：可能是一首古诗、一句冷幽默、一个荒诞脑洞，也可能是生活观察或一点安慰。喜欢哪一句，就留在像素卡片上，作为自己的个人签名展示。\n\n内置2,200张完整签文：1,980条原创短句与220条古诗词摘句，诗词显示作者和篇名。八种主题可以自由选择，也能随缘混抽；同一轮不重复。安慰占签库20%、诗词占10%，其余带来更多关于日常、关系、审美与出走的不同说法。\n\n封好的信轻轻晃动、拆开、揭晓，短小的音乐盒音效陪着这份期待；音量可调，也能静音。十个像素系列提供320款皮肤、1,920种外观，随机换风景，文字保持原样。再抽不会替换已留签名，重启继续展示。完全离线，无需配网或付费。签文用于阅读、表达和娱乐，不作未来预测。\n\n封面为玩法示意；四张详情图为实际程序主机渲染与说明，非设备实拍。",
+  "description_en": "One Fortune is a pocket surprise box of words. Press to draw and open an unknown letter: a classical verse, a dry joke, a surreal idea, an everyday observation or a little reassurance. Keep a line you like on a pixel-art card as your personal signature.\n\nDiscover 2,200 complete notes: 1,980 original lines and 220 classical Chinese poetry excerpts with author and work title. Choose from eight themes or draw across all of them in Chance mode. Notes do not repeat within a cycle. Reassurance makes up 20% of the collection and poetry 10%; the rest brings different perspectives on daily life, relationships, taste and small outings.\n\nA sealed letter shakes, opens and reveals its words, accompanied by brief music-box sounds. Adjust the volume or mute them. Ten pixel-art collections offer 320 skins and 1,920 appearances to discover in shuffled order. Change the scenery while keeping the words. Drawing again keeps your saved signature, and restarting displays it again. Fully offline, with no Wi-Fi setup or payment. The interface and notes are Chinese, intended for reading, expression and entertainment rather than predictions.\n\nThe cover is a gameplay illustration. Four detail images use actual application host renders and explanatory graphics, not device photographs.",
+  "instructions_zh": "1. 开机即可使用，完全离线，无需配网；屏幕熄灭时先按任意键唤醒。若开机显示已留签名，长按确定回首页。\n2. 首页用上／下键选主题，长按下键回「随缘」，按确定抽签。等信封展开揭晓；拆信时按确定可跳过。\n3. 结果页按上再抽、按下随机换肤，按确定留作签名。再抽保留原签名，留下另一张才会替换。\n4. 长按确定回首页；在首页长按确定查看签名。重启后继续展示已留签名。\n5. 卡片页长按上调音量，上下调节、确定保存；长按确定取消。长按下开关音效，重启保留设置。",
+  "instructions_en": "1. Turn on the device; it works offline with no Wi-Fi setup. Press any button once to wake a dark display. If startup shows a saved signature, hold OK to return home.\n2. Use UP/DOWN on home to select a theme. Hold DOWN for Chance mode, then press OK to draw. Wait for the letter to open, or press OK during opening to skip.\n3. On the result, press UP to draw again, DOWN for random artwork, or OK to keep the line as your signature. Drawing keeps your old signature until you save another.\n4. Hold OK to return home; hold OK on home to view your signature. Restarting continues to display the saved card.\n5. On a card, hold UP for volume, adjust with UP/DOWN and press OK to save; hold OK to cancel. Hold DOWN to toggle sound. Restarting remembers the sound settings.",
+  "changelog_zh": "• 签库更新为2,200张完整内容，分成八种主题：安慰占20%，古诗词占10%，加入生活观察、冷幽默、荒诞脑洞、小见解、关系切片和小小出走。\n• 加入220条古诗词摘句，随签显示作者和篇名；其他文案减少第一人称宣言，增加具体、轻松和有趣的话题。\n• 修复「随缘」被旧口吻筛选排除诗词的问题，取消口吻筛选；全新一轮每20张包含两张诗词，打散主题顺序，跨主题仍记住已读。\n• 新增10%～100%音量调节和即时试听，支持保存或取消；重启记住音量和静音设置。首页长按下键快捷回到随缘。",
+  "changelog_en": "• Updates the collection to 2,200 complete notes across eight themes: 20% reassurance and 10% classical poetry, alongside everyday observations, dry humor, surreal ideas, small insights, relationship moments and small outings.\n• Adds 220 attributed poetry excerpts. Other notes rely less on first-person declarations and explore more concrete, lighthearted and varied subjects.\n• Fixes old voice preferences excluding poetry from Chance mode and removes voice filtering. Fresh 20-card blocks contain two poetry notes with shuffled theme positions; read history still carries across theme changes.\n• Adds remembered volume from 10% to 100% with immediate audition, save and cancel. Mute settings persist too. Hold DOWN on home to return directly to Chance mode.",
+  "submission": {
+    "revision_id": 1962,
+    "status_at_submission": "pending",
+    "published_revision_at_submission": 1942,
+    "firmware_sha256": "288d57d659e3a99993527f98567ba75e0b693e54cbf6d1d7a574b65751d49766",
+    "slug": "community-aeba5ed2",
+    "cover": "assets/images/fortune-cover-v2.png",
+    "images": [
+      "assets/images/community/themes.png",
+      "assets/images/community/poetry.png",
+      "assets/images/community/signature-skins.png",
+      "assets/images/community/controls-volume.png"
+    ]
+  }
+}

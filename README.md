@@ -4,6 +4,13 @@
 
 **Open a line. See another side of life. Keep it as your signature.**
 
+<p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
+
+[Community play](https://ai-passport.folotoy.cn/plays/community-aeba5ed2/) · project **914**.
+Submitted revision **1962** (firmware source `38ad745`) is **pending review**;
+public revision **1942** remains available. Description, five-step instructions,
+and this update's release notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the complete text.
+
 One Fortune is a pocket text surprise box. Choose reassurance when you need it,
 or explore everyday observations, dry humor, surreal ideas, small insights,
 relationship moments, small outings, and attributed classical Chinese poetry.
@@ -128,6 +135,20 @@ one-byte volume and mute preferences. Procedural artwork retains its
 The application is **1,515,360 bytes**; the merged image is **1,580,896 bytes**.
 See the [product and engineering design](docs/fortune-card.md) for measurements
 and compatibility boundaries.
+
+## Community gameplay images
+
+The updated cover uses built-in imagegen editing. Four detail images use actual
+application host renders, not device photographs. [Methods and cover prompt](assets/fortune/community-artwork.json) retain their provenance.
+
+<p align="center">
+  <img src="assets/images/community/themes.png" alt="Eight themes and four representative notes" width="280">
+  <img src="assets/images/community/poetry.png" alt="Attributed poetry and chance-mode behavior" width="280">
+</p>
+<p align="center">
+  <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="280">
+  <img src="assets/images/community/controls-volume.png" alt="Starting controls and volume settings" width="280">
+</p>
 
 ## Explore or extend
 
