@@ -61,7 +61,7 @@ These are pseudorandom entertainment choices, not cryptographic randomness.
 The former 24576 IDs are retained only to render existing saved cards unchanged.
 New draws and appearance changes use the new 1920-ID bank. This is why a saved
 signature can initially show its old artwork until the user explicitly changes it.
-The card save remains 323 bytes and imports the original 312-byte save with
+The 455-byte collection save imports the preceding 323-byte save and original 312-byte save with
 corpus fingerprint 3420887641. Existing current/pinned records use a separate
 legacy ID namespace, preserving their exact words and art. The 440 retained
 records import their old seen bits; new content starts unread. Old mood filters
@@ -164,14 +164,14 @@ and all 220 poetry sources. The 10001 `long_term_target` is a target, not conten
 | Theme offsets and counts | 36 bytes |
 | Read-only content total, before linker alignment | **154444 bytes / 150.8 KiB** |
 | Internal-RAM pixel canvas | **12528 bytes** |
-| NVS state including seen bitset and CRC | **323 bytes** |
+| NVS state including seen bitset and CRC | **455 bytes** |
 | Separate sound preferences | **Two one-byte values (mute and volume)** |
-| Current application image | **1513840 bytes** |
-| Verified merged image | **1579376 bytes** |
+| Previous community application image | **1513840 bytes** |
+| Previous verified merged image | **1579376 bytes** |
 
 Only one record is decoded into a 128-byte buffer; the entire bank is never
 loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
-`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2295 characters per
+`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2296 characters per
 size**, covering current/legacy text, attribution, and UI literals. The OTF,
 1920 gallery PNGs, and audition WAVs are excluded from firmware. Sources and
 regeneration are in `assets/README.md`.
@@ -185,11 +185,11 @@ LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 
 | Page | UP | DOWN | OK | Long press |
 | --- | --- | --- | --- | --- |
-| Whole-bank home | Open topic selector | Open topic selector | Whole-bank draw | OK opens signature; UP reshuffles only after exhaustion |
+| Whole-bank home | Open topic selector | Open topic selector | Whole-bank draw | OK opens collection; UP reshuffles only after exhaustion |
 | Topic selector | Previous preview | Next preview | Confirm and draw | OK/DOWN cancels to whole-bank home; UP reshuffles an exhausted selection |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
-| Draw result | Draw again | New appearance | Save as signature | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
-| Saved signature | Draw again, keep old pin | New appearance for saved card | Return to whole-bank home | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
+| Draw result | Draw again | New appearance | Collect and display signature | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
+| Saved signature | Draw again, keep old pin | New appearance for saved card | Open collection | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
 
 A keyed Feistel permutation shuffles the entire text bank. A persistent seen
 bitset avoids repeats across topic changes and preserves progress when upgrading
@@ -246,7 +246,7 @@ measured current. The externally powered amplifier remains outside software cont
 
 Sound starts enabled. Hold DOWN on a result or signature card to toggle it; the
 muted state is visible in the title. Separate NVS `sound` and `volume` bytes default to enabled and 80%
-for old saves; invalid/out-of-range volume values also use 80%. The 323-byte card format imports existing signatures. Mute preserves the selected volume.
+for old saves; invalid/out-of-range volume values also use 80%. The 455-byte card format imports existing signatures. Mute preserves the selected volume.
 Audio failures leave drawing and saving available and show a short notice; later
 play requests retry the BSP path. No microphone capture is used.
 
@@ -315,7 +315,7 @@ life. Any later flash requires applicable user authorization. The 10001+ expansi
 reader review of tone/repetition are outside the completed 2000+ milestone.
 
 The default/selector firmware update `00878f6` is submitted as community revision
-1967, pending review; revision 1962 is still public. Its verified component images
+1967, now approved and public. Its verified component images
 were flashed at 0x0, 0x8000 and 0x10000, with NVS and PHY excluded. All three write
 hashes matched. Twenty seconds of startup match ELF `d248cefc0dc`, 2200 records,
 216840 free heap bytes and a 114688-byte largest block; no crash or rejected state
@@ -325,3 +325,49 @@ controls, saved-card identity and sound still need player acceptance. Full-image
 Current evidence lives in ignored `build/publish-simulator/`. The [Mac simulator](fortune-simulator.md)
 uses the actual application input, storage, model and LVGL renderer, and shows
 draw scope and categorized history. It is distributed in the source repository.
+
+## Sixteen favorites
+
+This update collects up to 16 quote/artwork pairs. Result OK
+collects and displays the signature; home long OK or signature OK opens the album.
+UP/DOWN browses without writing storage or changing the signature. OK opens actions
+to display, change artwork or remove a bookmark. Removing it keeps the signature.
+Recollecting a quote updates its artwork without using another slot. When full,
+select an old card, preview the new one, then explicitly confirm; cancel is the default.
+Long OK steps back through each page. Storage failure keeps the original state and
+page for retry. Showcase artwork changes synchronize with its saved bookmark.
+
+FTC2 state uses 455 bytes, adding 132 bytes. It retains read bits, cards and CRC,
+then adds count/reserved bytes and sixteen 8-byte records. Importing previous
+FTC1 or old-bank 323/312-byte saves moves the exact signature into slot one.
+No signature yields an empty album. Invalid count, duplicate IDs, invalid cards,
+wrong length and CRC are rejected without erasing NVS. Older firmware cannot
+read the new format; arbitrary future bank changes/downgrades are not supported.
+Partitions and independent sound keys are unchanged.
+
+Sixteen drawn bookmarks show capacity/selection on the existing canvas. A turn
+uses eight 25 ms steps from a 10-pixel offset and 60% text opacity (200 ms).
+Successful collection shows a bookmark seal for twelve 40 ms steps (480 ms).
+Rapid reversal and navigation clear previous offsets. No full-screen buffer or
+animation-time Flash writes are added. Host checks cover 0..16 cards, every
+index/action/confirmation, active fonts, bounds, animation interruption, old-save
+migration, full/cancel/replace, failed-save retries and restart. Chinese rendering,
+physical buttons, frame timing, interrupted writes and endurance await device testing.
+
+Validation: Build PASS (ESP-IDF 5.5.3 complete gate, merged image and archive
+verification); Host tests PASS (static gate, every LVGL layout/artwork and five
+simulator integration checks). The application is 1519760 bytes and merged image
+1585296 bytes, each 5920 bytes above the preceding community build. ELF application
+state is 444 bytes (formerly 316), storage buffer 455 bytes (formerly 323), and
+pixel canvas remains 12528 bytes. UI retains six labels with no extra screen buffer.
+Merged SHA256: `a74ee55cb317b5fdb3ae642cd8a9d83b4bd62045b700910df54e996765ece6c5`.
+Matching ELF SHA256: `b99fb1e999b409e16ad83173beeb892d315ca6cde0c8c71af3b5743c4c667bbf`.
+Device tests PASS for writing and startup only: following explicit user approval,
+the verified components were written at 0x0, 0x8000 and 0x10000. All three write
+hashes matched; the unchanged partition table and segmented writes excluded NVS
+and PHY. A 20-second startup observation matched ELF `b99fb1e99`, with 2200 records,
+216684 free heap bytes and a 114688-byte largest block. One boot was observed,
+with no crash or rejected state. The serial monitor is closed. Evidence is kept
+in ignored `build/favorites/`. Unverified: physical controls, saved-signature/first
+favorite identity, Chinese readability, animation timing, sound, interrupted
+writes and endurance still require player or instrument checks.

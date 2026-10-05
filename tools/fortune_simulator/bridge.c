@@ -9,7 +9,7 @@
 #include <string.h>
 
 static uint16_t pixels[240*320];
-static uint8_t draw_buffer[240*40*2], saved_state[48+FORTUNE_SEEN_BYTES];
+static uint8_t draw_buffer[240*40*2], saved_state[FORTUNE_STATE_BYTES];
 static size_t saved_size;
 static uint8_t saved_sound=1,saved_volume=80;
 static const char *storage_path,*frame_path,*wave_path;
@@ -181,6 +181,8 @@ static void status(void) {
     printf("{\"page\":%u,\"topic\":%u,\"seed\":%u,\"cycle\":%u,\"cursor\":%u,\"seen\":%u,\"remaining\":%u,",
            s_page,s_state.mood,s_state.seed,s_state.cycle,s_state.cursor,seen,fortune_remaining(&s_state));
     printf("\"topic_candidate\":%u,",s_topic_candidate);
+    printf("\"album_index\":%u,\"album_action\":%u,\"album_confirm\":%s,\"favorite_count\":%u,",
+        s_album_index,s_album_action,s_album_confirm?"true":"false",s_state.favorite_count);
     printf("\"count\":%u,\"corpus_id\":%u,\"opening\":%s,\"volume_open\":%s,\"volume\":%u,\"candidate\":%u,",
            FORTUNE_COUNT,FORTUNE_CORPUS_ID,fortune_ui_revealing()?"true":"false",s_volume_open?"true":"false",s_volume,s_volume_candidate);
     printf("\"sound_enabled\":%s,\"audio_enabled\":%s,\"audio_volume\":%u,\"sound_id\":%u,\"sound\":%u,\"frame_id\":%u,\"drawn\":%s,\"save_error\":%s,\"notice\":",
@@ -188,6 +190,9 @@ static void status(void) {
     json_string(s_notice?s_notice:""); printf(",\"unread\":[");
     for(unsigned i=0;i<9;++i) printf("%s%u",i?",":"",unread[i]);
     printf("],\"current\":"); card_json(s_state.current); printf(",\"pinned\":"); card_json(s_state.pinned);
+    printf(",\"favorites\":[");
+    for(unsigned i=0;i<s_state.favorite_count;++i) { if(i) putchar(','); card_json(s_state.favorites[i]); }
+    printf("]");
     printf("}\n"); fflush(stdout);
 }
 int main(int argc,char **argv) {
@@ -205,12 +210,13 @@ int main(int argc,char **argv) {
         } else if(sscanf(line,"topic %u",&topic)==1 && topic<=8) {
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
             if(s_volume_open) key(BSP_BTN_OK,BSP_BTN_LONG);
-            if(s_page!=FORTUNE_HOME) key(BSP_BTN_OK,BSP_BTN_LONG);
+            while(s_page!=FORTUNE_HOME) key(BSP_BTN_OK,BSP_BTN_LONG);
             key(BSP_BTN_DOWN,BSP_BTN_CLICK); /* Enter the explicit selector. */
             while(s_topic_candidate!=topic) key(BSP_BTN_DOWN,BSP_BTN_CLICK);
         } else if(!strncmp(line,"draw",4)) {
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
             if(s_volume_open) key(BSP_BTN_OK,BSP_BTN_LONG);
+            while(album_page()) key(BSP_BTN_OK,BSP_BTN_LONG);
             key(s_page==FORTUNE_HOME||s_page==FORTUNE_TOPICS?BSP_BTN_OK:BSP_BTN_UP,BSP_BTN_CLICK);
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
         } else if(!strncmp(line,"reboot",6)) {

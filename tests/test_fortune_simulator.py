@@ -89,6 +89,33 @@ class SimulatorTests(unittest.TestCase):
         self.engine.close()
         self.assertIsNotNone(self.engine.process.poll())
 
+    def test_collection_full_replace_remove_and_restart(self):
+        for _ in range(16):
+            self.engine.command('draw'); self.key('ok')
+        self.assertEqual(self.engine.state['favorite_count'], 16)
+        original = self.engine.state['favorites'][:]
+        self.engine.command('draw'); new = self.engine.state['current']
+        self.key('ok'); self.assertEqual(self.engine.state['page'], 7)
+        self.key('down'); self.key('ok')
+        self.assertFalse(self.engine.state['album_confirm'])
+        self.key('ok') # Default cancel never evicts.
+        self.assertEqual(self.engine.state['favorites'], original)
+        self.key('ok'); self.key('down'); self.key('ok')
+        self.assertEqual(self.engine.state['favorites'][1], new)
+        self.assertEqual(self.engine.state['pinned'], new)
+        self.engine.action(dict(action='reboot'))
+        self.assertEqual(self.engine.state['favorites'][1], new)
+        self.key('ok'); self.assertEqual(self.engine.state['album_index'], 1)
+        self.key('ok'); self.key('up'); self.key('ok') # Remove preview.
+        self.assertEqual(self.engine.state['page'], 6)
+        self.key('down'); self.key('ok')
+        self.assertEqual(self.engine.state['favorite_count'], 15)
+        self.assertEqual(self.engine.state['pinned'], new) # Signature survives bookmark removal.
+        self.engine.close()
+        self.engine = Engine(BUILD / 'fortune_simulator', self.temp.name, 999)
+        self.assertEqual(self.engine.state['favorite_count'], 15)
+        self.assertEqual(self.engine.state['pinned'], new)
+
 
 if __name__ == '__main__':
     unittest.main()

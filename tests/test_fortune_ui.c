@@ -18,7 +18,10 @@ static void sound_event(fortune_sound_t cue,unsigned variant) {
     else { assert(cue==FORTUNE_SOUND_REVEAL); ++s_reveal_count; }
 }
 static void advance(unsigned milliseconds) {
-    for(unsigned n=0;n<milliseconds;n+=125) { lv_tick_inc(125); lv_timer_handler(); }
+    for(unsigned n=0;n<milliseconds;) {
+        unsigned step=milliseconds-n<25?milliseconds-n:25;
+        n+=step; lv_tick_inc(step); lv_timer_handler();
+    }
 }
 
 static void flush(lv_display_t *display, const lv_area_t *area, uint8_t *pixels) {
@@ -207,6 +210,54 @@ int main(int argc, char **argv) {
     }
     fortune_ui_volume(true,100,FT_SAVE_ERROR); lv_obj_update_layout(lv_screen_active()); check_labels();
     fortune_ui_volume(false,80,NULL); fortune_ui_update(&s,FORTUNE_SHOWCASE,88,NULL);
+    fortune_defaults(&s,42); fortune_ui_album(0,0,false);
+    fortune_ui_update(&s,FORTUNE_ALBUM,88,NULL); snapshot(argv[1],"album-empty"); check_labels();
+    const char *album_notices[]={NULL,FT_SAVE_ERROR,FT_ALBUM_SAVED,FT_ALBUM_UPDATED,
+        FT_ALBUM_PINNED,FT_ALBUM_REMOVED,FT_INPUT_ERROR};
+    for(unsigned count=1;count<=16;++count) {
+        s.favorite_count=(uint8_t)count;
+        for(unsigned i=0;i<count;++i) s.favorites[i]=(fortune_card_t){458+i,2976+i};
+        s.current=(fortune_card_t){900,3010};
+        for(unsigned index=0;index<count;++index) {
+            for(unsigned page=FORTUNE_ALBUM;page<=FORTUNE_ALBUM_CONFIRM;++page) {
+                for(unsigned choice=0;choice<3;++choice) {
+                    fortune_ui_album(index,choice,choice!=0);
+                    fortune_ui_update(&s,(fortune_page_t)page,100,NULL);
+                    lv_obj_update_layout(lv_screen_active()); check_labels();
+                }
+            }
+        }
+    }
+    fortune_ui_album(3,0,false);
+    for(unsigned page=FORTUNE_ALBUM;page<=FORTUNE_ALBUM_CONFIRM;++page) {
+        fortune_ui_update(&s,(fortune_page_t)page,88,NULL);
+        char name[64]; snprintf(name,sizeof(name),"album-page-%u",page); snapshot(argv[1],name); check_labels();
+        for(unsigned n=0;n<sizeof(album_notices)/sizeof(album_notices[0]);++n) {
+            fortune_ui_update(&s,(fortune_page_t)page,88,album_notices[n]);
+            lv_obj_update_layout(lv_screen_active()); check_labels();
+        }
+    }
+    /* Subtle turns settle in 200 ms; rapid reversal/navigation leaves no stale offset. */
+    fortune_ui_update(&s,FORTUNE_ALBUM,88,NULL);
+    for(int direction=-1;direction<=1;direction+=2) {
+        fortune_ui_turn(direction);
+        for(unsigned frame=0;frame<=8;++frame) {
+            char name[64]; snprintf(name,sizeof(name),"album-turn-%s-%02u",direction<0?"up":"down",frame);
+            snapshot(argv[1],name); check_labels(); advance(25);
+        }
+        assert(lv_obj_get_x(lv_obj_get_child(lv_screen_active(),2))==22);
+    }
+    fortune_ui_turn(1); advance(50); fortune_ui_turn(-1); advance(200);
+    assert(lv_obj_get_x(lv_obj_get_child(lv_screen_active(),2))==22);
+    fortune_ui_turn(1); fortune_ui_update(&s,FORTUNE_HOME,88,NULL);
+    assert(lv_obj_get_x(lv_obj_get_child(lv_screen_active(),2))==22);
+    s.pinned=s.current; fortune_ui_update(&s,FORTUNE_SHOWCASE,88,FT_ALBUM_SAVED);
+    fortune_ui_kept();
+    for(unsigned frame=0;frame<=12;++frame) {
+        char name[64]; snprintf(name,sizeof(name),"album-kept-%02u",frame);
+        snapshot(argv[1],name); check_labels(); advance(40);
+    }
+    printf("Collection UI: PASS (empty, 1..16 entries/all indexes/actions/confirmations/notices; turn/reversal/navigation and saved seal; fonts/bounds)\n");
     bool gallery=argc==3 && !strcmp(argv[2],"--skins");
     FILE *catalog=NULL;
     if(gallery) {

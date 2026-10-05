@@ -38,7 +38,8 @@ with tempfile.TemporaryDirectory() as tmp:
     class State(ctypes.Structure):
         _fields_=[('corpus_id',ctypes.c_uint32),('seed',ctypes.c_uint32),('cursor',ctypes.c_uint32),
                   ('art_cursor',ctypes.c_uint32),('cycle',ctypes.c_uint32),('current',Card),('pinned',Card),
-                  ('mood',ctypes.c_uint8),('style',ctypes.c_uint8),('seen',ctypes.c_uint8*275)]
+                  ('mood',ctypes.c_uint8),('style',ctypes.c_uint8),('seen',ctypes.c_uint8*275),
+                  ('favorite_count',ctypes.c_uint8),('favorites',Card*16)]
     model.fortune_decode_state.argtypes=[ctypes.POINTER(State),ctypes.c_char_p,ctypes.c_size_t]
     model.fortune_decode_state.restype=ctypes.c_bool
     model.fortune_encode_state.argtypes=[ctypes.POINTER(State),ctypes.c_char_p,ctypes.c_size_t]
@@ -56,16 +57,18 @@ with tempfile.TemporaryDirectory() as tmp:
         assert model.fortune_decode_state(ctypes.byref(state),data,len(data))
         assert state.style==3 and state.mood==0 and state.pinned.art==1122
         assert state.pinned.quote==mapping[old_id]
+        assert state.favorite_count==1 and state.favorites[0].quote==state.pinned.quote
+        assert state.favorites[0].art==1122
         out=ctypes.create_string_buffer(128)
         assert model.fortune_decode(state.pinned.quote,out,len(out)) and out.value.decode()==text
         if text in current_ids:
             assert mapping[old_id]==current_ids[text]
         else:
             assert (mapping[old_id]&0xc0000000)==0x40000000
-        encoded=ctypes.create_string_buffer(323)
-        assert model.fortune_encode_state(ctypes.byref(state),encoded,323)==323
+        encoded=ctypes.create_string_buffer(455)
+        assert model.fortune_encode_state(ctypes.byref(state),encoded,455)==455
         restored=State()
-        assert model.fortune_decode_state(ctypes.byref(restored),encoded,323)
+        assert model.fortune_decode_state(ctypes.byref(restored),encoded,455)
         assert restored.pinned.quote==state.pinned.quote
     previous_texts={r[2] for r in previous}
     expected_seen={i for t,i in current_ids.items() if t in previous_texts}

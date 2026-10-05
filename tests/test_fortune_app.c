@@ -5,7 +5,7 @@
 #include <string.h>
 
 static bool locked,quiet_ok=true,quiet,opening,muted,sound_key,volume_key;
-static uint8_t saved_sound=1,saved_state[400]; static size_t saved_size;
+static uint8_t saved_sound=1,saved_state[FORTUNE_STATE_BYTES]; static size_t saved_size;
 static uint8_t saved_volume,played_volume;
 static unsigned writes,commits,sounds[FORTUNE_SOUND_COUNT];
 static bool fail_commit;
@@ -49,6 +49,9 @@ void fortune_ui_sound_enabled(bool enabled) { assert(locked); (void)enabled; }
 void fortune_ui_volume(bool visible,unsigned percent,const char *notice) {
     assert(locked); (void)visible; (void)percent; (void)notice;
 }
+void fortune_ui_album(unsigned index,unsigned action,bool confirm) { assert(locked); (void)index; (void)action; (void)confirm; }
+void fortune_ui_turn(int direction) { assert(locked); assert(direction==1 || direction==-1); }
+void fortune_ui_kept(void) { assert(locked); }
 void fortune_ui_update(const fortune_state_t *state,fortune_page_t page,int battery,const char *notice) {
     assert(locked); (void)state; (void)page; (void)battery; (void)notice;
 }
@@ -127,6 +130,64 @@ int main(void) {
     process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.mood==0 && s_state.style==FORTUNE_ANY_STYLE);
     process((input_t){BSP_BTN_DOWN,BSP_BTN_LONG}); assert(s_state.style==FORTUNE_ANY_STYLE);
     assert(commits>0);
+    /* Exercise all 16 slots using actual draw/skip/collect button events. */
+    fortune_defaults(&s_state,777); s_page=FORTUNE_HOME; s_volume_open=false;
+    for(unsigned i=0;i<16;++i) {
+        process((input_t){i?BSP_BTN_UP:BSP_BTN_OK,BSP_BTN_CLICK});
+        process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); /* Skip only. */
+        process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+        assert(s_state.favorite_count==i+1 && s_page==FORTUNE_SHOWCASE);
+    }
+    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    fortune_state_t full=s_state;
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM_REPLACE);
+    before=writes;
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_album_index==1 && writes==before);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM_CONFIRM && !s_album_confirm);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM_REPLACE);
+    assert(!memcmp(&s_state,&full,sizeof(full)) && writes==before);
+    process((input_t){BSP_BTN_OK,BSP_BTN_LONG}); assert(s_page==FORTUNE_REVEAL);
+    assert(!memcmp(&s_state,&full,sizeof(full)));
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_album_confirm);
+    quiet_ok=false; process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_ALBUM_CONFIRM && s_save_error && !memcmp(&s_state,&full,sizeof(full)));
+    quiet_ok=true; fail_commit=true; process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_ALBUM_CONFIRM && !memcmp(&s_state,&full,sizeof(full)));
+    fail_commit=false; process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_SHOWCASE && !s_save_error && s_state.favorite_count==16);
+    assert(s_state.favorites[1].quote==full.current.quote && s_state.pinned.quote==full.current.quote);
+    load(); assert(s_state.favorite_count==16 && s_state.favorites[1].quote==full.current.quote);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM && s_album_index==1);
+    before=writes; process((input_t){BSP_BTN_UP,BSP_BTN_CLICK});
+    assert(s_album_index==0 && writes==before);
+    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); assert(s_album_index==15);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_album_index==0);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM_ACTIONS);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_ALBUM && s_state.favorite_count==16);
+    fortune_card_t changed=s_state.favorites[0];
+    assert(changed.quote==full.favorites[0].quote && changed.art!=full.favorites[0].art);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_SHOWCASE && s_state.pinned.quote==changed.quote && s_state.pinned.art==changed.art);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK});
+    assert(s_state.favorites[0].art==s_state.pinned.art); /* Showcase skins stay synchronized. */
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_ALBUM_REMOVE && !s_album_confirm);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM && s_state.favorite_count==16);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); process((input_t){BSP_BTN_UP,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK});
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_ALBUM && s_state.favorite_count==15 && s_state.pinned.quote==changed.quote);
+    before=writes; process((input_t){BSP_BTN_OK,BSP_BTN_LONG});
+    process((input_t){BSP_BTN_OK,BSP_BTN_LONG}); assert(s_page==FORTUNE_ALBUM && writes==before);
+    fortune_defaults(&s_state,42); s_page=FORTUNE_HOME;
+    process((input_t){BSP_BTN_OK,BSP_BTN_LONG}); assert(s_page==FORTUNE_ALBUM && !s_state.favorite_count);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_HOME);
+    puts("Collection input/storage: PASS (16 slots, full preview/cancel/replace, failure retry, restart, wrap, actions, signature/skin sync, remove/cancel, empty album; browsing never writes)");
     puts("Fortune input/storage: PASS (draw/skip/keep, explicit topic preview/confirm/cancel, global default after reload/return, mute, volume preview/save/cancel/bounds, saved cards, failed-save retry)");
     return 0;
 }

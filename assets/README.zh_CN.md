@@ -15,6 +15,7 @@
 固件只链接 12/20 px、4 bpp、未压缩的生成子集；16 MB 原始 OTF 是开发素材，不进入固件。
 使用 1.5.3 版转换器运行 `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv` 可重建。
 脚本收集当前与旧签文、诗词出处及所有界面文本，字符清单为 `fonts/fortune-characters.txt`。
+两个字号各覆盖 2296 个字符，包含新增签册的收藏、整理和确认页。
 LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2200 条当前和 2112 条旧版文字布局；真机中文显示仍未验证。
 
 ## 签文内容
@@ -61,7 +62,7 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | `images/fortune-topic-selector.png` | 240 × 320，PNG | 已完成的实际 LVGL 大字独立主题页渲染；MIT。 |
 | `images/fortune-simulator.jpg` | 578 × 984，JPEG | Mac 本地模拟器浏览器截图，设备画面为实际 LVGL 帧缓冲；非设备照片；MIT。 |
 | [`images/fortune-cover-v2.png`](images/fortune-cover-v2.png) | 1086 × 1448，PNG | 2200 条新版社区封面；内置 imagegen 编辑的玩法示意，MIT。 |
-| `images/community/*.png` | 四张 1152 × 1536，PNG | 八主题、诗词、留签换肤和按键音量详情图；实际程序主机渲染与说明，MIT；用 `tools/render_fortune_release.py` 重建。 |
+| `images/community/*.png` | 1152 × 1536，PNG | 当前八主题、诗词、留签换肤和 16 格签册详情图；实际程序主机渲染与说明，MIT；用 `tools/render_fortune_release.py` 重建。旧 `controls-volume.png` 作为历史图保留。 |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448，PNG | 一签社区封面，原创 AI 玩法示意图。 |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448，PNG | 拆信玩法示意图。 |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 历史版本口吻与心情示意图，现版已取消口吻筛选。 |

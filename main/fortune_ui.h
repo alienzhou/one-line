@@ -18,3 +18,7 @@ void fortune_ui_sound_callback(void (*callback)(fortune_sound_t, unsigned));
 void fortune_ui_sound_enabled(bool enabled);
 /* Uses the current card's artwork; call after fortune_ui_update under the lock. */
 void fortune_ui_volume(bool visible,unsigned percent,const char *notice);
+/* View-only selection; it never changes the saved deck or collection. */
+void fortune_ui_album(unsigned index,unsigned action,bool confirm);
+void fortune_ui_turn(int direction);
+void fortune_ui_kept(void);

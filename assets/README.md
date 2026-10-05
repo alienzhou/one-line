@@ -19,6 +19,7 @@ the 16 MB source OTF is a development asset, not firmware payload. Regenerate
 with `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv`
 using converter 1.5.3. The script collects current and legacy records, poetry attribution, and
 displayed UI literals. `fonts/fortune-characters.txt` is the printable inventory;
+Both sizes cover 2296 characters, including collection, actions and confirmation pages.
 host LVGL tests check actual fonts, widget bindings, a missing-glyph negative
 case, and all 2200 current and 2112 legacy text layouts. On-device Chinese output remains unverified.
 
@@ -75,7 +76,7 @@ Store reusable source images and generated display assets in `images/`.
 | `images/fortune-topic-selector.png` | 240 × 320, PNG | Completed actual LVGL capture of the separate large-text topic selector; MIT. |
 | `images/fortune-simulator.jpg` | 578 × 984, JPEG | Mac local simulator browser capture, with the actual LVGL framebuffer; not a device photograph; MIT. |
 | [`images/fortune-cover-v2.png`](images/fortune-cover-v2.png) | 1086 × 1448, PNG | Updated 2200-record community cover; built-in imagegen gameplay-illustration edit, MIT. |
-| `images/community/*.png` | Four 1152 × 1536 PNGs | Themes, poetry, signatures/artwork and controls/volume detail panels; actual application host renders with explanatory graphics, MIT; regenerate with `tools/render_fortune_release.py`. |
+| `images/community/*.png` | 1152 × 1536 PNGs | Current themes, poetry, signatures/artwork and sixteen-card collection panels; actual application host renders with explanatory graphics, MIT; regenerate with `tools/render_fortune_release.py`. The older `controls-volume.png` remains a historical panel. |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448, PNG | One Fortune community cover; original AI-generated gameplay illustration. |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448, PNG | Letter-opening gameplay illustration. |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448, PNG | Historical voices and moods illustration; the current app retires voice filtering. |

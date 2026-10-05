@@ -84,7 +84,7 @@ int main(void) {
     }
     for (unsigned i = 0; i < FORTUNE_COUNT; ++i) assert(seen[i]);
     s.pinned = s.current;
-    uint8_t bytes[48+FORTUNE_SEEN_BYTES];
+    uint8_t bytes[FORTUNE_STATE_BYTES];
     size_t n = fortune_encode_state(&s, bytes, sizeof(bytes)); assert(n == sizeof(bytes));
     assert(fortune_decode_state(&restored, bytes, n));
     assert(memcmp(s.seen, restored.seen, sizeof(s.seen)) == 0);
@@ -103,6 +103,8 @@ int main(void) {
     assert(restored.pinned.quote==legacy_pin.quote && restored.pinned.art==legacy_pin.art);
     assert(!memcmp(old_seen,restored.seen,sizeof(old_seen)));
     assert(legacy_pin.quote == (FORTUNE_LEGACY_QUOTE | 387U));
+    assert(restored.favorite_count==1 && restored.favorites[0].quote==legacy_pin.quote &&
+        restored.favorites[0].art==legacy_pin.art);
     char legacy_text[128];
     assert(fortune_decode(legacy_pin.quote, legacy_text, sizeof(legacy_text)));
     assert(!strcmp(legacy_text,"欢迎沟通，拒绝精神卸货"));
@@ -124,6 +126,43 @@ int main(void) {
     unsigned differences=0;
     for(unsigned i=0;i<FORTUNE_SKIN_COUNT;++i){fortune_remix(&a,&a.current);fortune_remix(&b,&b.current);differences+=a.current.art!=b.current.art;}
     assert(differences>100);
+    /* Collection capacity, explicit replacement, stable ordering and restart. */
+    fortune_defaults(&s,42);
+    for(unsigned i=0;i<16;++i) assert(fortune_favorite_save(&s,(fortune_card_t){i,2976+i},i));
+    assert(s.favorite_count==16 && fortune_valid(&s));
+    fortune_state_t unchanged=s;
+    assert(!fortune_favorite_save(&s,(fortune_card_t){99,3000},16));
+    assert(!memcmp(&s,&unchanged,sizeof(s)));
+    assert(fortune_favorite_save(&s,(fortune_card_t){3,3001},16));
+    assert(s.favorite_count==16 && s.favorites[3].art==3001);
+    assert(fortune_favorite_save(&s,(fortune_card_t){99,3000},3));
+    assert(s.favorite_count==16 && s.favorites[3].quote==99);
+    s.pinned=s.favorites[3];
+    assert(fortune_favorite_remove(&s,3) && s.favorite_count==15);
+    assert(s.favorites[3].quote==4 && s.pinned.quote==99);
+    assert(!fortune_favorite_remove(&s,15));
+    assert(!fortune_favorite_save(&s,(fortune_card_t){FORTUNE_NO_CARD,0},0));
+    n=fortune_encode_state(&s,bytes,sizeof(bytes)); assert(n==455);
+    assert(fortune_decode_state(&restored,bytes,n));
+    assert(restored.favorite_count==15 && !memcmp(s.favorites,restored.favorites,15*sizeof(fortune_card_t)));
+    /* Correct CRC cannot make malformed count/duplicate/quote/art data valid. */
+    const size_t album=44+FORTUNE_SEEN_BYTES;
+    for(unsigned corruption=0;corruption<4;++corruption) {
+        n=fortune_encode_state(&s,bytes,sizeof(bytes));
+        if(corruption==0) bytes[album]=17;
+        else if(corruption==1) memcpy(bytes+album+12,bytes+album+4,4);
+        else memset(bytes+album+(corruption==2?4:8),0xff,4);
+        uint32_t crc=fortune_crc(bytes,n-4);
+        for(unsigned i=0;i<4;++i) bytes[n-4+i]=(uint8_t)(crc>>(8*i));
+        assert(!fortune_decode_state(&restored,bytes,n));
+    }
+    /* Import the immediately preceding 323-byte format with its existing pin. */
+    n=fortune_encode_state(&s,bytes,sizeof(bytes));
+    bytes[0]=0x31; n=48+FORTUNE_SEEN_BYTES;
+    uint32_t crc=fortune_crc(bytes,n-4);
+    for(unsigned i=0;i<4;++i) bytes[n-4+i]=(uint8_t)(crc>>(8*i));
+    assert(fortune_decode_state(&restored,bytes,n));
+    assert(restored.favorite_count==1 && restored.favorites[0].quote==99 && restored.pinned.art==3000);
     printf("Fortune model: PASS (202 whole-bank text decks, 20-card poetry counts %u..%u; 64 seeds, %u nonrepeating skins / %u appearances, different adjacent scenes, legacy save retained)\n",min_poetry,max_poetry,FORTUNE_SKIN_COUNT,FORTUNE_NEW_ART_COUNT);
     return 0;
 }

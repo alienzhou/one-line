@@ -7,8 +7,8 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-Submitted revision **1967** (firmware source `00878f6`) is **pending review**;
-public revision **1962** remains available. Description, five-step instructions,
+Public revision **1967** (firmware source `00878f6`) is approved.
+The sixteen-card album update is ready for submission. Description, five-step instructions,
 and this update's release notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the complete text.
 Revision 1967 contains the whole-bank default and explicit topic selector. The Mac simulator is available in this source repository.
 
@@ -49,11 +49,11 @@ Visual combinations are counted separately from written content.
 
 ## Start in five steps
 
-1. Turn on the device; no Wi-Fi setup is needed. Press any button once to wake a dark display.
-2. Press OK on home for a whole-bank random draw. UP/DOWN opens a separate topic selector; browse there and press OK to draw from that topic. Hold OK to cancel.
-3. Wait for the letter to open and reveal its words. Press OK during opening to skip the animation.
-4. On the result, press UP to draw again or DOWN for random artwork. Press OK to keep this line as your displayed signature.
-5. Hold OK to return home; hold OK there to view your saved signature. On a card, hold UP for volume or DOWN to mute. Your signature and settings survive restarts.
+1. Turn on the device; it works offline with no Wi-Fi setup. Press any button once to wake a dark screen. If your signature appears, hold OK to return home.
+2. Press OK on home for a random draw. Wait for the letter to reveal its words, or press OK to skip. For a specific theme, open the selector with UP/DOWN, choose a theme and confirm with OK.
+3. On the result, UP draws again, DOWN changes the artwork, and OK collects the card and displays it as your signature. Keep up to 16 cards; when full, choose an old card and confirm its replacement.
+4. Hold OK on home, or press OK on the signature, to open the album. Browse with UP/DOWN; OK opens actions to display, change artwork or remove a card. Hold OK to step back to home and continue drawing.
+5. On a card, hold UP for volume, adjust with UP/DOWN and press OK to save; hold DOWN to toggle sound. Favorites, your signature and sound settings survive restarts.
 
 Drawing keeps your existing signature until you explicitly save a replacement.
 Changing artwork preserves the words. Previously saved signatures and artwork
@@ -63,6 +63,25 @@ remain readable after this upgrade.
   <img src="assets/images/fortune-home.png" alt="Actual whole-bank home page" width="240">
   <img src="assets/images/fortune-theme-2.png" alt="Actual rendered poetry card with attribution" width="240">
 </p>
+
+## Keep sixteen favorite cards
+
+This update holds **16 complete cards with their artwork**, entirely
+on the offline device. UP/DOWN browses; OK opens actions to display the card,
+change its artwork or remove it. Browsing never changes the signature or writes
+storage. Removing a favorite retains the independently displayed signature.
+When full, select an old card, preview the new one and explicitly confirm replacement;
+cancel is selected by default. Hold OK to step back. Recollecting the same quote
+updates its artwork without taking another slot. Existing signatures migrate into
+slot one with their exact words, artwork, read history and sound settings intact.
+Turns take about 200 ms; successful collection shows a 480 ms bookmark seal.
+Animation frames never write Flash. This feature is not yet in the public community
+release; physical button feel, frame timing, interrupted saves and endurance await testing.
+Build and Host tests PASS for this change; the application is 1,519,760 bytes
+and the merged image 1,585,296 bytes. Device tests PASS for three component write
+hashes and a 20-second startup observation only. NVS and PHY were excluded;
+matching ELF, one boot, 216684 free heap bytes and a 114688-byte largest block
+were observed, with no crash or rejected state. Physical acceptance remains pending.
 
 ## Give the words a different setting
 
@@ -139,7 +158,7 @@ A merged write can overwrite stored data; preserving old signatures requires com
 writing. This update used verified component images and left NVS and PHY untouched.
 See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
 
-| Check | This update |
+| Check | Previous community iteration, before favorites |
 | --- | --- |
 | Build | **PASS** — ESP-IDF 5.5.3 complete gate and verified 0x0 merged image |
 | Host tests | PASS — exact decoding, proportions and poetry sources, legacy migration, input and storage; active fonts and all text layouts, 1,920 artwork renders |
@@ -149,17 +168,17 @@ See the [flashing and data policy](docs/development/engineering/firmware-layout.
 The active encoded text bank takes **67.0 KiB**, plus attribution and legacy
 compatibility data. The **57.3 KiB** old bank serves saved signatures only and is
 excluded from new draws. A further **18.5 KiB** retains the 312 replaced lines
-and their migration table. Both font sizes cover **2,295 characters**; the whole
-bank is never loaded into RAM. The card save is **323 bytes**, with separate
+and their migration table. Both font sizes cover **2,296 characters**; the whole
+bank is never loaded into RAM. The 16-card save is **455 bytes**, importing older 323/312-byte saves, with separate
 one-byte volume and mute preferences. Procedural artwork retains its
 12,528-byte canvas; gallery images stay out of firmware.
-The application is **1,513,840 bytes**; the merged image is **1,579,376 bytes**.
+The previous community application is **1,513,840 bytes**; its merged image is **1,579,376 bytes**.
 See the [product and engineering design](docs/fortune-card.md) for measurements
 and compatibility boundaries.
 
 ## Community gameplay images
 
-These images show this checkout's whole-bank default and explicit topic selector.
+These images show the current whole-bank default, explicit selector and sixteen-card album.
 
 The updated cover uses built-in imagegen editing. Four detail images use actual
 application host renders, not device photographs. [Methods and cover prompt](assets/fortune/community-artwork.json) retain their provenance.
@@ -170,7 +189,7 @@ application host renders, not device photographs. [Methods and cover prompt](ass
 </p>
 <p align="center">
   <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="280">
-  <img src="assets/images/community/controls-volume.png" alt="Starting controls and volume settings" width="280">
+  <img src="assets/images/community/collection.png" alt="Sixteen-card album and collection actions" width="280">
 </p>
 
 ## Explore or extend

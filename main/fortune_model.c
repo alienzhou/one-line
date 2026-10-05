@@ -37,9 +37,43 @@ static bool valid_card(fortune_card_t c) {
 }
 
 bool fortune_valid(const fortune_state_t *s) {
-    return s && s->corpus_id == FORTUNE_CORPUS_ID && s->mood <= 8 &&
+    if (!(s && s->corpus_id == FORTUNE_CORPUS_ID && s->mood <= 8 &&
         s->style <= FORTUNE_ANY_STYLE && s->cursor < FORTUNE_COUNT &&
-        s->art_cursor < FORTUNE_ART_COUNT && valid_card(s->current) && valid_card(s->pinned);
+        s->art_cursor < FORTUNE_ART_COUNT && valid_card(s->current) && valid_card(s->pinned) &&
+        s->favorite_count <= FORTUNE_FAVORITE_CAPACITY)) return false;
+    for (unsigned i=0; i<s->favorite_count; ++i) {
+        if (!valid_card(s->favorites[i]) || s->favorites[i].quote==FORTUNE_NO_CARD) return false;
+        for (unsigned j=0; j<i; ++j)
+            if (s->favorites[i].quote==s->favorites[j].quote) return false;
+    }
+    return true;
+}
+
+int fortune_favorite_find(const fortune_state_t *s, uint32_t quote) {
+    if (!s || quote==FORTUNE_NO_CARD || s->favorite_count>FORTUNE_FAVORITE_CAPACITY) return -1;
+    for (unsigned i=0; i<s->favorite_count; ++i)
+        if (s->favorites[i].quote==quote) return (int)i;
+    return -1;
+}
+
+bool fortune_favorite_save(fortune_state_t *s, fortune_card_t card, unsigned slot) {
+    if (!s || !valid_card(card) || card.quote==FORTUNE_NO_CARD ||
+        s->favorite_count>FORTUNE_FAVORITE_CAPACITY) return false;
+    int existing=fortune_favorite_find(s,card.quote);
+    if (existing>=0) { s->favorites[existing]=card; return true; }
+    if (slot>s->favorite_count || slot>=FORTUNE_FAVORITE_CAPACITY) return false;
+    s->favorites[slot]=card;
+    if (slot==s->favorite_count) ++s->favorite_count;
+    return true;
+}
+
+bool fortune_favorite_remove(fortune_state_t *s, unsigned slot) {
+    if (!s || slot>=s->favorite_count || s->favorite_count>FORTUNE_FAVORITE_CAPACITY) return false;
+    memmove(s->favorites+slot,s->favorites+slot+1,
+        (s->favorite_count-slot-1)*sizeof(s->favorites[0]));
+    s->favorites[--s->favorite_count]=(fortune_card_t){0,0};
+    /* Removing a bookmark does not remove the independently displayed signature. */
+    return true;
 }
 
 bool fortune_decode(uint32_t id, char *out, size_t cap) {
@@ -193,23 +227,32 @@ static uint32_t get32(const uint8_t *p) {
 }
 
 size_t fortune_encode_state(const fortune_state_t *s, uint8_t *out, size_t cap) {
-    const size_t n = 48 + FORTUNE_SEEN_BYTES;
+    const size_t n = FORTUNE_STATE_BYTES;
     if (cap < n || !fortune_valid(s)) return 0;
     memset(out, 0, n);
-    put32(out, 0x46544331U); put32(out+4, s->corpus_id);
+    put32(out, 0x46544332U); put32(out+4, s->corpus_id);
     put32(out+8, s->seed); put32(out+12, s->cursor);
     put32(out+16, s->art_cursor); put32(out+20, s->cycle);
     put32(out+24, s->current.quote); put32(out+28, s->current.art);
     put32(out+32, s->pinned.quote); put32(out+36, s->pinned.art);
     out[40] = s->mood; out[41] = s->style;
     memcpy(out+44, s->seen, FORTUNE_SEEN_BYTES);
+    size_t album=44+FORTUNE_SEEN_BYTES;
+    out[album]=s->favorite_count;
+    for (unsigned i=0; i<s->favorite_count; ++i) {
+        put32(out+album+4+8*i,s->favorites[i].quote);
+        put32(out+album+8+8*i,s->favorites[i].art);
+    }
     put32(out+n-4, fortune_crc(out, n-4));
     return n;
 }
 
 bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
-    if (!s || !data || n < 48 || get32(data) != 0x46544331U ||
+    if (!s || !data || n < 48 ||
+        (get32(data)!=0x46544331U && get32(data)!=0x46544332U) ||
         get32(data+n-4) != fortune_crc(data, n-4)) return false;
+    bool album_format=get32(data)==0x46544332U;
+    if (album_format && (n!=FORTUNE_STATE_BYTES || get32(data+4)!=FORTUNE_CORPUS_ID)) return false;
     if (get32(data+4) == FORTUNE_LEGACY_CORPUS_ID &&
         FORTUNE_LEGACY_CORPUS_ID != FORTUNE_CORPUS_ID) {
         if (n != 48 + (FORTUNE_LEGACY_COUNT+7)/8 || get32(data+12)>=FORTUNE_LEGACY_COUNT ||
@@ -229,6 +272,8 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
             if (old_id < FORTUNE_LEGACY_COUNT && (data[44+old_id/8] & (1U << (old_id%8))))
                 migrated.seen[i/8] |= (uint8_t)(1U << (i%8));
         }
+        if (migrated.pinned.quote!=FORTUNE_NO_CARD)
+            fortune_favorite_save(&migrated,migrated.pinned,0);
         *s = migrated;
         return true;
     }
@@ -255,10 +300,12 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
             if (id<FORTUNE_COUNT && (data[44+old/8]&(1U<<(old%8))))
                 migrated.seen[id/8] |= (uint8_t)(1U<<(id%8));
         }
+        if (migrated.pinned.quote!=FORTUNE_NO_CARD)
+            fortune_favorite_save(&migrated,migrated.pinned,0);
         *s=migrated;
         return true;
     }
-    if (n != 48 + FORTUNE_SEEN_BYTES) return false;
+    if (n != (album_format ? FORTUNE_STATE_BYTES : 48 + FORTUNE_SEEN_BYTES)) return false;
     fortune_state_t candidate = {0};
     candidate.corpus_id = get32(data+4); candidate.seed = get32(data+8);
     candidate.cursor = get32(data+12); candidate.art_cursor = get32(data+16);
@@ -267,8 +314,18 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
     candidate.pinned = (fortune_card_t){get32(data+32), get32(data+36)};
     candidate.mood = data[40]; candidate.style = data[41];
     memcpy(candidate.seen, data+44, FORTUNE_SEEN_BYTES);
+    if (album_format) {
+        size_t album=44+FORTUNE_SEEN_BYTES;
+        candidate.favorite_count=data[album];
+        if (candidate.favorite_count>FORTUNE_FAVORITE_CAPACITY || data[album+1] ||
+            data[album+2] || data[album+3]) return false;
+        for (unsigned i=0; i<candidate.favorite_count; ++i)
+            candidate.favorites[i]=(fortune_card_t){get32(data+album+4+8*i),get32(data+album+8+8*i)};
+    }
     if (!fortune_valid(&candidate)) return false;
     candidate.style=FORTUNE_ANY_STYLE;
+    if (!album_format && candidate.pinned.quote!=FORTUNE_NO_CARD)
+        fortune_favorite_save(&candidate,candidate.pinned,0);
     *s = candidate;
     return true;
 }

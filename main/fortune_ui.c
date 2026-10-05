@@ -29,6 +29,14 @@ static void (*s_sound_callback)(fortune_sound_t,unsigned);
 static bool s_sound_enabled=true;
 static bool s_volume_visible;
 static unsigned s_volume_percent;
+static unsigned s_album_index,s_album_action,s_album_count;
+static bool s_album_confirm;
+static unsigned s_turn_step=8,s_keep_step=12;
+static int s_turn_direction;
+static bool is_album(fortune_page_t page) { return page>=FORTUNE_ALBUM && page<=FORTUNE_ALBUM_CONFIRM; }
+void fortune_ui_album(unsigned index,unsigned action,bool confirm) {
+    s_album_index=index; s_album_action=action; s_album_confirm=confirm;
+}
 void fortune_ui_sound_callback(void (*callback)(fortune_sound_t,unsigned)) { s_sound_callback=callback; }
 void fortune_ui_sound_enabled(bool enabled) { s_sound_enabled=enabled; }
 
@@ -76,8 +84,43 @@ static void format_quote(const char *in,char out[128]) {
 static void artwork(lv_event_t *event) {
     lv_draw_image_dsc_t d; lv_draw_image_dsc_init(&d);
     d.src=&s_image; d.scale_x=d.scale_y=512; d.pivot.x=d.pivot.y=0; d.antialias=0;
-    lv_area_t a={12,38,12+FORTUNE_PIXEL_W-1,38+FORTUNE_PIXEL_H-1};
+    static const int turn_offset[]={10,8,6,4,2,1,0,0,0};
+    int dx=s_turn_direction*turn_offset[s_turn_step];
+    lv_area_t a={12+dx,38,12+dx+FORTUNE_PIXEL_W-1,38+FORTUNE_PIXEL_H-1};
     lv_draw_image(lv_event_get_layer(event),&d,&a);
+    if (is_album(s_page) && s_album_count && s_page!=FORTUNE_ALBUM_ACTIONS) {
+        fortune_colors_t p=fortune_pixel_colors(s_id);
+        lv_draw_rect_dsc_t dot; lv_draw_rect_dsc_init(&dot);
+        dot.bg_color=lv_color_hex(p.paper); dot.bg_opa=LV_OPA_80; dot.radius=5;
+        lv_area_t strip={32,140,207,153}; lv_draw_rect(lv_event_get_layer(event),&dot,&strip);
+        for (unsigned i=0; i<FORTUNE_FAVORITE_CAPACITY; ++i) {
+            bool selected=i==s_album_index;
+            dot.bg_color=lv_color_hex(p.ink); dot.bg_opa=i<s_album_count?LV_OPA_COVER:LV_OPA_20;
+            dot.radius=selected?2:1;
+            lv_area_t mark={40+(int)i*10,selected?143:145,44+(int)i*10,selected?150:148};
+            lv_draw_rect(lv_event_get_layer(event),&dot,&mark);
+        }
+    }
+    if (s_page==FORTUNE_ALBUM_ACTIONS) {
+        fortune_colors_t p=fortune_pixel_colors(s_id);
+        lv_draw_rect_dsc_t focus; lv_draw_rect_dsc_init(&focus);
+        focus.bg_color=lv_color_hex(p.ink); focus.bg_opa=LV_OPA_10; focus.radius=6;
+        int y=179+(int)s_album_action*26;
+        lv_area_t row={16,y,223,y+25}; lv_draw_rect(lv_event_get_layer(event),&focus,&row);
+    }
+    if (s_keep_step<12) {
+        fortune_colors_t p=fortune_pixel_colors(s_id);
+        lv_draw_rect_dsc_t seal; lv_draw_rect_dsc_init(&seal);
+        seal.bg_color=lv_color_hex(p.ink); seal.bg_opa=s_keep_step<8?LV_OPA_90:(12-s_keep_step)*255/5;
+        seal.radius=3;
+        int y=132-(s_keep_step<4?(4-(int)s_keep_step)*2:0);
+        lv_area_t tag={191,y,209,y+18}; lv_draw_rect(lv_event_get_layer(event),&seal,&tag);
+        seal.bg_color=lv_color_hex(p.paper); seal.radius=1;
+        lv_area_t tick1={195,y+9,199,y+12},tick2={199,y+5,202,y+10},tick3={202,y+3,205,y+6};
+        lv_draw_rect(lv_event_get_layer(event),&seal,&tick1);
+        lv_draw_rect(lv_event_get_layer(event),&seal,&tick2);
+        lv_draw_rect(lv_event_get_layer(event),&seal,&tick3);
+    }
     if(s_volume_visible) {
         fortune_colors_t p=fortune_pixel_colors(s_id);
         lv_draw_rect_dsc_t bar; lv_draw_rect_dsc_init(&bar);
@@ -93,13 +136,34 @@ static void artwork(lv_event_t *event) {
 /* Called only under LVGL's lock. Each tick invalidates the illustration, never text. */
 void fortune_ui_tick(void) {
     if(!s_motion || !s_root || s_id==UINT32_MAX) return;
-    if(s_revealing || s_wipe_step<3) return;
+    if(s_revealing || s_wipe_step<3 || s_turn_step<8 || s_keep_step<12) return;
     fortune_pixels(s_pixels,s_id,++s_frame);
     lv_image_cache_drop(&s_image);
     lv_area_t area={12,38,227,153}; lv_obj_invalidate_area(s_root,&area);
 }
 void fortune_ui_motion(bool enabled) { s_motion=enabled; }
 bool fortune_ui_revealing(void) { return s_revealing; }
+static void reset_turn(void) {
+    s_turn_step=8;
+    lv_obj_set_pos(s_quote,22,181); lv_obj_set_pos(s_caption,22,161);
+    lv_obj_set_style_text_opa(s_quote,LV_OPA_COVER,0);
+    lv_obj_set_style_text_opa(s_caption,LV_OPA_COVER,0);
+}
+void fortune_ui_turn(int direction) {
+    if (!s_root || s_revealing) return;
+    reset_turn(); s_keep_step=12; s_wipe_step=3; s_turn_step=0;
+    s_turn_direction=direction<0?-1:1;
+    lv_obj_set_pos(s_quote,22+s_turn_direction*10,181);
+    lv_obj_set_pos(s_caption,22+s_turn_direction*10,161);
+    lv_obj_set_style_text_opa(s_quote,LV_OPA_60,0);
+    lv_obj_set_style_text_opa(s_caption,LV_OPA_60,0);
+    lv_timer_set_period(s_timer,25); lv_timer_reset(s_timer); lv_obj_invalidate(s_root);
+}
+void fortune_ui_kept(void) {
+    if (!s_root) return;
+    reset_turn(); s_keep_step=0; s_wipe_step=3;
+    lv_timer_set_period(s_timer,40); lv_timer_reset(s_timer); lv_obj_invalidate(s_root);
+}
 static void finish_reveal(bool audible) {
     if(!s_revealing) return;
     s_revealing=false;
@@ -110,6 +174,7 @@ static void finish_reveal(bool audible) {
 }
 void fortune_ui_finish_reveal(void) { finish_reveal(true); }
 void fortune_ui_begin_reveal(void) {
+    reset_turn(); s_keep_step=12; lv_timer_set_period(s_timer,125);
     snprintf(s_final_quote,sizeof(s_final_quote),"%s",lv_label_get_text(s_quote));
     snprintf(s_final_caption,sizeof(s_final_caption),"%s",lv_label_get_text(s_caption));
     snprintf(s_final_help,sizeof(s_final_help),"%s",lv_label_get_text(s_help));
@@ -125,7 +190,19 @@ void fortune_ui_begin_reveal(void) {
 }
 static void timer_tick(lv_timer_t *timer) {
     (void)timer;
-    if(s_revealing) {
+    if(s_turn_step<8) {
+        static const int offset[]={10,8,6,4,2,1,0,0,0};
+        ++s_turn_step;
+        lv_obj_set_pos(s_quote,22+s_turn_direction*offset[s_turn_step],181);
+        lv_obj_set_pos(s_caption,22+s_turn_direction*offset[s_turn_step],161);
+        lv_obj_set_style_text_opa(s_quote,(lv_opa_t)(153+s_turn_step*102/8),0);
+        lv_obj_set_style_text_opa(s_caption,(lv_opa_t)(153+s_turn_step*102/8),0);
+        if(s_turn_step==8) { reset_turn(); lv_timer_set_period(s_timer,125); }
+        lv_obj_invalidate(s_root);
+    } else if(s_keep_step<12) {
+        if(++s_keep_step==12) lv_timer_set_period(s_timer,125);
+        lv_area_t area={188,120,213,154}; lv_obj_invalidate_area(s_root,&area);
+    } else if(s_revealing) {
         if(++s_reveal_step>=10) { fortune_ui_finish_reveal(); return; }
         fortune_pixel_unwrap(s_pixels,s_id,s_reveal_step);
         lv_image_cache_drop(&s_image);
@@ -172,11 +249,17 @@ bool fortune_ui_create(void) {
     if(!timer) { lv_obj_delete(s_root); s_root=NULL; return false; }
     lv_obj_add_event_cb(s_root,cleanup,LV_EVENT_DELETE,timer);
     s_timer=timer;
+    s_turn_step=8; s_keep_step=12;
     lv_screen_load(s_root); return true;
 }
 void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,const char *notice) {
-    fortune_card_t card=page==FORTUNE_SHOWCASE?s->pinned:s->current;
+    fortune_card_t card=is_album(page) && page!=FORTUNE_ALBUM_CONFIRM && s->favorite_count &&
+        s_album_index<s->favorite_count?s->favorites[s_album_index]:page==FORTUNE_SHOWCASE?s->pinned:s->current;
+    if (page==FORTUNE_ALBUM && !s->favorite_count) card.quote=FORTUNE_NO_CARD;
     uint32_t id=page==FORTUNE_HOME||page==FORTUNE_TOPICS||card.quote==FORTUNE_NO_CARD?2976:card.art;
+    bool navigation=page!=s_page || card.quote!=s_quote_id || id!=s_id;
+    if(navigation) { reset_turn(); s_keep_step=12; lv_timer_set_period(s_timer,125); }
+    s_album_count=s->favorite_count;
     if(s_revealing && id==s_id && card.quote==s_quote_id && page==s_page) {
         if(battery<0) lv_label_set_text(s_battery,"--%"); else lv_label_set_text_fmt(s_battery,"%d%%",battery);
         return; /* Battery refresh must not shorten the opening sequence. */
@@ -207,15 +290,43 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
         lv_label_set_text_fmt(s_caption,"%lu 张未读 / 确定才生效",(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_TOPICS_HELP);
         lv_label_set_text(s_hint,notice?notice:FT_TOPICS_HINT);
+    } else if (page==FORTUNE_ALBUM && !s->favorite_count) {
+        lv_label_set_text(s_meta,"一签 / 签册 0/16");
+        lv_label_set_text(s_quote,FT_ALBUM_EMPTY);
+        lv_label_set_text(s_caption,"每句喜欢的话，都有一个位置");
+        lv_label_set_text(s_help,"确定回首页，拆一封来信");
+        lv_label_set_text(s_hint,notice?notice:"长确定也可返回首页");
+    } else if (page==FORTUNE_ALBUM_ACTIONS) {
+        static const char *const actions[]={"展示这张","换个外观","移出签册"};
+        lv_label_set_text_fmt(s_meta,"一签 / 整理 %02u/%02u",s_album_index+1,s->favorite_count);
+        lv_label_set_text_fmt(s_caption,"已收藏 %u/16 / 选择一个操作",s->favorite_count);
+        lv_label_set_text_fmt(s_quote,"%s%s\n%s%s\n%s%s",
+            s_album_action==0?"> ":"   ",actions[0],s_album_action==1?"> ":"   ",actions[1],
+            s_album_action==2?"> ":"   ",actions[2]);
+        lv_label_set_text(s_help,"上/下选择 · 确定执行");
+        lv_label_set_text(s_hint,notice?notice:"长确定返回签册");
     } else {
         if(!fortune_decode(card.quote,quote,sizeof(quote))) snprintf(quote,sizeof(quote),"暂无签文");
         char formatted[128]; format_quote(quote,formatted);
-        lv_label_set_text_fmt(s_meta,"一签 / %s%s",s->mood?FORTUNE_MOODS[s->mood]:"全库随机",s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,formatted);
+        if (is_album(page)) {
+            if (page==FORTUNE_ALBUM_CONFIRM) lv_label_set_text_fmt(s_meta,"新签 / 替换第 %02u 张？",s_album_index+1);
+            else if (page==FORTUNE_ALBUM_REMOVE) lv_label_set_text_fmt(s_meta,"移出第 %02u 张？",s_album_index+1);
+            else lv_label_set_text_fmt(s_meta,"%s / %02u/%02u",page==FORTUNE_ALBUM_REPLACE?"替换":"签册",s_album_index+1,s->favorite_count);
+        } else lv_label_set_text_fmt(s_meta,"一签 / %s%s",s->mood?FORTUNE_MOODS[s->mood]:"全库随机",s_sound_enabled?"":" · 静音");
+        lv_label_set_text(s_quote,formatted);
         const char *citation = fortune_citation(card.quote);
         if (*citation) lv_label_set_text(s_caption,citation);
         else lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)(card.quote & ~(FORTUNE_LEGACY_QUOTE | FORTUNE_PREVIOUS_QUOTE))+1,card.quote<FORTUNE_COUNT?FORTUNE_MOODS[FORTUNE_RECORDS[card.quote].mood]:"已留签名");
-        lv_label_set_text(s_help,page==FORTUNE_SHOWCASE?"留下一句，展示此刻":FT_REVEAL_HELP);
-        lv_label_set_text(s_hint,notice?notice:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);
+        if (page==FORTUNE_ALBUM_REMOVE || page==FORTUNE_ALBUM_CONFIRM) {
+            lv_label_set_text_fmt(s_help,"%s取消    %s%s",s_album_confirm?"  ":"> ",s_album_confirm?"> ":"  ",
+                page==FORTUNE_ALBUM_REMOVE?"移出签册":"确定替换");
+            lv_label_set_text(s_hint,notice?notice:"上/下选择 · 长确定返回");
+        } else {
+            lv_label_set_text(s_help,page==FORTUNE_ALBUM?FT_ALBUM_HELP:page==FORTUNE_ALBUM_REPLACE?
+                FT_ALBUM_REPLACE_HELP:page==FORTUNE_SHOWCASE?FT_SHOW_HELP:FT_REVEAL_HELP);
+            lv_label_set_text(s_hint,notice?notice:page==FORTUNE_ALBUM?FT_ALBUM_HINT:
+                page==FORTUNE_ALBUM_REPLACE?FT_ALBUM_REPLACE_HINT:page==FORTUNE_SHOWCASE?FT_SHOW_HINT:FT_REVEAL_HINT);
+        }
     }
     lv_obj_invalidate(s_root);
 }
@@ -223,6 +334,7 @@ void fortune_ui_volume(bool visible,unsigned percent,const char *notice) {
     bool changed=s_volume_visible!=visible;
     s_volume_visible=visible; s_volume_percent=percent;
     if(visible) {
+        reset_turn(); s_keep_step=12; lv_timer_set_period(s_timer,125);
         lv_label_set_text(s_meta,"一签 / 声音");
         lv_label_set_text(s_caption,FT_VOLUME_CAPTION);
         lv_label_set_text_fmt(s_quote,"音量 / %u%%",percent);

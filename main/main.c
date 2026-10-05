@@ -29,7 +29,10 @@ static bool s_sound_enabled=true;
 static uint8_t s_volume=FORTUNE_VOLUME_DEFAULT, s_volume_candidate;
 static bool s_volume_open;
 static uint8_t s_topic_candidate;
-static uint8_t s_storage_bytes[48+FORTUNE_SEEN_BYTES];
+static uint8_t s_album_index, s_album_action;
+static bool s_album_confirm, s_keep_feedback;
+static int s_turn_direction;
+static uint8_t s_storage_bytes[FORTUNE_STATE_BYTES];
 typedef struct { bsp_btn_t key; bsp_btn_ev_t event; } input_t;
 
 static bool store(const fortune_state_t *state) {
@@ -72,6 +75,7 @@ static void load(void) {
 static void render(void) {
     if (!bsp_lvgl_lock(1000)) return;
     fortune_ui_sound_enabled(s_volume_open || s_sound_enabled);
+    fortune_ui_album(s_album_index,s_album_action,s_album_confirm);
     fortune_state_t preview=s_state;
     if(s_page==FORTUNE_TOPICS) preview.mood=s_topic_candidate;
     fortune_ui_update(&preview, s_page, s_battery,
@@ -80,6 +84,8 @@ static void render(void) {
     fortune_ui_volume(s_volume_open,s_volume_candidate,
         s_save_error?FT_SAVE_ERROR:fortune_audio_failed()?FT_SOUND_ERROR:NULL);
     if (s_unwrap_requested) { fortune_ui_begin_reveal(); s_unwrap_requested = false; }
+    if (s_turn_direction) { fortune_ui_turn(s_turn_direction); s_turn_direction=0; }
+    if (s_keep_feedback) { fortune_ui_kept(); s_keep_feedback=false; }
     bsp_lvgl_unlock();
 }
 
@@ -93,10 +99,90 @@ static void return_home(void) {
     if(filtered) save_after_change();
 }
 
+static bool commit_candidate(const fortune_state_t *candidate) {
+    s_save_error=!store(candidate);
+    if (s_save_error) return false;
+    s_state=*candidate;
+    return true;
+}
+
+static void open_album(void) {
+    int pin=fortune_favorite_find(&s_state,s_state.pinned.quote);
+    s_album_index=pin>=0?(uint8_t)pin:0;
+    s_album_action=0; s_album_confirm=false; s_page=FORTUNE_ALBUM;
+}
+
+static void collect_current(unsigned slot) {
+    fortune_state_t candidate=s_state;
+    bool existed=fortune_favorite_find(&s_state,s_state.current.quote)>=0;
+    if (!fortune_favorite_save(&candidate,candidate.current,slot)) return;
+    candidate.pinned=candidate.current;
+    if (!commit_candidate(&candidate)) return;
+    s_page=FORTUNE_SHOWCASE; s_keep_feedback=true;
+    s_notice=existed?FT_ALBUM_UPDATED:FT_ALBUM_SAVED;
+    fortune_audio_play(FORTUNE_SOUND_KEEP,s_state.pinned.art);
+}
+
+static bool album_page(void) { return s_page>=FORTUNE_ALBUM && s_page<=FORTUNE_ALBUM_CONFIRM; }
+
+static void album_input(input_t in) {
+    if (in.event==BSP_BTN_LONG && in.key==BSP_BTN_OK) {
+        if (s_page==FORTUNE_ALBUM_ACTIONS || s_page==FORTUNE_ALBUM_REMOVE) s_page=FORTUNE_ALBUM;
+        else if (s_page==FORTUNE_ALBUM_CONFIRM) s_page=FORTUNE_ALBUM_REPLACE;
+        else if (s_page==FORTUNE_ALBUM_REPLACE) s_page=FORTUNE_REVEAL;
+        else return_home();
+        s_album_confirm=false;
+    } else if (in.event==BSP_BTN_CLICK && in.key!=BSP_BTN_OK) {
+        int direction=in.key==BSP_BTN_UP?-1:1;
+        if (s_page==FORTUNE_ALBUM_REMOVE || s_page==FORTUNE_ALBUM_CONFIRM)
+            s_album_confirm=!s_album_confirm;
+        else if (s_page==FORTUNE_ALBUM_ACTIONS)
+            s_album_action=(uint8_t)((s_album_action+(direction<0?2:1))%3);
+        else if (s_state.favorite_count>1) {
+            s_album_index=(uint8_t)((s_album_index+s_state.favorite_count+direction)%s_state.favorite_count);
+            s_turn_direction=direction;
+        }
+    } else if (in.event==BSP_BTN_CLICK && in.key==BSP_BTN_OK) {
+        if (s_page==FORTUNE_ALBUM) {
+            if (s_state.favorite_count) { s_page=FORTUNE_ALBUM_ACTIONS; s_album_action=0; }
+            else return_home();
+        } else if (s_page==FORTUNE_ALBUM_REPLACE) {
+            s_page=FORTUNE_ALBUM_CONFIRM; s_album_confirm=false;
+        } else if (s_page==FORTUNE_ALBUM_ACTIONS) {
+            if (s_album_action==0) {
+                fortune_state_t candidate=s_state; candidate.pinned=candidate.favorites[s_album_index];
+                if (commit_candidate(&candidate)) {
+                    s_page=FORTUNE_SHOWCASE; s_notice=FT_ALBUM_PINNED; s_keep_feedback=true;
+                    fortune_audio_play(FORTUNE_SOUND_KEEP,s_state.pinned.art);
+                }
+            } else if (s_album_action==1) {
+                fortune_state_t candidate=s_state;
+                fortune_card_t *card=&candidate.favorites[s_album_index]; fortune_remix(&candidate,card);
+                if (candidate.pinned.quote==card->quote) candidate.pinned.art=card->art;
+                if (commit_candidate(&candidate)) {
+                    s_page=FORTUNE_ALBUM;
+                    fortune_audio_play(FORTUNE_SOUND_SKIN,card->art);
+                }
+            } else { s_page=FORTUNE_ALBUM_REMOVE; s_album_confirm=false; }
+        } else if (!s_album_confirm) {
+            s_page=s_page==FORTUNE_ALBUM_REMOVE?FORTUNE_ALBUM:FORTUNE_ALBUM_REPLACE;
+        } else if (s_page==FORTUNE_ALBUM_CONFIRM) collect_current(s_album_index);
+        else if (s_page==FORTUNE_ALBUM_REMOVE) {
+            fortune_state_t candidate=s_state;
+            if (fortune_favorite_remove(&candidate,s_album_index) && commit_candidate(&candidate)) {
+                if (s_album_index>=s_state.favorite_count) s_album_index=s_state.favorite_count?s_state.favorite_count-1:0;
+                s_page=FORTUNE_ALBUM; s_notice=FT_ALBUM_REMOVED;
+            }
+        }
+    }
+    render();
+}
+
 static void preview_volume(void) {
     fortune_audio_volume(s_volume_candidate);
     fortune_audio_enable(true);
-    fortune_card_t card=s_page==FORTUNE_SHOWCASE?s_state.pinned:s_state.current;
+    fortune_card_t card=album_page() && s_state.favorite_count?s_state.favorites[s_album_index]:
+        s_page==FORTUNE_SHOWCASE?s_state.pinned:s_state.current;
     fortune_audio_play(FORTUNE_SOUND_SKIN,card.art);
 }
 
@@ -130,18 +216,22 @@ static void process(input_t in) {
     } else return;
     s_notice = NULL;
     if(s_volume_open) { volume_input(in); return; }
+    if (album_page() && !(in.event==BSP_BTN_LONG && in.key!=BSP_BTN_OK)) { album_input(in); return; }
     if (in.event == BSP_BTN_LONG) {
         if (in.key == BSP_BTN_OK) {
             if (s_page != FORTUNE_HOME) return_home();
-            else if (s_state.pinned.quote != FORTUNE_NO_CARD) s_page = FORTUNE_SHOWCASE;
-            else s_notice = FT_NO_PIN;
+            else open_album();
         } else if (in.key == BSP_BTN_DOWN && (s_page == FORTUNE_HOME || s_page==FORTUNE_TOPICS)) {
             return_home();
         } else if (in.key == BSP_BTN_DOWN) {
             s_sound_enabled=!s_sound_enabled;
             fortune_audio_enable(s_sound_enabled); save_after_change();
             s_notice=s_sound_enabled?FT_SOUND_ON:FT_SOUND_OFF;
-            if(s_sound_enabled) fortune_audio_play(FORTUNE_SOUND_SKIN,s_state.current.art);
+            if(s_sound_enabled) {
+                fortune_card_t card=album_page() && s_state.favorite_count?s_state.favorites[s_album_index]:
+                    s_page==FORTUNE_SHOWCASE?s_state.pinned:s_state.current;
+                fortune_audio_play(FORTUNE_SOUND_SKIN,card.art);
+            }
         } else if (in.key == BSP_BTN_UP && s_page != FORTUNE_HOME && s_page!=FORTUNE_TOPICS) {
             s_volume_open=true; s_volume_candidate=s_volume; preview_volume();
         } else if (in.key == BSP_BTN_UP && fortune_remaining(&s_state) == 0) {
@@ -170,14 +260,20 @@ static void process(input_t in) {
             s_notice = FT_EXHAUSTED_HINT;
         }
     } else if (in.key == BSP_BTN_DOWN) {
-        fortune_card_t *card = s_page == FORTUNE_SHOWCASE ? &s_state.pinned : &s_state.current;
-        fortune_remix(&s_state, card); save_after_change();
-        fortune_audio_play(FORTUNE_SOUND_SKIN,card->art);
+        fortune_state_t candidate=s_state;
+        fortune_card_t *card=s_page==FORTUNE_SHOWCASE?&candidate.pinned:&candidate.current;
+        fortune_remix(&candidate,card);
+        int favorite=fortune_favorite_find(&candidate,card->quote);
+        if (s_page==FORTUNE_SHOWCASE && favorite>=0) candidate.favorites[favorite].art=card->art;
+        if (commit_candidate(&candidate)) fortune_audio_play(FORTUNE_SOUND_SKIN,card->art);
     } else if (in.key == BSP_BTN_OK) {
         if (s_page == FORTUNE_REVEAL) {
-            s_state.pinned = s_state.current; save_after_change(); s_page = FORTUNE_SHOWCASE;
-            if(!s_save_error) fortune_audio_play(FORTUNE_SOUND_KEEP,s_state.pinned.art);
-        } else return_home();
+            if (s_state.favorite_count==FORTUNE_FAVORITE_CAPACITY &&
+                fortune_favorite_find(&s_state,s_state.current.quote)<0) {
+                s_album_index=0; s_page=FORTUNE_ALBUM_REPLACE;
+            } else collect_current(s_state.favorite_count);
+        } else if (s_page==FORTUNE_SHOWCASE) open_album();
+        else return_home();
     }
     render();
 }

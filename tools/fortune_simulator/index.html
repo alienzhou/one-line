@@ -18,7 +18,7 @@
   <div class="range" id="scope">正在连接…</div>
   <p class="caption status" id="status" role="status" aria-live="polite"></p>
   <p class="caption" id="sound-state"></p>
-  <div class="help"><p class="subtle">首页确定：全库随机。上／下：打开大字主题页，确定后才开始定向抽取。长按确定回到全库首页。</p><p class="subtle">结果页上再抽、下换肤、确定留下。卡片页长上调音量，长下静音。</p></div>
+  <div class="help"><p class="subtle">首页确定：全库随机。上／下：打开大字主题页，确定后才开始定向抽取。长按确定回到全库首页。</p><p class="subtle">结果页上再抽、下换肤、确定收藏。首页长确定或签名页确定打开 16 格签册，上下翻阅、确定整理。卡片页长上调音量，长下静音。</p></div>
   <p class="caption">电池为模拟值。Mac 声音可试听；设备响度、休眠与耗电仍需实测。</p>
 </section>
 <section aria-label="抽取核对">
@@ -48,17 +48,17 @@ function update(s){
  currentState=s;
  if(s.frame_id!==frame){frame=s.frame_id;$('screen').src='/frame.bmp?v='+frame}
  const scope=s.topic?s.topics[s.topic]:'全库随机';
- $('scope').textContent=s.page===3?'待确认：'+(s.topic_candidate?s.topics[s.topic_candidate]:'全库随机'):'抽取范围：'+scope;
+ $('scope').textContent=s.page>=4?`签册 ${s.favorite_count}/16 · ${s.favorite_count?'第 '+(s.album_index+1)+' 张':'等待第一张收藏'}`:s.page===3?'待确认：'+(s.topic_candidate?s.topics[s.topic_candidate]:'全库随机'):'抽取范围：'+scope;
  const remaining=s.page===3?s.unread[s.topic_candidate]:s.remaining;
  $('status').textContent=s.notice||`${remaining} 条未读 · 第 ${s.cycle+1} 轮${s.opening?' · 正在拆信':''}`;
  $('status').classList.toggle('error',s.save_error);
  $('sound-state').textContent=(s.sound_enabled?'音效开启':'静音')+' · 音量 '+(s.volume_open?s.candidate:s.volume)+'%'+(!unlocked?' · 操作后可试听':'');
- const c=s.page===2?s.pinned:s.current;
+ const c=s.page>=4&&s.page<=7?s.favorites[s.album_index]:s.page===2?s.pinned:s.current;
  $('current').replaceChildren();
  if(s.page===3)$('current').append(text('p','按确定后才会从所选主题抽取；长按确定取消，回到全库。'));
  else if(s.opening)$('current').append(text('p','信封正在展开，等待揭晓…'));
  else if(c){$('current').append(text('div',c.theme?s.topics[c.theme]:'已留签名','theme'),text('div',c.text,'quote'));if(c.citation)$('current').append(text('div',c.citation,'citation'))}
- else $('current').append(text('p','按确定，拆开第一封信。'));
+ else $('current').append(text('p',s.page===4?'签册还空着。回首页抽签，按确定收藏第一句。':'按确定，拆开第一封信。'));
  if(!$('topic').options.length)s.topics.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=i?v:'全库随机';$('topic').append(o)});
  $('total').textContent=s.history_count;$('poems').textContent=s.history_counts[2];
  $('chart').replaceChildren();s.history_counts.slice(1).forEach((v,i)=>{if(v){const n=text('span','',i===1?'poem':'');n.style.flex=v;n.title=s.topics[i+1]+' '+v;$('chart').append(n)}});

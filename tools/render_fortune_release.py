@@ -60,18 +60,15 @@ def main():
     text(draw, (48, 1352), '再抽保留原签名，只有留下一张新签才会替换。', 29, MUTED)
     image.save(OUT/'signature-skins.png', optimize=True)
 
-    image, draw = panel('三个按键，就能开始', '无需配网 · 喜欢就留下 · 声音大小自己选')
-    capture(image, preview/'home.ppm', 56, 260, 480)
-    capture(image, preview/'sound-volume.ppm', 616, 260, 480)
-    lines = [
-        '抽签：首页确定全库随机；上下打开主题页。',
-        '续抽 / 换肤：结果页上再抽、下换肤。',
-        '留签：确定留下；长按确定回首页。',
-        '音量：卡片长按上，上下调节，确定保存。',
-        '静音：卡片长按下开关音效，重启记住。']
-    for i, line in enumerate(lines):
-        text(draw, (56, 978+i*83), f'{i+1}. {line}', 32)
-    image.save(OUT/'controls-volume.png', optimize=True)
+    image, draw = panel('把喜欢的话，收进签册', '收藏16张签文和外观 · 上下翻阅 · 随时选一张展示')
+    capture(image, preview/'album-page-4.ppm', 56, 264, 480)
+    capture(image, preview/'album-page-5.ppm', 616, 264, 480)
+    text(draw, (48, 978), '喜欢的句子，和当时的风景一起留下。', 36)
+    text(draw, (48, 1068), '首页长按确定 / 签名页按确定 → 打开签册。', 32)
+    text(draw, (48, 1158), '上下翻阅，确定整理；长按确定逐层返回。', 32)
+    text(draw, (48, 1248), '满16张后先选旧签，再确认替换，默认取消。', 30)
+    text(draw, (48, 1372), '移出收藏不影响当前签名；重启保留签册。', 27, MUTED)
+    image.save(OUT/'collection.png', optimize=True)
     print('Community panels: COMPLETE — four final 1152x1536 PNGs from completed application renders.')
 
 
