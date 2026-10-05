@@ -7,7 +7,8 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="一签新版社区封面，玩法示意" width="320"></p>
 
 [社区玩法](https://ai-passport.folotoy.cn/plays/914/) · 项目 **914**。
-当前公开版本 **1967**（固件代码 `00878f6`）已通过审核，16 格签册更新已准备好提交。
+16 格签册已作为版本 **2072** 提交，状态为**待审核**；当前公开版本仍是 **1967**。
+本次固件源码提交为 `22ef0dd`。
 简介、五步使用方法和本次更新日志分别提交，[中英文发布资料](assets/fortune/community-copy.json)保留完整文本。
 版本 1967 包含全库随机默认模式和独立主题确认页；Mac 模拟器位于本源码仓库。
 

@@ -371,3 +371,12 @@ with no crash or rejected state. The serial monitor is closed. Evidence is kept
 in ignored `build/favorites/`. Unverified: physical controls, saved-signature/first
 favorite identity, Chinese readability, animation timing, sound, interrupted
 writes and endurance still require player or instrument checks.
+
+This update is submitted to existing community project 914 as revision 2072,
+pending review; public revision 1967 remains available. Firmware source commit
+`22ef0dd` is on the public `alienzhou/one-line` main branch. The submission uses
+the verified merged image above, the inspected existing cover and four completed
+application-rendered detail panels. Bilingual descriptions, five-step instructions
+and this update's release notes are submitted as separate fields. The server
+confirmed the image hash and all text fields. Publication does not add physical
+acceptance evidence. Local receipts are kept in ignored `build/publish-favorites/`.

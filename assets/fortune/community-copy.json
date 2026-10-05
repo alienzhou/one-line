@@ -12,5 +12,12 @@
   "changelog_en": "• Adds a 16-card album. Each favorite keeps its words and artwork, with actions to browse, change artwork, remove it or display it as your signature.\n• Hold OK on home or press OK on the signature to enter. UP/DOWN turns pages, OK opens actions, and holding OK steps back. Replacement when full and removal both require confirmation, with cancel selected by default.\n• Adds gentle page transitions, a bookmark seal after collecting and position markers. Previous saves import the signature and artwork into the first slot. Failed collection or artwork saves retain the original state for retry.\n• The Mac simulator supports the same album actions, full-capacity replacement and recovery after restarting.",
   "firmware_version": "adffc2b-dirty",
   "firmware_sha256": "a74ee55cb317b5fdb3ae642cd8a9d83b4bd62045b700910df54e996765ece6c5",
-  "submission": null
+  "submission": {
+    "ok": true,
+    "projectId": 914,
+    "revisionId": 2072,
+    "status": "pending",
+    "allowRemix": true
+  },
+  "firmware_source_commit": "22ef0ddf99ed5bcdaad8628f40cfacc2a8067605"
 }

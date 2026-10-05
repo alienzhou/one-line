@@ -18,9 +18,9 @@ Only generated 12/20 px, 4 bpp, uncompressed subsets are linked into the app;
 the 16 MB source OTF is a development asset, not firmware payload. Regenerate
 with `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv`
 using converter 1.5.3. The script collects current and legacy records, poetry attribution, and
-displayed UI literals. `fonts/fortune-characters.txt` is the printable inventory;
+displayed UI literals. `fonts/fortune-characters.txt` is the printable inventory.
 Both sizes cover 2296 characters, including collection, actions and confirmation pages.
-host LVGL tests check actual fonts, widget bindings, a missing-glyph negative
+Host LVGL tests check actual fonts, widget bindings, a missing-glyph negative
 case, and all 2200 current and 2112 legacy text layouts. On-device Chinese output remains unverified.
 
 ## Fortune content

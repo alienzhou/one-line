@@ -7,8 +7,9 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-Public revision **1967** (firmware source `00878f6`) is approved.
-The sixteen-card album update is ready for submission. Description, five-step instructions,
+The sixteen-card album update is submitted as revision **2072**, **pending review**.
+Public revision **1967** remains available. Firmware source is `22ef0dd`.
+Description, five-step instructions,
 and this update's release notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the complete text.
 Revision 1967 contains the whole-bank default and explicit topic selector. The Mac simulator is available in this source repository.
 
