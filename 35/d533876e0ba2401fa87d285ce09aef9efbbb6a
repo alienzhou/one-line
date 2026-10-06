@@ -1,0 +1,27 @@
+docs/fortune-card.md
+  s_6f40857f2cab79::t_5b84140f0f0297 85-87
+README.md
+  s_6f40857f2cab79::t_5b84140f0f0297 11-13
+docs/fortune-card.zh_CN.md
+  s_6f40857f2cab79::t_5b84140f0f0297 58-59
+assets/fortune/community-copy.json
+  s_6f40857f2cab79::t_5b84140f0f0297 14-22
+README.zh_CN.md
+  s_6f40857f2cab79::t_5b84140f0f0297 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "35d533876e0ba2401fa87d285ce09aef9efbbb6a",
+  "prompts": {},
+  "sessions": {
+    "s_6f40857f2cab79": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a10c38-b8d6-76d3-865d-d698747de12e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
