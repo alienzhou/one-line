@@ -72,10 +72,10 @@ Mac 模拟器位于本源码仓库。
 - 升级保留已有奇遇、配色和累计保底进度，重启也不丢失；换肤、浏览、阅读连续来信和洗牌不增加或重置次数。存档失败时保留当前页面，可重试同一次抽签。
 
 <p align="center">
-  <img src="assets/images/fortune-rare-preview-0.png" alt="奇遇示例：鲸游星海" width="180">
-  <img src="assets/images/fortune-rare-preview-4.png" alt="奇遇示例：极光花园" width="180">
-  <img src="assets/images/fortune-rare-preview-7.png" alt="奇遇示例：云海灯塔" width="180">
-  <img src="assets/images/fortune-rare-preview-24.png" alt="奇遇示例：深海珍珠" width="180">
+  <img src="assets/images/fortune-rare-preview-0.png" alt="奇遇示例：鲸游星海" width="160">
+  <img src="assets/images/fortune-rare-preview-4.png" alt="奇遇示例：极光花园" width="160">
+  <img src="assets/images/fortune-rare-preview-7.png" alt="奇遇示例：云海灯塔" width="160">
+  <img src="assets/images/fortune-rare-preview-24.png" alt="奇遇示例：深海珍珠" width="160">
 </p>
 
 三十款中只展示四款示例，其余留给抽签时的惊喜。
@@ -97,10 +97,10 @@ Mac 模拟器位于本源码仓库。
 验证与异常恢复见[工程说明](docs/fortune-card.zh_CN.md#连续来信)。
 
 <p align="center">
-  <img src="assets/images/fortune-letter-preview-0.png" alt="风停邮局开头预览" width="180">
-  <img src="assets/images/fortune-letter-preview-1.png" alt="月台失物开头预览" width="180">
-  <img src="assets/images/fortune-letter-preview-2.png" alt="海边修灯人开头预览" width="180">
-  <img src="assets/images/fortune-letter-preview-3.png" alt="屋顶花园开头预览" width="180">
+  <img src="assets/images/fortune-letter-preview-0.png" alt="风停邮局开头预览" width="160">
+  <img src="assets/images/fortune-letter-preview-1.png" alt="月台失物开头预览" width="160">
+  <img src="assets/images/fortune-letter-preview-2.png" alt="海边修灯人开头预览" width="160">
+  <img src="assets/images/fortune-letter-preview-3.png" alt="屋顶花园开头预览" width="160">
 </p>
 
 ## 把喜欢的话，收进 16 格签册
@@ -208,10 +208,10 @@ python3 tools/render_fortune_topics.py
 [制作方法与封面提示词](assets/fortune/community-artwork.json)保留来源与生成记录。
 
 <p align="center">
-  <img src="assets/images/community/themes.png" alt="八主题与四张代表性签文" width="180">
-  <img src="assets/images/community/poetry.png" alt="古诗词出处与随缘抽取说明" width="180">
-  <img src="assets/images/community/signature-skins.png" alt="留签与随机换肤" width="180">
-  <img src="assets/images/community/collection.png" alt="16 格签册与收藏整理" width="180">
+  <img src="assets/images/community/themes.png" alt="八主题与四张代表性签文" width="160">
+  <img src="assets/images/community/poetry.png" alt="古诗词出处与随缘抽取说明" width="160">
+  <img src="assets/images/community/signature-skins.png" alt="留签与随机换肤" width="160">
+  <img src="assets/images/community/collection.png" alt="16 格签册与收藏整理" width="160">
 </p>
 
 ## 阅读与扩展

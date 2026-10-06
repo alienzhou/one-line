@@ -80,10 +80,10 @@ Every card has gold ornament, ambient animation, a special reveal score, and thr
 - Existing discoveries, palettes and earned pity progress survive upgrades. Counters and discoveries survive restart. Remixing, browsing, continuous letters, and shuffling do not advance or reset them. Failed saves keep the current screen and allow retrying the same draw.
 
 <p align="center">
-  <img src="assets/images/fortune-rare-preview-0.png" alt="Rare example: a whale among stars" width="180">
-  <img src="assets/images/fortune-rare-preview-4.png" alt="Rare example: an aurora garden" width="180">
-  <img src="assets/images/fortune-rare-preview-7.png" alt="Rare example: a cloud-sea lighthouse" width="180">
-  <img src="assets/images/fortune-rare-preview-24.png" alt="Rare example: a deep-sea pearl" width="180">
+  <img src="assets/images/fortune-rare-preview-0.png" alt="Rare example: a whale among stars" width="160">
+  <img src="assets/images/fortune-rare-preview-4.png" alt="Rare example: an aurora garden" width="160">
+  <img src="assets/images/fortune-rare-preview-7.png" alt="Rare example: a cloud-sea lighthouse" width="160">
+  <img src="assets/images/fortune-rare-preview-24.png" alt="Rare example: a deep-sea pearl" width="160">
 </p>
 
 Only four of the thirty cards are shown here. Discover the others as you draw.
@@ -113,10 +113,10 @@ positions. See the [engineering notes](docs/fortune-card.md#continuous-letters) 
 validation and recovery behavior.
 
 <p align="center">
-  <img src="assets/images/fortune-letter-preview-0.png" alt="Windstill Post Office opening preview" width="180">
-  <img src="assets/images/fortune-letter-preview-1.png" alt="Platform Lost Property opening preview" width="180">
-  <img src="assets/images/fortune-letter-preview-2.png" alt="The Lighthouse Keeper opening preview" width="180">
-  <img src="assets/images/fortune-letter-preview-3.png" alt="Rooftop Garden opening preview" width="180">
+  <img src="assets/images/fortune-letter-preview-0.png" alt="Windstill Post Office opening preview" width="160">
+  <img src="assets/images/fortune-letter-preview-1.png" alt="Platform Lost Property opening preview" width="160">
+  <img src="assets/images/fortune-letter-preview-2.png" alt="The Lighthouse Keeper opening preview" width="160">
+  <img src="assets/images/fortune-letter-preview-3.png" alt="Rooftop Garden opening preview" width="160">
 </p>
 
 ## Keep sixteen favorite cards
@@ -242,10 +242,10 @@ The updated cover uses built-in imagegen editing. Four detail images use actual
 application host renders, not device photographs. [Methods and cover prompt](assets/fortune/community-artwork.json) retain their provenance.
 
 <p align="center">
-  <img src="assets/images/community/themes.png" alt="Eight themes and four representative notes" width="180">
-  <img src="assets/images/community/poetry.png" alt="Attributed poetry and chance-mode behavior" width="180">
-  <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="180">
-  <img src="assets/images/community/collection.png" alt="Sixteen-card album and collection actions" width="180">
+  <img src="assets/images/community/themes.png" alt="Eight themes and four representative notes" width="160">
+  <img src="assets/images/community/poetry.png" alt="Attributed poetry and chance-mode behavior" width="160">
+  <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="160">
+  <img src="assets/images/community/collection.png" alt="Sixteen-card album and collection actions" width="160">
 </p>
 
 ## Explore or extend
