@@ -1,0 +1,21 @@
+README.zh_CN.md
+  s_23cfb13eca6518::t_93dccaa047c9ea 75-78,100-103,211-214
+README.md
+  s_23cfb13eca6518::t_93dccaa047c9ea 83-86,116-119,245-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7fed0c1c2ff429b4d0087681e817d6732ae6cacc",
+  "prompts": {},
+  "sessions": {
+    "s_23cfb13eca6518": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a110e1-7c84-7fc3-93c3-ad84abde6e30",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
