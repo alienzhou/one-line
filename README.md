@@ -69,9 +69,8 @@ remain readable after this upgrade.
 ## Rare encounters: a letter that glows
 
 Thirty individually authored rare cards pair exclusive lines with distinct pixel scenes.
-The original six remain; twenty-four additions include a constellation stag, cloud-sea lighthouse,
-jellyfish dance, moonlit tea, starry library and dawn doorway. Every card has gold ornament,
-ambient animation, a special reveal score, and three palettes (90 appearances in total).
+Every card has gold ornament, ambient animation, a special reveal score, and three palettes
+(90 appearances in total).
 
 - The first rare arrives **within 10 successful new draws**, possibly earlier. Upgrading users who have not yet discovered a rare also receive this first guarantee.
 - Later draws have a **1% base chance** and a **30-draw maximum gap**. Every rare resets the counter. Guarantees raise the long-run effective rate above the base chance.
@@ -80,7 +79,14 @@ ambient animation, a special reveal score, and three palettes (90 appearances in
 - On a rare result, up draws again, down cycles three palettes, and OK displays it as a signature. The original remains retrievable from the rare collection.
 - Existing discoveries, palettes and earned pity progress survive upgrades. Counters and discoveries survive restart. Remixing, browsing, continuous letters, and shuffling do not advance or reset them. Failed saves keep the current screen and allow retrying the same draw.
 
-![Thirty rare cards rendered by the actual application](assets/images/fortune-rares.png)
+<p align="center">
+  <img src="assets/images/fortune-rare-preview-0.png" alt="Rare example: a whale among stars" width="180">
+  <img src="assets/images/fortune-rare-preview-4.png" alt="Rare example: an aurora garden" width="180">
+  <img src="assets/images/fortune-rare-preview-7.png" alt="Rare example: a cloud-sea lighthouse" width="180">
+  <img src="assets/images/fortune-rare-preview-24.png" alt="Rare example: a deep-sea pearl" width="180">
+</p>
+
+Only four of the thirty cards are shown here. Discover the others as you draw.
 
 [View the rare envelope and ambient animation](assets/images/fortune-rare-reveal.gif). These are host renders, not device photographs.
 
@@ -106,7 +112,12 @@ controls remain available. The independent 16-byte save migrates old Slow Mail r
 positions. See the [engineering notes](docs/fortune-card.md#continuous-letters) for
 validation and recovery behavior.
 
-![Four continuous stories and their real application controls](assets/images/community/continuous-letters.png)
+<p align="center">
+  <img src="assets/images/fortune-letter-preview-0.png" alt="Windstill Post Office opening preview" width="180">
+  <img src="assets/images/fortune-letter-preview-1.png" alt="Platform Lost Property opening preview" width="180">
+  <img src="assets/images/fortune-letter-preview-2.png" alt="The Lighthouse Keeper opening preview" width="180">
+  <img src="assets/images/fortune-letter-preview-3.png" alt="Rooftop Garden opening preview" width="180">
+</p>
 
 ## Keep sixteen favorite cards
 
@@ -133,7 +144,7 @@ each in six palettes: **1,920 appearances**. Each shuffled cycle covers every
 combination, with different adjacent scenes. Text stays still while the scenery
 has small ambient movements.
 
-![Ten pixel-art collections](assets/images/fortune-ten-collections.png)
+<p align="center"><img src="assets/images/fortune-ten-collections.png" alt="Ten pixel-art collections" width="480"></p>
 
 [See all 320 skins](assets/images/fortune-skins-overview.png), or open the
 [interactive gallery](assets/fortune/skin-gallery.html) locally to filter by
@@ -179,9 +190,10 @@ for 0.5 seconds. Check the current scope and draw history, draw 20 at once,
 restart, or use a seed to reproduce a run. It does not access USB or device data.
 See [Mac simulation and limits](docs/fortune-simulator.md).
 
-<p align="center"><img src="assets/images/fortune-simulator.jpg" alt="Mac simulator displaying the actual whole-bank card interface" width="360"></p>
-
-<p align="center"><img src="assets/images/fortune-topic-selector.png" alt="Separate 20 px topic selector, with confirmation required" width="240"></p>
+<p align="center">
+  <img src="assets/images/fortune-simulator.jpg" alt="Mac simulator displaying the actual whole-bank card interface" width="300">
+  <img src="assets/images/fortune-topic-selector.png" alt="Separate 20 px topic selector, with confirmation required" width="240">
+</p>
 
 ## Development, builds, and tests
 
@@ -230,12 +242,10 @@ The updated cover uses built-in imagegen editing. Four detail images use actual
 application host renders, not device photographs. [Methods and cover prompt](assets/fortune/community-artwork.json) retain their provenance.
 
 <p align="center">
-  <img src="assets/images/community/themes.png" alt="Eight themes and four representative notes" width="280">
-  <img src="assets/images/community/poetry.png" alt="Attributed poetry and chance-mode behavior" width="280">
-</p>
-<p align="center">
-  <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="280">
-  <img src="assets/images/community/collection.png" alt="Sixteen-card album and collection actions" width="280">
+  <img src="assets/images/community/themes.png" alt="Eight themes and four representative notes" width="180">
+  <img src="assets/images/community/poetry.png" alt="Attributed poetry and chance-mode behavior" width="180">
+  <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="180">
+  <img src="assets/images/community/collection.png" alt="Sixteen-card album and collection actions" width="180">
 </p>
 
 ## Explore or extend

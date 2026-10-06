@@ -60,9 +60,7 @@ Mac 模拟器位于本源码仓库。
 
 ## 奇遇签：偶尔拆到一封闪着光的信
 
-共 30 款独立创作的奇遇签：保留原有六款，新增星鹿入林、云海灯塔、花火时刻、水母舞会、
-月下茶会、星河书房、天空帆船、雪夜列岛、萤火之森、时间沙漏、金鱼游梦、风铃长廊、流星小镇、黎明之门、
-星环旅馆、雪原来客、星尘乐盒、月光转轮、深海珍珠、云端邮差、蝶落星云、浮岛飞瀑、极夜唱片、银杏车站。
+共 30 款独立创作的奇遇签，藏在随机抽签途中。
 每款有专属短句、独立像素场景、金色边饰、动态星光和特别揭晓铃音，三种珍藏配色合计 90 种外观。
 
 - 首次体验这项玩法，**前 10 次成功抽签必得一款**；也可能提前遇见。尚未发现奇遇的旧版用户升级后同样享有首次保底。
@@ -73,7 +71,14 @@ Mac 模拟器位于本源码仓库。
 - 奇遇结果页上键再抽、下键切换三种配色、确定设为签名。换色后仍能从珍藏页找回原版。
 - 升级保留已有奇遇、配色和累计保底进度，重启也不丢失；换肤、浏览、阅读连续来信和洗牌不增加或重置次数。存档失败时保留当前页面，可重试同一次抽签。
 
-![三十款奇遇签的实际程序渲染](assets/images/fortune-rares.png)
+<p align="center">
+  <img src="assets/images/fortune-rare-preview-0.png" alt="奇遇示例：鲸游星海" width="180">
+  <img src="assets/images/fortune-rare-preview-4.png" alt="奇遇示例：极光花园" width="180">
+  <img src="assets/images/fortune-rare-preview-7.png" alt="奇遇示例：云海灯塔" width="180">
+  <img src="assets/images/fortune-rare-preview-24.png" alt="奇遇示例：深海珍珠" width="180">
+</p>
+
+三十款中只展示四款示例，其余留给抽签时的惊喜。
 
 [看奇遇拆信与星光动效](assets/images/fortune-rare-reveal.gif)。这些是程序主机渲染，非设备照片。
 
@@ -91,7 +96,12 @@ Mac 模拟器位于本源码仓库。
 抽一句话、换肤、收藏与声音操作继续保留。独立 16 字节存档迁移旧慢邮阅读位置；
 验证与异常恢复见[工程说明](docs/fortune-card.zh_CN.md#连续来信)。
 
-![四组连续来信及实际操作提示](assets/images/community/continuous-letters.png)
+<p align="center">
+  <img src="assets/images/fortune-letter-preview-0.png" alt="风停邮局开头预览" width="180">
+  <img src="assets/images/fortune-letter-preview-1.png" alt="月台失物开头预览" width="180">
+  <img src="assets/images/fortune-letter-preview-2.png" alt="海边修灯人开头预览" width="180">
+  <img src="assets/images/fortune-letter-preview-3.png" alt="屋顶花园开头预览" width="180">
+</p>
 
 ## 把喜欢的话，收进 16 格签册
 
@@ -114,7 +124,7 @@ Device tests 仅三个组件写入校验与 20 秒启动观察 PASS；未覆盖 
 共 **1,920 种外观**。随机换肤每轮覆盖全部组合，相邻场景不同；文字保持静止，
 风景带一点安静的微动效。
 
-![十个系列的像素风景](assets/images/fortune-ten-collections.png)
+<p align="center"><img src="assets/images/fortune-ten-collections.png" alt="十个系列的像素风景" width="480"></p>
 
 [看全部 320 款总览](assets/images/fortune-skins-overview.png)，或在本地浏览器打开
 [完整互动图库](assets/fortune/skin-gallery.html)，筛选系列、小伙伴与配色，点击放大。
@@ -154,9 +164,10 @@ python3 tools/fortune_simulator/server.py
 连续抽 20 张、重启或用种子复现，不访问 USB 或设备数据。
 详见 [Mac 模拟操作与限制](docs/fortune-simulator.zh_CN.md)。
 
-<p align="center"><img src="assets/images/fortune-simulator.jpg" alt="Mac 模拟器展示实际全库卡片界面" width="360"></p>
-
-<p align="center"><img src="assets/images/fortune-topic-selector.png" alt="独立主题页，20 px 大字选择，按确定才生效" width="240"></p>
+<p align="center">
+  <img src="assets/images/fortune-simulator.jpg" alt="Mac 模拟器展示实际全库卡片界面" width="300">
+  <img src="assets/images/fortune-topic-selector.png" alt="独立主题页，20 px 大字选择，按确定才生效" width="240">
+</p>
 
 ## 开发、构建与测试
 
@@ -197,12 +208,10 @@ python3 tools/render_fortune_topics.py
 [制作方法与封面提示词](assets/fortune/community-artwork.json)保留来源与生成记录。
 
 <p align="center">
-  <img src="assets/images/community/themes.png" alt="八主题与四张代表性签文" width="280">
-  <img src="assets/images/community/poetry.png" alt="古诗词出处与随缘抽取说明" width="280">
-</p>
-<p align="center">
-  <img src="assets/images/community/signature-skins.png" alt="留签与随机换肤" width="280">
-  <img src="assets/images/community/collection.png" alt="16 格签册与收藏整理" width="280">
+  <img src="assets/images/community/themes.png" alt="八主题与四张代表性签文" width="180">
+  <img src="assets/images/community/poetry.png" alt="古诗词出处与随缘抽取说明" width="180">
+  <img src="assets/images/community/signature-skins.png" alt="留签与随机换肤" width="180">
+  <img src="assets/images/community/collection.png" alt="16 格签册与收藏整理" width="180">
 </p>
 
 ## 阅读与扩展

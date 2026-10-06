@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Render a portrait release panel from completed continuous-letter UI captures."""
+"""Package a portrait release panel and README previews from completed letter captures."""
+from PIL import Image
 from render_fortune_release import ROOT, OUT, panel, capture, text
 
 
@@ -17,7 +18,13 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     path = OUT / 'continuous-letters.png'
     image.save(path, optimize=True)
+    for story in range(4):
+        with Image.open(preview / f'letters-preview-{story}.ppm') as card:
+            if card.size != (240, 320):
+                raise ValueError(f'Unexpected story capture: {story}')
+            card.save(ROOT / f'assets/images/fortune-letter-preview-{story}.png', optimize=True)
     print(f'Continuous-letter panel: COMPLETE — final 1152x1536 PNG at {path}')
+    print('README letter previews: COMPLETE — four final 240x320 PNGs from completed application renders.')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package actual host-rendered rare cards and their opening/ambient animation."""
+"""Package actual host-rendered rare cards, selected README previews and animation."""
 from pathlib import Path
 import re
 from PIL import Image, ImageDraw, ImageFont
@@ -34,6 +34,12 @@ def main():
     frames += [Image.open(source / f'rare-motion-0-{i:02}.ppm').convert('RGB') for i in range(16)]
     frames[0].save(output / 'fortune-rare-reveal.gif', save_all=True, append_images=frames[1:],
                    duration=[125] * 10 + [250] * 15 + [1200], loop=0)
+    selected = (0, 4, 7, 24)
+    for rare in selected:
+        with Image.open(source / f'rare-{rare}-0.ppm') as card:
+            if card.size != (240, 320):
+                raise ValueError(f'Unexpected rare capture: {rare}')
+            card.save(output / f'fortune-rare-preview-{rare}.png', optimize=True)
     community = Image.new('RGB', (1152, 1536), '#0d1022')
     draw = ImageDraw.Draw(community)
     for pos, words, size, color in [
@@ -45,7 +51,7 @@ def main():
         ((48, 1496), '实际程序主机渲染 · 非设备照片 / APPLICATION RENDERS', 21, '#a9a38f'),
     ]:
         draw.text(pos, words, font=ImageFont.truetype(font, size), fill=color)
-    for i, rare in enumerate((0, 4, 7, 24)):
+    for i, rare in enumerate(selected):
         with Image.open(source / f'rare-{rare}-0.ppm') as card:
             assert card.size == (240, 320)
             community.paste(card.resize((390, 520), Image.Resampling.NEAREST),
@@ -53,6 +59,7 @@ def main():
     (output / 'community').mkdir(exist_ok=True)
     community.save(output / 'community/rare-encounters.png', optimize=True)
     print('Rare previews: all actual cards and opening/ambient animation packaged.')
+    print('README rare previews: COMPLETE — four final 240x320 PNGs from completed application renders.')
     print('Community rare panel: COMPLETE — final 1152x1536 PNG from completed application renders.')
 
 

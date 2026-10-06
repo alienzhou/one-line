@@ -72,6 +72,8 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | [`images/fortune-cover-v2.png`](images/fortune-cover-v2.png) | 1086 × 1448，PNG | 2200 条新版社区封面；内置 imagegen 编辑的玩法示意，MIT。 |
 | `images/community/*.png` | 1152 × 1536，PNG | 当前八主题、诗词、留签换肤和 16 格签册详情图；实际程序主机渲染与说明，MIT；用 `tools/render_fortune_release.py` 重建。旧 `controls-volume.png` 作为历史图保留。 |
 | [`images/community/rare-encounters.png`](images/community/rare-encounters.png) | 1152 × 1536，PNG | 三十款奇遇签详情图，包含四张实际程序主机渲染；MIT，由 `tools/render_fortune_rares.py` 生成，提交前已检查成品。 |
+| `images/fortune-rare-preview-{0,4,7,24}.png` | 各 240 × 320，PNG | README 横排展示的四款精选示例，未经改动的实际程序画面；MIT，由 `tools/render_fortune_rares.py` 导出。 |
+| `images/fortune-letter-preview-0.png` 至 `fortune-letter-preview-3.png` | 各 240 × 320，PNG | README 横排展示的四组连续来信开头，实际程序画面；MIT，由 `tools/render_fortune_letters.py` 导出。 |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448，PNG | 一签社区封面，原创 AI 玩法示意图。 |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448，PNG | 拆信玩法示意图。 |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 历史版本口吻与心情示意图，现版已取消口吻筛选。 |
