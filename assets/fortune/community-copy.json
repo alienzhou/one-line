@@ -11,5 +11,13 @@
   "changelog_zh": "• 新增“连续来信”类型，收录《风停邮局》《月台失物》《海边修灯人》《屋顶花园》四组完整原创故事，共120个配图短画面。\n• 沿用类型选择入口：先随机预览，上键换组、下键换肤、确定选定；选定后确定下一页，上键回看，下键仍换肤，长确定直接回首页。\n• 每组分别保存阅读进度，换组预览不覆盖书签，再选回来即可续读；阅读中重启恢复当前页。\n• 短句、配图和留白延续原来的卡片节奏；Mac模拟器同步支持新交互与重启续读。",
   "changelog_en": "• Adds Continuous Letters with four complete original stories: Windstill Post Office, Platform Lost Property, The Lighthouse Keeper and Rooftop Garden, totaling 120 short illustrated pages.\n• Uses the existing type selector. Preview a random story, press UP to change it, DOWN to change artwork, and OK to select it. While reading, OK advances, UP goes back, DOWN still changes artwork, and holding OK returns directly home.\n• Each story keeps its own bookmark. Previewing another story leaves saved positions intact; selecting it again resumes reading. Restarting during reading restores the current page.\n• Short lines, illustrations and empty space retain the original card rhythm. The Mac simulator supports the same interaction and reading recovery.",
   "firmware_version": "b293764-dirty",
-  "firmware_sha256": "2c64f284accd4c19450639b7e6c3efb91610213c8e5cf4a252fb389b192181ae"
+  "firmware_sha256": "2c64f284accd4c19450639b7e6c3efb91610213c8e5cf4a252fb389b192181ae",
+  "submission": {
+    "ok": true,
+    "projectId": 914,
+    "revisionId": 2134,
+    "status": "pending",
+    "allowRemix": true
+  },
+  "firmware_source_commit": "3e6522e3ece508c60414dec89b2d84ed2c1c6748"
 }

@@ -8,8 +8,9 @@
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
 The sixteen-card album revision **2072** is public and approved, verified on
-October 6, 2026. This checkout also contains the four-story Continuous Letters
-update being prepared for review. Description, five-step instructions and release
+October 6, 2026. The four-story Continuous Letters update was submitted as revision **2134**,
+**pending review** when checked on October 6, 2026. Its firmware source commit
+is `3e6522e`; public revision remains **2072**. Description, five-step instructions and release
 notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json)
 retains the current text. The Mac simulator is available in this source repository.
 

@@ -82,7 +82,9 @@ crashes or rejected saves. Free heap was 216,520 bytes and the largest block
 114,688 bytes; the serial monitor was then closed. Build: PASS; Host tests:
 PASS; Device tests: PASS for writing and startup only. Physical button feel,
 readability, sound, interrupted-save recovery, repeated-use heap and idle/wake
-remain unverified. This build has not been submitted to the community.
+remain unverified. This build was submitted to project 914 as revision 2134 on October 6, 2026.
+The revision is pending review; public revision remains 2072. Its matching
+firmware source is `3e6522e`, and publication adds no physical-test evidence.
 
 ### 320 combinatorial pixel skins
 
