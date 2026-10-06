@@ -1,0 +1,32 @@
+README.zh_CN.md
+  s_23cfb13eca6518::t_0912853118d596 74-79,99-104,127,167-170,211-214
+  s_23cfb13eca6518::t_7196f90049beee 63,80-81
+assets/README.md
+  s_23cfb13eca6518::t_0912853118d596 91-92
+tools/render_fortune_rares.py
+  s_23cfb13eca6518::t_0912853118d596 2,37-42,54,62
+README.md
+  s_23cfb13eca6518::t_e63657f01ca120 73
+  s_23cfb13eca6518::t_7196f90049beee 72,88-89
+  s_23cfb13eca6518::t_0912853118d596 82-87,115-120,147,193-196,245-248
+tools/render_fortune_letters.py
+  s_23cfb13eca6518::t_0912853118d596 2-3,21-25,27
+assets/README.zh_CN.md
+  s_23cfb13eca6518::t_0912853118d596 75-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3da698bd86c70a069516cf6600dd687f1f924490",
+  "prompts": {},
+  "sessions": {
+    "s_23cfb13eca6518": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a110e1-7c84-7fc3-93c3-ad84abde6e30",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
