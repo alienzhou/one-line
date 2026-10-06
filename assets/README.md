@@ -19,7 +19,8 @@ the 16 MB source OTF is a development asset, not firmware payload. Regenerate
 with `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv`
 using converter 1.5.3. The script collects current and legacy records, poetry attribution, and
 displayed UI literals. `fonts/fortune-characters.txt` is the printable inventory.
-Both sizes cover 2296 characters, including collection, actions and confirmation pages.
+Both sizes cover 2312 characters, including collection, actions, confirmation
+pages and four complete original continuous-letter stories in `main/fortune_mail.c` (MIT).
 Host LVGL tests check actual fonts, widget bindings, a missing-glyph negative
 case, and all 2200 current and 2112 legacy text layouts. On-device Chinese output remains unverified.
 
@@ -125,3 +126,8 @@ Store reusable music and sound-effect sources in `music/`.
 - Prefer 16 kHz, 16-bit mono PCM when it matches the current BSP audio path.
 - Check Flash and internal-RAM cost before embedding audio; stream or chunk long recordings.
 - Do not commit media without redistribution permission.
+
+`images/community/continuous-letters.png` is a completed 1152 × 1536 portrait panel
+from actual application host captures. It shows the four original story groups and
+current controls, not a device photograph. Regenerate it after the UI tests with
+`python3 tools/render_fortune_letters.py` (Pillow required). Source and artwork are MIT.

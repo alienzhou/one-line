@@ -11,6 +11,8 @@
 static uint16_t pixels[240*320];
 static uint8_t draw_buffer[240*40*2], saved_state[FORTUNE_STATE_BYTES];
 static size_t saved_size;
+static uint8_t saved_mail[FORTUNE_MAIL_BYTES];
+static size_t saved_mail_size;
 static uint8_t saved_sound=1,saved_volume=80;
 static const char *storage_path,*frame_path,*wave_path;
 static uint32_t random_seed,clock_ms,frame_id,sound_id;
@@ -86,11 +88,17 @@ static void write_frame(void) {
     if(fclose(f)) exit(1); ++frame_id;
 }
 esp_err_t nvs_flash_init(void) {
-    FILE *f=fopen(storage_path,"rb"); saved_size=0;
+    FILE *f=fopen(storage_path,"rb"); saved_size=0; saved_mail_size=0;
     if(f) {
         uint8_t header[8];
-        if(fread(header,1,8,f)==8 && !memcmp(header,"FSIM01",6)) {
+        if(fread(header,1,8,f)==8 && (!memcmp(header,"FSIM01",6) || !memcmp(header,"FSIM02",6))) {
             saved_sound=header[6]; saved_volume=header[7];
+            if (header[5]=='2') {
+                saved_mail_size=fread(saved_mail,1,sizeof(saved_mail),f);
+                bool present=false;
+                for (unsigned i=0;i<saved_mail_size;++i) present|=saved_mail[i]!=0;
+                if (!present) saved_mail_size=0;
+            }
             saved_size=fread(saved_state,1,sizeof(saved_state),f);
         }
         fclose(f);
@@ -101,13 +109,22 @@ esp_err_t nvs_open(const char *name,int mode,nvs_handle_t *handle) {
     (void)name; (void)mode; *handle=1; return ESP_OK;
 }
 esp_err_t nvs_get_blob(nvs_handle_t handle,const char *key,void *data,size_t *size) {
-    (void)handle; (void)key;
+    (void)handle;
+    if (!strcmp(key,"mail")) {
+        if (!saved_mail_size) return ESP_ERR_NVS_NOT_FOUND;
+        if (*size<saved_mail_size) return ESP_ERR_INVALID_ARG;
+        memcpy(data,saved_mail,saved_mail_size); *size=saved_mail_size; return ESP_OK;
+    }
     if(!saved_size) return ESP_ERR_NVS_NOT_FOUND;
     if(*size<saved_size) return ESP_ERR_INVALID_ARG;
     memcpy(data,saved_state,saved_size); *size=saved_size; return ESP_OK;
 }
 esp_err_t nvs_set_blob(nvs_handle_t handle,const char *key,const void *data,size_t size) {
-    (void)handle; (void)key;
+    (void)handle;
+    if (!strcmp(key,"mail")) {
+        if (size!=sizeof(saved_mail)) return ESP_ERR_INVALID_ARG;
+        memcpy(saved_mail,data,size); saved_mail_size=size; return ESP_OK;
+    }
     if(size>sizeof(saved_state)) return ESP_ERR_INVALID_ARG;
     memcpy(saved_state,data,size); saved_size=size; return ESP_OK;
 }
@@ -120,8 +137,9 @@ esp_err_t nvs_set_u8(nvs_handle_t handle,const char *key,uint8_t value) {
 }
 esp_err_t nvs_commit(nvs_handle_t handle) {
     (void)handle; FILE *f=fopen(storage_path,"wb"); if(!f) return ESP_FAIL;
-    uint8_t header[8]={'F','S','I','M','0','1',saved_sound,saved_volume};
-    bool ok=fwrite(header,1,8,f)==8 && fwrite(saved_state,1,saved_size,f)==saved_size;
+    uint8_t header[8]={'F','S','I','M','0','2',saved_sound,saved_volume};
+    bool ok=fwrite(header,1,8,f)==8 && fwrite(saved_mail,1,sizeof(saved_mail),f)==sizeof(saved_mail) &&
+        fwrite(saved_state,1,saved_size,f)==saved_size;
     if(fclose(f)) ok=false; return ok?ESP_OK:ESP_FAIL;
 }
 bool fortune_audio_start(bool enabled) { audio_enabled=enabled; return true; }
@@ -181,6 +199,14 @@ static void status(void) {
     printf("{\"page\":%u,\"topic\":%u,\"seed\":%u,\"cycle\":%u,\"cursor\":%u,\"seen\":%u,\"remaining\":%u,",
            s_page,s_state.mood,s_state.seed,s_state.cycle,s_state.cursor,seen,fortune_remaining(&s_state));
     printf("\"topic_candidate\":%u,",s_topic_candidate);
+    printf("\"mail\":{\"story\":%u,\"page\":%u,\"style\":%u,\"reading\":%s,\"active\":%s,\"selected\":%u,\"error\":%s,\"corrupt\":%s,\"count\":%u,\"title\":",
+        s_mail_view.story,s_mail_view.page,s_mail_view.style,s_mail_view.reading?"true":"false",s_mail.active?"true":"false",
+        s_mail.selected,s_mail_error?"true":"false",s_mail_corrupt?"true":"false",fortune_mail_pages(s_mail_view.story));
+    json_string(fortune_mail_title(s_mail_view.story)); printf(",\"text\":");
+    json_string(fortune_mail_text(s_mail_view.story,s_mail_view.reading?s_mail_view.page:0));
+    printf(",\"bookmarks\":[");
+    for (unsigned i=0;i<FORTUNE_MAIL_STORIES;++i) printf("%s%u",i?",":"",s_mail.bookmarks[i]);
+    printf("]},");
     printf("\"album_index\":%u,\"album_action\":%u,\"album_confirm\":%s,\"favorite_count\":%u,",
         s_album_index,s_album_action,s_album_confirm?"true":"false",s_state.favorite_count);
     printf("\"count\":%u,\"corpus_id\":%u,\"opening\":%s,\"volume_open\":%s,\"volume\":%u,\"candidate\":%u,",
@@ -207,24 +233,26 @@ int main(int argc,char **argv) {
         else if(sscanf(line,"key %11s %11s",button,event)==2) {
             bsp_btn_t b=!strcmp(button,"up")?BSP_BTN_UP:!strcmp(button,"down")?BSP_BTN_DOWN:BSP_BTN_OK;
             key(b,!strcmp(event,"long")?BSP_BTN_LONG:BSP_BTN_CLICK);
-        } else if(sscanf(line,"topic %u",&topic)==1 && topic<=8) {
+        } else if(sscanf(line,"topic %u",&topic)==1 && topic<FORTUNE_TOPIC_COUNT) {
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
             if(s_volume_open) key(BSP_BTN_OK,BSP_BTN_LONG);
             while(s_page!=FORTUNE_HOME) key(BSP_BTN_OK,BSP_BTN_LONG);
-            key(BSP_BTN_DOWN,BSP_BTN_CLICK); /* Enter the explicit selector. */
+            key(BSP_BTN_UP,BSP_BTN_CLICK); /* Enter the explicit selector. */
             while(s_topic_candidate!=topic) key(BSP_BTN_DOWN,BSP_BTN_CLICK);
         } else if(!strncmp(line,"draw",4)) {
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
             if(s_volume_open) key(BSP_BTN_OK,BSP_BTN_LONG);
-            while(album_page()) key(BSP_BTN_OK,BSP_BTN_LONG);
+            while(album_page() || s_page==FORTUNE_MAIL) key(BSP_BTN_OK,BSP_BTN_LONG);
             key(s_page==FORTUNE_HOME||s_page==FORTUNE_TOPICS?BSP_BTN_OK:BSP_BTN_UP,BSP_BTN_CLICK);
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
         } else if(!strncmp(line,"reboot",6)) {
             fortune_ui_finish_reveal(); s_volume_open=false; s_notice=NULL; s_save_error=false;
-            load(); s_page=s_state.pinned.quote!=FORTUNE_NO_CARD?FORTUNE_SHOWCASE:FORTUNE_HOME;
+            load(); s_page=s_mail.active?FORTUNE_MAIL:s_state.pinned.quote!=FORTUNE_NO_CARD?FORTUNE_SHOWCASE:FORTUNE_HOME;
             fortune_audio_enable(s_sound_enabled); fortune_audio_volume(s_volume); render();
         } else if(sscanf(line,"fresh %u",&seed)==1) {
             fortune_ui_finish_reveal(); fortune_defaults(&s_state,seed);
+            fortune_mail_t empty; fortune_mail_defaults(&empty); s_mail_corrupt=false; (void)store_mail(&empty);
+            s_mail_view=(fortune_mail_view_t){0}; s_mail_bag=0; s_mail_random=seed?seed:1;
             s_page=FORTUNE_HOME; s_volume_open=false; s_volume=80; s_sound_enabled=true; s_notice=NULL;
             fortune_audio_enable(true); fortune_audio_volume(80); save_after_change(); render();
         } else if(!strncmp(line,"quit",4)) break;

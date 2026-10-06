@@ -15,7 +15,8 @@
 固件只链接 12/20 px、4 bpp、未压缩的生成子集；16 MB 原始 OTF 是开发素材，不进入固件。
 使用 1.5.3 版转换器运行 `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv` 可重建。
 脚本收集当前与旧签文、诗词出处及所有界面文本，字符清单为 `fonts/fortune-characters.txt`。
-两个字号各覆盖 2296 个字符，包含新增签册的收藏、整理和确认页。
+两个字号各覆盖 2312 个字符，包含签册的收藏、整理和确认页，以及
+`main/fortune_mail.c` 中的四组完整原创连续来信（MIT）。
 LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2200 条当前和 2112 条旧版文字布局；真机中文显示仍未验证。
 
 ## 签文内容
@@ -104,3 +105,7 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 - 与当前 BSP 音频路径匹配时优先采用 16 kHz、16 位单声道 PCM。
 - 嵌入音频前评估 Flash 与内部 RAM 成本；长录音应流式或分块。
 - 无再分发许可不提交媒体文件。
+
+`images/community/continuous-letters.png` 是已完成的 1152 × 1536 竖版详情图，
+来自实际程序主机渲染，展示四组原创故事及当前操作提示，不是设备照片。
+UI 测试完成后用 `python3 tools/render_fortune_letters.py` 重建（需要 Pillow）。源码与配图采用 MIT 许可。

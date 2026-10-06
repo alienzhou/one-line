@@ -33,7 +33,30 @@ static uint8_t s_album_index, s_album_action;
 static bool s_album_confirm, s_keep_feedback;
 static int s_turn_direction;
 static uint8_t s_storage_bytes[FORTUNE_STATE_BYTES];
+static fortune_mail_t s_mail;
+static fortune_mail_view_t s_mail_view;
+static bool s_mail_error, s_mail_corrupt;
+static uint8_t s_mail_bag;
+static uint32_t s_mail_random;
 typedef struct { bsp_btn_t key; bsp_btn_ev_t event; } input_t;
+
+static bool store_mail(const fortune_mail_t *candidate) {
+    if (s_mail_corrupt) {
+        /* Keep unknown records untouched; this session may still read offline. */
+        s_mail=*candidate; return true;
+    }
+    uint8_t bytes[FORTUNE_MAIL_BYTES];
+    if (!s_storage_ready || !fortune_mail_encode(candidate,bytes,sizeof(bytes))) {
+        s_mail_error=true; return false;
+    }
+    if (!fortune_audio_quiet()) { fortune_audio_resume(); s_mail_error=true; return false; }
+    esp_err_t err=nvs_set_blob(s_nvs,"mail",bytes,sizeof(bytes));
+    if (err==ESP_OK) err=nvs_commit(s_nvs);
+    fortune_audio_resume(); s_mail_error=err!=ESP_OK;
+    if (s_mail_error) { ESP_LOGE(TAG,"Mail save failed: %s",esp_err_to_name(err)); return false; }
+    s_mail=*candidate; s_mail_corrupt=false;
+    return true;
+}
 
 static bool store(const fortune_state_t *state) {
     if (!s_storage_ready) return false;
@@ -50,6 +73,10 @@ static bool store(const fortune_state_t *state) {
 
 static void load(void) {
     s_sound_enabled=true; s_volume=FORTUNE_VOLUME_DEFAULT;
+    fortune_mail_defaults(&s_mail); s_mail_view=(fortune_mail_view_t){0};
+    s_mail_error=false; s_mail_corrupt=false; s_mail_bag=0;
+    s_mail_random=esp_random() ^ (uint32_t)esp_timer_get_time();
+    if (!s_mail_random) s_mail_random=1;
     fortune_defaults(&s_state, esp_random() ^ (uint32_t)esp_timer_get_time());
     esp_err_t err = nvs_flash_init();
     /* Do not erase existing user data to recover this app's storage. */
@@ -61,6 +88,13 @@ static void load(void) {
     uint8_t volume=FORTUNE_VOLUME_DEFAULT;
     if (nvs_get_u8(s_nvs,"volume",&volume)==ESP_OK && volume>=FORTUNE_VOLUME_MIN &&
         volume<=FORTUNE_VOLUME_MAX && volume%FORTUNE_VOLUME_STEP==0) s_volume=volume;
+    uint8_t mail_bytes[FORTUNE_MAIL_BYTES]; size_t mail_size=sizeof(mail_bytes);
+    err=nvs_get_blob(s_nvs,"mail",mail_bytes,&mail_size);
+    if (err!=ESP_ERR_NVS_NOT_FOUND && (err!=ESP_OK || !fortune_mail_decode(&s_mail,mail_bytes,mail_size))) {
+        s_mail_corrupt=true; /* Preserve unknown records; allow a clearly marked unsaved reading session. */
+        ESP_LOGW(TAG,"Mail progress unavailable; preserving stored record");
+    }
+    fortune_mail_restore_view(&s_mail,&s_mail_view);
     size_t n = sizeof(s_storage_bytes);
     err = nvs_get_blob(s_nvs, "state", s_storage_bytes, &n);
     if (err == ESP_ERR_NVS_NOT_FOUND) return;
@@ -75,11 +109,20 @@ static void load(void) {
 static void render(void) {
     if (!bsp_lvgl_lock(1000)) return;
     fortune_ui_sound_enabled(s_volume_open || s_sound_enabled);
+    if (s_page==FORTUNE_MAIL) {
+        fortune_ui_mail(&s_mail,&s_mail_view,s_battery,
+            s_input_error?FT_INPUT_ERROR:s_mail_error?"未保存 · 请重试当前操作":
+            s_mail_corrupt?"旧进度未读取 · 本次不保存":
+            s_sound_enabled && fortune_audio_failed()?FT_SOUND_ERROR:s_notice);
+        fortune_ui_volume(s_volume_open,s_volume_candidate,
+            s_save_error?FT_SAVE_ERROR:fortune_audio_failed()?FT_SOUND_ERROR:NULL);
+        bsp_lvgl_unlock(); return;
+    }
     fortune_ui_album(s_album_index,s_album_action,s_album_confirm);
     fortune_state_t preview=s_state;
     if(s_page==FORTUNE_TOPICS) preview.mood=s_topic_candidate;
     fortune_ui_update(&preview, s_page, s_battery,
-        s_input_error ? FT_INPUT_ERROR : s_save_error ? FT_SAVE_ERROR :
+        s_input_error ? FT_INPUT_ERROR : s_save_error || s_mail_error ? FT_SAVE_ERROR :
         s_sound_enabled && fortune_audio_failed() ? FT_SOUND_ERROR : s_notice);
     fortune_ui_volume(s_volume_open,s_volume_candidate,
         s_save_error?FT_SAVE_ERROR:fortune_audio_failed()?FT_SOUND_ERROR:NULL);
@@ -207,6 +250,48 @@ static void volume_input(input_t in) {
     render();
 }
 
+static void mail_randomize(void) {
+    s_mail_random^=s_mail_random<<13;
+    s_mail_random^=s_mail_random>>17;
+    s_mail_random^=s_mail_random<<5;
+    s_mail_view.story=fortune_mail_draw(&s_mail_bag,s_mail_view.story,s_mail_random);
+    s_mail_view.page=0; s_mail_view.style=0; s_mail_view.reading=false;
+}
+
+static void open_mail(void) {
+    s_page=FORTUNE_MAIL;
+    s_mail_view=(fortune_mail_view_t){.story=FORTUNE_MAIL_NONE};
+    if (s_mail.selected<FORTUNE_MAIL_STORIES) {
+        s_mail_view.story=s_mail.selected;
+        s_mail_bag=((1U<<FORTUNE_MAIL_STORIES)-1) & ~(1U<<s_mail.selected);
+    } else mail_randomize();
+}
+
+static void mail_input(input_t in) {
+    fortune_mail_t next=s_mail;
+    fortune_mail_view_t *v=&s_mail_view;
+    if (in.event==BSP_BTN_LONG && in.key==BSP_BTN_OK) {
+        if (next.active) { next.active=false; (void)store_mail(&next); }
+        return_home(); /* A failed save must never trap the reader. */
+    } else if (in.event==BSP_BTN_CLICK) {
+        if (in.key==BSP_BTN_DOWN) {
+            v->style=(v->style+1)%24;
+            fortune_audio_play(FORTUNE_SOUND_SKIN,fortune_mail_art(v->story,v->page,v->style));
+        } else if (in.key==BSP_BTN_UP && !v->reading) mail_randomize();
+        else if (in.key==BSP_BTN_OK && !v->reading) {
+            if (fortune_mail_select(&next,v->story) && store_mail(&next)) {
+                v->reading=true; v->page=s_mail.bookmarks[v->story]-1;
+                fortune_audio_play(FORTUNE_SOUND_KEEP,fortune_mail_art(v->story,v->page,v->style));
+            }
+        } else if (v->reading && fortune_mail_step(&next,in.key==BSP_BTN_UP?-1:1) && store_mail(&next)) {
+            v->reading=s_mail.active;
+            v->page=v->reading?s_mail.bookmarks[v->story]-1:0;
+            if (!v->reading) s_notice="这组读完了 · 上键换一组";
+        }
+    }
+    render();
+}
+
 static void process(input_t in) {
     if (bsp_lvgl_lock(1000)) {
         bool opening = fortune_ui_revealing();
@@ -216,6 +301,7 @@ static void process(input_t in) {
     } else return;
     s_notice = NULL;
     if(s_volume_open) { volume_input(in); return; }
+    if (s_page==FORTUNE_MAIL && (in.event==BSP_BTN_CLICK || in.key==BSP_BTN_OK)) { mail_input(in); return; }
     if (album_page() && !(in.event==BSP_BTN_LONG && in.key!=BSP_BTN_OK)) { album_input(in); return; }
     if (in.event == BSP_BTN_LONG) {
         if (in.key == BSP_BTN_OK) {
@@ -245,7 +331,9 @@ static void process(input_t in) {
     if (s_page == FORTUNE_HOME && in.key != BSP_BTN_OK) {
         s_topic_candidate=0; s_page=FORTUNE_TOPICS;
     } else if(s_page==FORTUNE_TOPICS && in.key!=BSP_BTN_OK) {
-        s_topic_candidate=(s_topic_candidate+(in.key==BSP_BTN_UP?8:1))%9;
+        s_topic_candidate=(s_topic_candidate+(in.key==BSP_BTN_UP?FORTUNE_TOPIC_COUNT-1:1))%FORTUNE_TOPIC_COUNT;
+    } else if (s_page==FORTUNE_TOPICS && s_topic_candidate==FORTUNE_MAIL_TOPIC) {
+        open_mail();
     } else if (((s_page == FORTUNE_HOME || s_page==FORTUNE_TOPICS) && in.key == BSP_BTN_OK) ||
                (s_page != FORTUNE_HOME && in.key == BSP_BTN_UP)) {
         if(s_page==FORTUNE_HOME) fortune_select_topic(&s_state,0);
@@ -313,7 +401,7 @@ void app_main(void) {
     ESP_LOGI(TAG, "Fortune collection: %u complete records, %u procedural appearances",
              FORTUNE_COUNT, FORTUNE_ART_COUNT);
     load();
-    s_page = s_state.pinned.quote != FORTUNE_NO_CARD ? FORTUNE_SHOWCASE : FORTUNE_HOME;
+    s_page = s_mail.active?FORTUNE_MAIL:s_state.pinned.quote != FORTUNE_NO_CARD ? FORTUNE_SHOWCASE : FORTUNE_HOME;
     if (bsp_display_init() != ESP_OK || !bsp_lvgl_init()) { ESP_LOGE(TAG, "Display init failed"); return; }
     if (!bsp_lvgl_lock(1000)) return;
     bool created = fortune_ui_create();

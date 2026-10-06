@@ -9,6 +9,7 @@
 #include <string.h>
 
 LV_FONT_DECLARE(fortune_font_12);
+LV_FONT_DECLARE(fortune_font_20);
 static uint16_t s_pixels[240*320];
 static uint8_t s_draw[240*40*2];
 static unsigned s_open_count,s_reveal_count;
@@ -38,6 +39,7 @@ static void flush(lv_display_t *display, const lv_area_t *area, uint8_t *pixels)
 }
 
 static void check_labels(void) {
+    lv_obj_update_layout(lv_screen_active());
     lv_obj_t *root = lv_screen_active();
     uint32_t count = lv_obj_get_child_count(root);
     for (unsigned i = 0; i < count; ++i) {
@@ -98,11 +100,42 @@ int main(int argc, char **argv) {
     assert(fortune_ui_create());
     fortune_state_t s; fortune_defaults(&s,42);
     fortune_ui_update(&s,FORTUNE_HOME,88,NULL); snapshot(argv[1],"home"); check_labels();
+    /* Actual pixels and fonts for every complete story and every reading page. */
+    fortune_mail_t mail; fortune_mail_defaults(&mail);
+    fortune_mail_view_t view={0};
+    for (unsigned story=0;story<FORTUNE_MAIL_STORIES;++story) {
+        view=(fortune_mail_view_t){.story=story};
+        fortune_ui_mail(&mail,&view,88,NULL); check_labels();
+        char name[64]; snprintf(name,sizeof(name),"letters-preview-%u",story); snapshot(argv[1],name);
+        view.reading=true;
+        for (unsigned page=0;page<fortune_mail_pages(story);++page) {
+            view.page=page; fortune_ui_mail(&mail,&view,88,NULL);
+            lv_obj_update_layout(lv_screen_active()); check_labels();
+            assert(lv_obj_get_height(lv_obj_get_child(lv_screen_active(),2))<=2*fortune_font_20.line_height+2);
+            assert(!strcmp(lv_label_get_text(lv_obj_get_child(lv_screen_active(),2)),fortune_mail_text(story,page)));
+            snprintf(name,sizeof(name),"letters-%u-%u",story,page); snapshot(argv[1],name);
+            unsigned changed=0;
+            for (unsigned y=38;y<154;++y) for (unsigned x=12;x<228;++x)
+                changed+=s_pixels[y*240+x]!=s_pixels[38*240+12];
+            assert(changed>1000);
+        }
+        view.reading=false; view.page=0;
+        mail.bookmarks[story]=12; fortune_ui_mail(&mail,&view,88,NULL); check_labels();
+        snprintf(name,sizeof(name),"letters-resume-%u",story); snapshot(argv[1],name);
+        mail.bookmarks[story]=fortune_mail_pages(story)+1;
+        fortune_ui_mail(&mail,&view,88,NULL); check_labels();
+        snprintf(name,sizeof(name),"letters-finished-%u",story); snapshot(argv[1],name);
+    }
+    for (unsigned style=0;style<24;++style) {
+        view.style=style; fortune_ui_mail(&mail,&view,-1,"旧进度未读取 · 本次不保存"); check_labels();
+    }
+    fortune_ui_update(&s,FORTUNE_HOME,88,NULL); snapshot(argv[1],"letters-return-home"); check_labels();
+    puts("Continuous letters UI: PASS (four previews, all 120 illustrated pages, resume/completion, fonts, two-line budget and nonoverlapping labels)");
     for (unsigned style=0; style<4; ++style) for (unsigned mood=0; mood<9; ++mood) {
         s.style=style; s.mood=mood;
         fortune_ui_update(&s,FORTUNE_HOME,-1,NULL); lv_obj_update_layout(lv_screen_active()); check_labels();
     }
-    for(unsigned mood=0;mood<9;++mood) {
+    for(unsigned mood=0;mood<FORTUNE_TOPIC_COUNT;++mood) {
         s.mood=mood; fortune_ui_update(&s,FORTUNE_TOPICS,88,NULL);
         lv_obj_update_layout(lv_screen_active()); check_labels();
         char name[64]; snprintf(name,sizeof(name),"selector-%u",mood); snapshot(argv[1],name);

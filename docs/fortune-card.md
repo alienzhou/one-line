@@ -14,12 +14,75 @@ remains future work. Sources are `assets/fortune/corpus.json` and the checked
 Give someone under everyday pressure a sentence they can keep as a personal
 signature. Choose a theme, draw a letter, change its appearance if desired, and
 keep one card. Drawing does not replace the pinned signature; confirming does.
-Reboot opens the saved signature and restores whole-bank draws. The card header
+Outside continuous-letter reading, reboot opens the saved signature and restores whole-bank draws. The card header
 shows the current draw scope.
 
 No account, network, payment, daily quota, streak, rarity ranking, bad-luck draw,
 or guaranteed prediction is used. Radio stacks remain off; audio plays on demand. Text is
 written as complete sentences; no sentence parts are combined at runtime.
+
+### Continuous letters
+
+The existing type selector adds Continuous Letters at index 9. Home UP/DOWN
+opens that selector, while OK still draws from the complete fortune bank.
+The new type has only two views: a random first-page preview and a selected
+continuous reader. In preview, UP draws another story without repeats in a
+four-story cycle, DOWN changes appearance, and OK selects or resumes it.
+While reading, OK advances across both pages and letters, UP goes back one
+page, and DOWN continues to change appearance. Hold OK from either view to
+return directly home. At the end, OK marks the story complete and returns to
+preview; UP chooses another, and OK rereads the completed story. Sound and
+volume use the same long presses as fortune cards.
+
+Four original stories contain 120 pages: *Windstill Post Office* has eight
+six-page letters; *Platform Lost Property*, *The Lighthouse Keeper* and
+*Rooftop Garden* each have four. Every page has at most two lines and 18
+characters, including punctuation. Authored breaks, curated pixel scenes,
+empty space and subtle animation preserve the original card rhythm. The story
+is linear; the old mailbox, reply, receipt, archive and restart menus are gone.
+All text and artwork run offline. No clock, phone, radio or service is required.
+
+The independent `fortune/mail` record remains 16 explicit bytes. Version 2
+stores four bookmarks, the last selected story, the active-reader flag and a
+checksum. Zero means unread; page plus one is the bookmark; page count plus
+one means completed. Browsing and changing appearance do not write storage.
+Confirming or turning a page commits in the input worker after audio quiesces;
+a failed save leaves that action available to retry. Exiting remains possible
+even if saving fails. Re-entering the type previews the last selected story,
+and OK resumes its own bookmark; reboot during reading reopens the saved page.
+Other stories' bookmarks and the existing fortune/album/audio records survive.
+
+Version 1 Slow Mail records migrate to the corresponding page in the first
+story, with a sent receipt mapping to the next letter and a finished story
+remaining complete. The linear revision replaces reply branches. Unknown or
+corrupt records are preserved; the player can still read for the session with
+an explicit unsaved-progress notice. No fallback erases NVS.
+
+Pure model tests cover all pages, shuffled cycles, independent bookmarks,
+completion/reread, every valid old checkpoint, and rejected corruption.
+Application tests exercise the real input worker with failed commits, audio
+quiescence, navigation and collection isolation. LVGL tests render every story
+page and preview with real fonts and check bounds, overlap and actual pixels.
+Simulator integration tests restart a separate process to verify bookmarks.
+The 108 by 58 RGB565 buffer remains 12,528 bytes, the progress model is six
+bytes and view state four bytes; no new image buffer or task is introduced.
+
+On October 6, 2026, the complete ESP-IDF 5.5.3 gate and actual LVGL/simulator
+checks passed. The application is 1,535,024 bytes; the merged image is 1,600,560
+bytes, 3,584 more than the previous Slow Mail build. The verified archive is
+`build/firmware/2c64f284accd4c19450639b7e6c3efb91610213c8e5cf4a252fb389b192181ae/`.
+Full-image SHA256: `2c64f284accd4c19450639b7e6c3efb91610213c8e5cf4a252fb389b192181ae`.
+Matching ELF SHA256: `4d719a93eecbfd73e910becd328aadf855c63f872ac845565c34bd12a9b4e967`.
+
+Following the user's request, the three components were flashed at `0x0`,
+`0x8000` and `0x10000`; all write hashes matched. The partition table is
+unchanged and NVS/PHY were not written. A 20-second observation matched the
+version and ELF, loaded 2200 records and recorded one boot without warnings,
+crashes or rejected saves. Free heap was 216,520 bytes and the largest block
+114,688 bytes; the serial monitor was then closed. Build: PASS; Host tests:
+PASS; Device tests: PASS for writing and startup only. Physical button feel,
+readability, sound, interrupted-save recovery, repeated-use heap and idle/wake
+remain unverified. This build has not been submitted to the community.
 
 ### 320 combinatorial pixel skins
 
@@ -171,7 +234,7 @@ and all 220 poetry sources. The 10001 `long_term_target` is a target, not conten
 
 Only one record is decoded into a 128-byte buffer; the entire bank is never
 loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
-`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2296 characters per
+`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2312 characters per
 size**, covering current/legacy text, attribution, and UI literals. The OTF,
 1920 gallery PNGs, and audition WAVs are excluded from firmware. Sources and
 regeneration are in `assets/README.md`.
@@ -185,8 +248,10 @@ LVGL 9.5.0 and the default minimal NVS/PHY/factory partition layout.
 
 | Page | UP | DOWN | OK | Long press |
 | --- | --- | --- | --- | --- |
-| Whole-bank home | Open topic selector | Open topic selector | Whole-bank draw | OK opens collection; UP reshuffles only after exhaustion |
-| Topic selector | Previous preview | Next preview | Confirm and draw | OK/DOWN cancels to whole-bank home; UP reshuffles an exhausted selection |
+| Whole-bank home | Open type selector | Open type selector | Whole-bank draw | OK opens collection; UP reshuffles only after exhaustion |
+| Type selector | Previous type | Next type | Confirm type / preview letters | OK/DOWN cancels to whole-bank home; UP reshuffles an exhausted selection |
+| Story preview | Random next story | New appearance | Select / resume | OK returns home; UP volume; DOWN sound |
+| Story reading | Previous page | New appearance | Next page / finish | OK returns home; UP volume; DOWN sound |
 | Opening letter | Ignored | Ignored | Skip animation | OK also skips |
 | Draw result | Draw again | New appearance | Collect and display signature | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |
 | Saved signature | Draw again, keep old pin | New appearance for saved card | Open collection | UP opens volume; DOWN toggles sound; OK returns to whole-bank home |

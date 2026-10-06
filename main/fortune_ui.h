@@ -1,6 +1,7 @@
 #pragma once
 #include "fortune_model.h"
 #include "fortune_sound.h"
+#include "fortune_mail.h"
 #include <stdbool.h>
 bool fortune_ui_create(void);
 void fortune_ui_update(const fortune_state_t *state, fortune_page_t page,
@@ -22,3 +23,5 @@ void fortune_ui_volume(bool visible,unsigned percent,const char *notice);
 void fortune_ui_album(unsigned index,unsigned action,bool confirm);
 void fortune_ui_turn(int direction);
 void fortune_ui_kept(void);
+void fortune_ui_mail(const fortune_mail_t *state,const fortune_mail_view_t *view,
+                     int battery,const char *notice);

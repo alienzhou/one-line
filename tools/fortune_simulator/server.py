@@ -49,7 +49,7 @@ def build_bridge():
 def source_identity():
     paths = [ROOT / 'main' / n for n in (
         'main.c', 'fortune_model.c', 'fortune_model.h', 'fortune_data.c', 'fortune_ui.c',
-        'fortune_text.h', 'fortune_pixels.c', 'fortune_sound.c')]
+        'fortune_text.h', 'fortune_pixels.c', 'fortune_sound.c', 'fortune_mail.c', 'fortune_mail.h')]
     paths += [ROOT / 'assets/fonts' / f'fortune_font_{size}.c' for size in (12, 20)]
     digest = hashlib.sha256()
     for path in paths:
@@ -73,7 +73,7 @@ class Engine:
         except (FileNotFoundError, ValueError):
             self.history = []
         self.state = self._read(); self.last_tick = time.monotonic()
-        self.topics = json.loads((ROOT / 'assets/fortune/corpus.json').read_text())['moods']
+        self.topics = json.loads((ROOT / 'assets/fortune/corpus.json').read_text())['moods'] + ['连续来信']
 
     def _read(self):
         while True:
@@ -118,10 +118,12 @@ class Engine:
                 self.command(f'key {button} {event}')
             elif action == 'topic':
                 topic = body.get('topic')
-                if type(topic) is not int or not 0 <= topic <= 8:
+                if type(topic) is not int or not 0 <= topic <= 9:
                     raise ValueError('Invalid topic')
                 self.command(f'topic {topic}')
             elif action == 'batch':
+                if self.state['page'] == 9 or (self.state['page'] == 3 and self.state['topic_candidate'] == 9):
+                    raise ValueError('连续来信请用上键换组、确定读信')
                 for _ in range(20):
                     self.command('draw')
             elif action == 'reboot':

@@ -9,6 +9,7 @@ add_library(fortune_lvgl STATIC ${LVGL_SOURCES})
 target_include_directories(fortune_lvgl PUBLIC "${LVGL_PATH}")
 target_compile_definitions(fortune_lvgl PUBLIC LV_CONF_PATH="${CMAKE_CURRENT_LIST_DIR}/lv_conf.h")
 add_executable(test_fortune_ui ../test_fortune_ui.c
+    ../../main/fortune_mail.c
     ../../main/fortune_ui.c ../../main/fortune_pixels.c ../../main/fortune_model.c ../../main/fortune_data.c ../../main/fortune_legacy_data.c ../../main/fortune_previous_data.c
     ../../components/bsp/src/bsp_display_rounding.c
     ../../assets/fonts/fortune_font_12.c ../../assets/fonts/fortune_font_20.c)
@@ -22,6 +23,7 @@ target_compile_options(test_fortune_ui PRIVATE -Wall -Wextra -Werror -UNDEBUG)
 
 # Interactive desktop adapter: the application, draw model and UI remain shared.
 add_executable(fortune_simulator ../../tools/fortune_simulator/bridge.c
+    ../../main/fortune_mail.c
     ../../main/fortune_ui.c ../../main/fortune_pixels.c ../../main/fortune_sound.c
     ../../main/fortune_model.c ../../main/fortune_data.c
     ../../main/fortune_legacy_data.c ../../main/fortune_previous_data.c

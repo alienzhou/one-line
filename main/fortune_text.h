@@ -1,11 +1,11 @@
 #pragma once
 static const char *const FORTUNE_MOODS[] = {
-    "随缘", "慢慢回血", "诗词留声", "生活观察", "冷幽默", "荒诞脑洞", "小见解", "关系切片", "小小出走"
+    "随缘", "慢慢回血", "诗词留声", "生活观察", "冷幽默", "荒诞脑洞", "小见解", "关系切片", "小小出走", "连续来信"
 };
 #define FT_HOME "全库随机\n拆开一句话"
-#define FT_HOME_HELP "确定抽签 · 上/下选主题"
+#define FT_HOME_HELP "确定抽签 · 上/下选类型"
 #define FT_HOME_HINT "长确定打开签册 · 同轮不重复"
-#define FT_TOPICS_HELP "上/下选择 · 确定抽签"
+#define FT_TOPICS_HELP "上/下选择 · 确定进入"
 #define FT_TOPICS_HINT "长确定返回全库随机"
 #define FT_REVEAL_HELP "上再抽 · 下换肤 · 确定收藏"
 #define FT_REVEAL_HINT "长上音量 · 长下静音"

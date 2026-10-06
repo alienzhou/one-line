@@ -37,6 +37,44 @@ class SimulatorTests(unittest.TestCase):
         self.assertEqual(self.engine.state['seen'], 20)
         self.assertTrue((Path(self.temp.name) / 'frame.bmp').read_bytes().startswith(b'BM'))
 
+    def test_letters_preview_confirm_restart_and_independent_bookmarks(self):
+        self.key('ok'); self.key('ok'); self.key('ok')
+        original = self.engine.state['favorites']
+        self.key('ok', 'long')
+        self.engine.action(dict(action='topic', topic=9)); self.key('ok')
+        self.assertEqual(self.engine.state['page'], 9)
+        self.assertFalse(self.engine.state['mail']['reading'])
+        state_path = Path(self.temp.name) / 'state.bin'
+        saved = state_path.read_bytes()
+        first = self.engine.state['mail']['story']
+        self.key('up')
+        self.assertNotEqual(self.engine.state['mail']['story'], first)
+        self.key('down')
+        self.assertEqual(state_path.read_bytes(), saved)
+        first = self.engine.state['mail']['story']
+        self.key('ok'); self.key('ok'); self.key('ok')
+        self.assertEqual(self.engine.state['mail']['page'], 2)
+        self.engine.close()
+        self.engine = Engine(BUILD / 'fortune_simulator', self.temp.name, 999)
+        self.assertTrue(self.engine.state['mail']['reading'])
+        self.assertEqual((self.engine.state['mail']['story'], self.engine.state['mail']['page']), (first, 2))
+        self.key('ok', 'long')
+        self.assertEqual(self.engine.state['page'], 0)
+        self.engine.action(dict(action='topic', topic=9)); self.key('ok'); self.key('up')
+        second = self.engine.state['mail']['story']
+        self.key('ok'); self.key('ok')
+        self.assertEqual(self.engine.state['mail']['bookmarks'][first], 3)
+        self.key('ok', 'long')
+        self.engine.action(dict(action='topic', topic=9)); self.key('ok')
+        for _ in range(4):
+            if self.engine.state['mail']['story'] == first: break
+            self.key('up')
+        self.key('ok')
+        self.assertEqual(self.engine.state['mail']['page'], 2)
+        self.assertEqual(self.engine.state['mail']['bookmarks'][second], 2)
+        self.assertEqual(self.engine.state['favorites'], original)
+        with self.assertRaises(ValueError): self.engine.action(dict(action='batch'))
+
     def test_explicit_topic_confirm_cancel_and_restart(self):
         state = self.engine.action(dict(action='topic', topic=1))
         self.assertEqual((state['page'], state['topic'], state['topic_candidate']), (3, 0, 1))
@@ -78,7 +116,7 @@ class SimulatorTests(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(req)
             self.assertEqual(error.exception.code, 403)
             self.assertEqual(len(self.engine.history), 20)
-            req = urllib.request.Request(base + '/api/action', data=b'{"action":"topic","topic":9}')
+            req = urllib.request.Request(base + '/api/action', data=b'{"action":"topic","topic":10}')
             with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(req)
             self.assertEqual(error.exception.code, 400)
         finally:

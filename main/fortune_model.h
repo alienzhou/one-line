@@ -18,7 +18,7 @@
 typedef enum {
     FORTUNE_HOME, FORTUNE_REVEAL, FORTUNE_SHOWCASE, FORTUNE_TOPICS,
     FORTUNE_ALBUM, FORTUNE_ALBUM_ACTIONS, FORTUNE_ALBUM_REMOVE,
-    FORTUNE_ALBUM_REPLACE, FORTUNE_ALBUM_CONFIRM
+    FORTUNE_ALBUM_REPLACE, FORTUNE_ALBUM_CONFIRM, FORTUNE_MAIL
 } fortune_page_t;
 typedef struct { uint32_t quote, art; } fortune_card_t;
 /* Stable disk record: explicit encoding in fortune_store, not raw enum/struct bytes. */

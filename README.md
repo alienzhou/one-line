@@ -7,11 +7,11 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-The sixteen-card album update is submitted as revision **2072**, **pending review**.
-Public revision **1967** remains available. Firmware source is `22ef0dd`.
-Description, five-step instructions,
-and this update's release notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the complete text.
-Revision 1967 contains the whole-bank default and explicit topic selector. The Mac simulator is available in this source repository.
+The sixteen-card album revision **2072** is public and approved, verified on
+October 6, 2026. This checkout also contains the four-story Continuous Letters
+update being prepared for review. Description, five-step instructions and release
+notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json)
+retains the current text. The Mac simulator is available in this source repository.
 
 One Fortune is a pocket text surprise box. Choose reassurance when you need it,
 or explore everyday observations, dry humor, surreal ideas, small insights,
@@ -51,7 +51,7 @@ Visual combinations are counted separately from written content.
 ## Start in five steps
 
 1. Turn on the device; it works offline with no Wi-Fi setup. Press any button once to wake a dark screen. If your signature appears, hold OK to return home.
-2. Press OK on home for a random draw. Wait for the letter to reveal its words, or press OK to skip. For a specific theme, open the selector with UP/DOWN, choose a theme and confirm with OK.
+2. Press OK on home for a random draw. Wait for the letter to reveal its words, or press OK to skip. To choose a type, open the selector with UP/DOWN, choose with UP/DOWN and confirm with OK. Continuous letters first show a random preview.
 3. On the result, UP draws again, DOWN changes the artwork, and OK collects the card and displays it as your signature. Keep up to 16 cards; when full, choose an old card and confirm its replacement.
 4. Hold OK on home, or press OK on the signature, to open the album. Browse with UP/DOWN; OK opens actions to display, change artwork or remove a card. Hold OK to step back to home and continue drawing.
 5. On a card, hold UP for volume, adjust with UP/DOWN and press OK to save; hold DOWN to toggle sound. Favorites, your signature and sound settings survive restarts.
@@ -65,6 +65,30 @@ remain readable after this upgrade.
   <img src="assets/images/fortune-theme-2.png" alt="Actual rendered poetry card with attribution" width="240">
 </p>
 
+## Continuous letters: choose a story, then keep reading
+
+The existing type selector now includes **Continuous Letters**, with four complete
+original stories: *Windstill Post Office* (eight letters), *Platform Lost Property*,
+*The Lighthouse Keeper* and *Rooftop Garden* (four letters each). They contain
+120 illustrated pages in total, six per letter. They work entirely offline.
+
+1. On home, open the type selector with UP/DOWN, choose Continuous Letters and press OK.
+2. Preview the first page. UP randomly changes the story, DOWN changes its appearance,
+   and OK selects it. Each shuffled cycle visits all four stories.
+3. Once selected, OK reads the next page, UP goes back one page, and DOWN still changes
+   the appearance. Each page has at most two lines and 18 characters, with pixel art and space to pause.
+4. Hold OK to return directly home. Each story keeps its own bookmark; selecting it
+   again continues there. Restarting while reading reopens that page. After the ending,
+   UP finds another story and OK rereads the completed one.
+
+Browsing never replaces a bookmark. The former mailbox, reply selection and archive
+menus have been removed. The existing single-line draw, artwork, collection and sound
+controls remain available. The independent 16-byte save migrates old Slow Mail reading
+positions. See the [engineering notes](docs/fortune-card.md#continuous-letters) for
+validation and recovery behavior.
+
+![Four continuous stories and their real application controls](assets/images/community/continuous-letters.png)
+
 ## Keep sixteen favorite cards
 
 This update holds **16 complete cards with their artwork**, entirely
@@ -76,8 +100,7 @@ cancel is selected by default. Hold OK to step back. Recollecting the same quote
 updates its artwork without taking another slot. Existing signatures migrate into
 slot one with their exact words, artwork, read history and sound settings intact.
 Turns take about 200 ms; successful collection shows a 480 ms bookmark seal.
-Animation frames never write Flash. This feature is not yet in the public community
-release; physical button feel, frame timing, interrupted saves and endurance await testing.
+Animation frames never write Flash. The album is available in public revision 2072; physical button feel, frame timing, interrupted saves and endurance await testing.
 Build and Host tests PASS for this change; the application is 1,519,760 bytes
 and the merged image 1,585,296 bytes. Device tests PASS for three component write
 hashes and a 20-second startup observation only. NVS and PHY were excluded;
@@ -169,7 +192,7 @@ See the [flashing and data policy](docs/development/engineering/firmware-layout.
 The active encoded text bank takes **67.0 KiB**, plus attribution and legacy
 compatibility data. The **57.3 KiB** old bank serves saved signatures only and is
 excluded from new draws. A further **18.5 KiB** retains the 312 replaced lines
-and their migration table. Both font sizes cover **2,296 characters**; the whole
+and their migration table. Both font sizes cover **2,304 characters**; the whole
 bank is never loaded into RAM. The 16-card save is **455 bytes**, importing older 323/312-byte saves, with separate
 one-byte volume and mute preferences. Procedural artwork retains its
 12,528-byte canvas; gallery images stay out of firmware.
@@ -179,7 +202,8 @@ and compatibility boundaries.
 
 ## Community gameplay images
 
-These images show the current whole-bank default, explicit selector and sixteen-card album.
+These images are from the preceding community submission: whole-bank draws,
+the explicit selector and the sixteen-card album. They do not show the later continuous-letter type.
 
 The updated cover uses built-in imagegen editing. Four detail images use actual
 application host renders, not device photographs. [Methods and cover prompt](assets/fortune/community-artwork.json) retain their provenance.

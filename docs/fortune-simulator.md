@@ -20,7 +20,7 @@ environment under `build/fortune-simulator/tooling`.
 Click the three buttons, or use Up, Down and Enter. Hold a key for 0.5 seconds
 for a long press; separate long-press buttons also work.
 
-1. On home, OK draws randomly from all 2,200 records. UP/DOWN opens a separate
+1. On home, OK draws randomly from all 2,200 records. UP opens a separate
    topic selector with a large topic label. Browse there and press OK to apply
    the topic and draw; hold OK to cancel and return to the whole bank.
 2. Wait for the letter to open, or press OK to skip. On the result, UP draws
@@ -32,6 +32,13 @@ for a long press; separate long-press buttons also work.
    with cancel selected by default.
 5. On a card, hold UP for volume, adjust with UP/DOWN, then OK to save or hold
    OK to cancel. Hold DOWN on a card to toggle sound.
+
+Choose Continuous Letters in the type selector. UP randomly previews another
+of four stories, DOWN changes appearance, and OK selects it. Then OK reads the
+next page, UP goes back, and DOWN still changes appearance. Hold OK to return
+directly home. Each story has an independent bookmark, restored even after
+restarting the simulator process. A new blank simulation resets both modes.
+The draw-20 diagnostic is disabled for continuous letters.
 
 The page shows the actual draw scope, unread counts, the words, poetry
 attribution, and recent draws. **Draw 20** uses the application button path

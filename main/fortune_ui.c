@@ -253,6 +253,7 @@ bool fortune_ui_create(void) {
     lv_screen_load(s_root); return true;
 }
 void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,const char *notice) {
+    if (s_page==FORTUNE_MAIL) reset_turn();
     fortune_card_t card=is_album(page) && page!=FORTUNE_ALBUM_CONFIRM && s->favorite_count &&
         s_album_index<s->favorite_count?s->favorites[s_album_index]:page==FORTUNE_SHOWCASE?s->pinned:s->current;
     if (page==FORTUNE_ALBUM && !s->favorite_count) card.quote=FORTUNE_NO_CARD;
@@ -281,13 +282,14 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     char quote[128];
     if(page==FORTUNE_HOME) {
         lv_label_set_text_fmt(s_meta,"一签 / 全库%s",s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,FT_HOME);
-        lv_label_set_text_fmt(s_caption,"八种主题 / %lu 张未读",(unsigned long)fortune_remaining(s));
+        lv_label_set_text_fmt(s_caption,"短句与连续信 / %lu 张未读",(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_HOME_HELP);
         lv_label_set_text(s_hint,notice?notice:FT_HOME_HINT);
     } else if(page==FORTUNE_TOPICS) {
-        lv_label_set_text(s_meta,"一签 / 选择主题");
+        lv_label_set_text(s_meta,"一签 / 选择类型");
         lv_label_set_text_fmt(s_quote,"< %s >",s->mood?FORTUNE_MOODS[s->mood]:"全库随机");
-        lv_label_set_text_fmt(s_caption,"%lu 张未读 / 确定才生效",(unsigned long)fortune_remaining(s));
+        if (s->mood==FORTUNE_MAIL_TOPIC) lv_label_set_text(s_caption,"四组连续故事 / 先看看再选定");
+        else lv_label_set_text_fmt(s_caption,"%lu 张未读 / 确定才生效",(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_TOPICS_HELP);
         lv_label_set_text(s_hint,notice?notice:FT_TOPICS_HINT);
     } else if (page==FORTUNE_ALBUM && !s->favorite_count) {
@@ -330,6 +332,42 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     }
     lv_obj_invalidate(s_root);
 }
+void fortune_ui_mail(const fortune_mail_t *s,const fortune_mail_view_t *v,int battery,const char *notice) {
+    finish_reveal(false); reset_turn(); s_keep_step=12; s_wipe_step=3;
+    s_volume_visible=false; s_page=FORTUNE_MAIL;
+    uint32_t id=fortune_mail_art(v->story,v->page,v->style);
+    if (id!=s_id) {
+        s_id=id; s_frame=0; fortune_pixels(s_pixels,id,0); lv_image_cache_drop(&s_image);
+    }
+    s_quote_id=FORTUNE_NO_CARD;
+    fortune_colors_t palette=fortune_pixel_colors(id);
+    lv_timer_set_period(s_timer,125);
+    lv_obj_set_style_bg_color(s_root,lv_color_hex(palette.paper),0);
+    lv_obj_t *labels[]={s_meta,s_battery,s_quote,s_caption,s_help,s_hint};
+    for (unsigned i=0;i<6;++i) lv_obj_set_style_text_color(labels[i],lv_color_hex(i<3?palette.ink:palette.muted),0);
+    if (battery<0) lv_label_set_text(s_battery,"--%"); else lv_label_set_text_fmt(s_battery,"%d%%",battery);
+    unsigned count=fortune_mail_pages(v->story);
+    unsigned bookmark=v->story<FORTUNE_MAIL_STORIES?s->bookmarks[v->story]:0;
+    lv_label_set_text(s_quote,fortune_mail_text(v->story,v->reading?v->page:0));
+    if (!v->reading) {
+        lv_label_set_text(s_meta,"一签 / 连续来信");
+        lv_label_set_text_fmt(s_caption,"%s / %u 封",fortune_mail_title(v->story),count/FORTUNE_MAIL_PAGES_PER_LETTER);
+        lv_label_set_text(s_help,bookmark && bookmark<=count?
+            "上换组 · 下换肤 · 确定续读":"上换组 · 下换肤 · 确定读信");
+        if (notice) lv_label_set_text(s_hint,notice);
+        else if (bookmark>count) lv_label_set_text(s_hint,"已读完 · 确定重读 · 长确定首页");
+        else if (bookmark) lv_label_set_text_fmt(s_hint,"读到第 %u 页 · 长确定首页",bookmark);
+        else lv_label_set_text(s_hint,"先看看，喜欢再读 · 长确定首页");
+    } else {
+        lv_label_set_text_fmt(s_meta,"连续来信 / %s",fortune_mail_title(v->story));
+        lv_label_set_text_fmt(s_caption,"第 %u/%u 封 / %u/%u 页",v->page/FORTUNE_MAIL_PAGES_PER_LETTER+1,
+            count/FORTUNE_MAIL_PAGES_PER_LETTER,v->page%FORTUNE_MAIL_PAGES_PER_LETTER+1,FORTUNE_MAIL_PAGES_PER_LETTER);
+        lv_label_set_text(s_help,v->page+1==count?"上回看 · 下换肤 · 确定读完":"上回看 · 下换肤 · 确定下一页");
+        lv_label_set_text(s_hint,notice?notice:"进度自动保存 · 长确定首页");
+    }
+    lv_obj_invalidate(s_root);
+}
+
 void fortune_ui_volume(bool visible,unsigned percent,const char *notice) {
     bool changed=s_volume_visible!=visible;
     s_volume_visible=visible; s_volume_percent=percent;
