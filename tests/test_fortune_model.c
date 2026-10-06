@@ -142,7 +142,7 @@ int main(void) {
     assert(s.favorites[3].quote==4 && s.pinned.quote==99);
     assert(!fortune_favorite_remove(&s,15));
     assert(!fortune_favorite_save(&s,(fortune_card_t){FORTUNE_NO_CARD,0},0));
-    n=fortune_encode_state(&s,bytes,sizeof(bytes)); assert(n==455);
+    n=fortune_encode_state(&s,bytes,sizeof(bytes)); assert(n==467);
     assert(fortune_decode_state(&restored,bytes,n));
     assert(restored.favorite_count==15 && !memcmp(s.favorites,restored.favorites,15*sizeof(fortune_card_t)));
     /* Correct CRC cannot make malformed count/duplicate/quote/art data valid. */

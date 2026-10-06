@@ -18,7 +18,7 @@
   <div class="range" id="scope">正在连接…</div>
   <p class="caption status" id="status" role="status" aria-live="polite"></p>
   <p class="caption" id="sound-state"></p>
-  <div class="help"><p class="subtle">首页确定抽签，上下进入类型选择。“连续来信”先预览，上键换一组，确定选定并读信；阅读时确定下一页，上键回看，下键仍换肤。长确定直接回首页，各组进度分别保存。</p><p class="subtle">结果页上再抽、下换肤、确定收藏。首页长确定或签名页确定打开 16 格签册，上下翻阅、确定整理。卡片页长上调音量，长下静音。</p></div>
+  <div class="help"><p class="subtle">首页确定抽签，上下进入类型选择。“连续来信”先预览，上键换一组，确定选定并读信；阅读时确定下一页，上键回看，下键仍换肤。长确定直接回首页，各组进度分别保存。</p><p class="subtle">奇遇签首次十抽内必得，之后基础概率 1%、三十抽保底。发现自动永久珍藏，在类型页选“奇遇珍藏”找回原版，不占 16 格签册。</p><p class="subtle">结果页上再抽、下换肤、确定收藏。首页长确定或签名页确定打开 16 格签册，上下翻阅、确定整理。卡片页长上调音量，长下静音。</p></div>
   <p class="caption">电池为模拟值。Mac 声音可试听；设备响度、休眠与耗电仍需实测。</p>
 </section>
 <section aria-label="抽取核对">
@@ -48,18 +48,18 @@ function update(s){
  currentState=s;
  if(s.frame_id!==frame){frame=s.frame_id;$('screen').src='/frame.bmp?v='+frame}
  const scope=s.topic?s.topics[s.topic]:'全库随机';
- $('scope').textContent=s.page===9?'连续来信 · '+s.mail.title:s.page>=4?`签册 ${s.favorite_count}/16 · ${s.favorite_count?'第 '+(s.album_index+1)+' 张':'等待第一张收藏'}`:s.page===3?'待确认：'+(s.topic_candidate?s.topics[s.topic_candidate]:'全库随机'):'抽取范围：'+scope;
+ $('scope').textContent=s.page===10?`奇遇珍藏 ${s.rare_owned}/${s.rare_total}`:s.page===9?'连续来信 · '+s.mail.title:s.page>=4?`签册 ${s.favorite_count}/16 · ${s.favorite_count?'第 '+(s.album_index+1)+' 张':'等待第一张收藏'}`:s.page===3?'待确认：'+(s.topic_candidate?s.topics[s.topic_candidate]:'全库随机'):'抽取范围：'+scope;
  const remaining=s.page===3?s.unread[s.topic_candidate]:s.remaining;
- $('batch').disabled=s.page===9||(s.page===3&&s.topic_candidate===9);
- $('status').textContent=s.notice||(s.page===9?(s.mail.reading?`阅读中 · 第 ${s.mail.page+1}/${s.mail.count} 页`:'随机预览 · 确定才选定'):s.page===3&&s.topic_candidate===9?'四组完整故事 · 各自保存进度':`${remaining} 条未读 · 第 ${s.cycle+1} 轮${s.opening?' · 正在拆信':''}`);
+ $('batch').disabled=s.page===9||s.page===10||(s.page===3&&s.topic_candidate>=9);
+ $('status').textContent=s.notice||(s.page===10?'自动珍藏 · 原版永久保留':s.page===3&&s.topic_candidate===10?`已发现 ${s.rare_owned}/${s.rare_total} · 首次十抽内必得`:s.page===9?(s.mail.reading?`阅读中 · 第 ${s.mail.page+1}/${s.mail.count} 页`:'随机预览 · 确定才选定'):s.page===3&&s.topic_candidate===9?'四组完整故事 · 各自保存进度':`${remaining} 条未读 · 第 ${s.cycle+1} 轮${s.opening?' · 正在拆信':''}`);
  $('status').classList.toggle('error',s.save_error||s.mail.error||s.mail.corrupt);
  $('sound-state').textContent=(s.sound_enabled?'音效开启':'静音')+' · 音量 '+(s.volume_open?s.candidate:s.volume)+'%'+(!unlocked?' · 操作后可试听':'');
- const c=s.page>=4&&s.page<=7?s.favorites[s.album_index]:s.page===2?s.pinned:s.current;
+ const c=s.page===10?s.rare_gallery[s.album_index]:s.page>=4&&s.page<=7?s.favorites[s.album_index]:s.page===2?s.pinned:s.current;
  $('current').replaceChildren();
  if(s.page===9)$('current').append(text('div',s.mail.title,'theme'),text('div',s.mail.text,'quote'),text('p',s.mail.reading?'确定下一页 · 上回看 · 下换肤 · 长确定回首页':'上换组 · 下换肤 · 确定读信或续读'));
  else if(s.page===3)$('current').append(text('p','确定进入所选类型；连续来信先预览，喜欢再选定。长按确定回首页。'));
  else if(s.opening)$('current').append(text('p','信封正在展开，等待揭晓…'));
- else if(c){$('current').append(text('div',c.theme?s.topics[c.theme]:'已留签名','theme'),text('div',c.text,'quote'));if(c.citation)$('current').append(text('div',c.citation,'citation'))}
+ else if(c){$('current').append(text('div',c.rare?'奇遇 / '+c.rare_title:c.theme?s.topics[c.theme]:'已留签名','theme'),text('div',c.text,'quote'));if(c.citation)$('current').append(text('div',c.citation,'citation'))}
  else $('current').append(text('p',s.page===4?'签册还空着。回首页抽签，按确定收藏第一句。':'按确定，拆开第一封信。'));
  if(!$('topic').options.length)s.topics.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=i?v:'全库随机';$('topic').append(o)});
  $('total').textContent=s.history_count;$('poems').textContent=s.history_counts[2];
@@ -70,7 +70,7 @@ function update(s){
  const history=$('history');history.replaceChildren();history.start=s.history_count;
  const revealedHistory=s.opening?s.history.slice(0,-1):s.history;
  if(s.opening)history.start=s.history_count-1;
- [...revealedHistory].reverse().forEach(h=>{const li=document.createElement('li');li.append(text('span',h.text));if(h.citation)li.append(text('span',h.citation,'citation'));li.append(text('span',`${s.topics[h.theme]} · NO.${h.id+1} · 抽取范围：${h.scope?s.topics[h.scope]:'全库随机'}`,'record-meta'));history.append(li)});
+ [...revealedHistory].reverse().forEach(h=>{const li=document.createElement('li');li.append(text('span',h.text));if(h.citation)li.append(text('span',h.citation,'citation'));li.append(text('span',`${h.rare?'奇遇 / '+h.rare_title:s.topics[h.theme]+' · NO.'+(h.id+1)} · 抽取范围：${h.scope?s.topics[h.scope]:'全库随机'}`,'record-meta'));history.append(li)});
  if(!s.history.length)history.append(text('p','抽取后在这里逐条核对分类。','empty'));
  if(s.sound_id!==lastSound){lastSound=s.sound_id;if(audio)audio.pause();if(unlocked&&s.audio_enabled&&s.sound_id){audio=new Audio('/sound.wav?v='+s.sound_id);audio.volume=s.audio_volume/100;audio.play().catch(()=>{$('sound-state').textContent+=' · 浏览器未允许试听'})}}
  if(!s.audio_enabled&&audio)audio.pause();

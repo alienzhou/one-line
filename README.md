@@ -7,10 +7,10 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-The sixteen-card album revision **2072** is public and approved, verified on
-October 6, 2026. The four-story Continuous Letters update was submitted as revision **2134**,
-**pending review** when checked on October 6, 2026. Its firmware source commit
-is `3e6522e`; public revision remains **2072**. Description, five-step instructions and release
+The four-story Continuous Letters revision **2134** is public and approved, verified on
+October 6, 2026. The thirty-card rare encounter update with enhanced celebration audio
+was submitted as revision **2156**, **pending review** when checked on the same date.
+Public revision remains **2134**. Description, five-step instructions and release
 notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json)
 retains the current text. The Mac simulator is available in this source repository.
 
@@ -65,6 +65,24 @@ remain readable after this upgrade.
   <img src="assets/images/fortune-home.png" alt="Actual whole-bank home page" width="240">
   <img src="assets/images/fortune-theme-2.png" alt="Actual rendered poetry card with attribution" width="240">
 </p>
+
+## Rare encounters: a letter that glows
+
+Thirty individually authored rare cards pair exclusive lines with distinct pixel scenes.
+The original six remain; twenty-four additions include a constellation stag, cloud-sea lighthouse,
+jellyfish dance, moonlit tea, starry library and dawn doorway. Every card has gold ornament,
+ambient animation, a special reveal score, and three palettes (90 appearances in total).
+
+- The first rare arrives **within 10 successful new draws**, possibly earlier. Upgrading users who have not yet discovered a rare also receive this first guarantee.
+- Later draws have a **1% base chance** and a **30-draw maximum gap**. Every rare resets the counter. Guarantees raise the long-run effective rate above the base chance.
+- The first thirty encounters prioritize undiscovered cards. After completion, encounters do not repeat consecutively.
+- Discovery automatically and permanently unlocks the original, outside the 16-slot common album. Choose the rare collection in the type selector, browse with up/down, and press OK to display the original.
+- On a rare result, up draws again, down cycles three palettes, and OK displays it as a signature. The original remains retrievable from the rare collection.
+- Existing discoveries, palettes and earned pity progress survive upgrades. Counters and discoveries survive restart. Remixing, browsing, continuous letters, and shuffling do not advance or reset them. Failed saves keep the current screen and allow retrying the same draw.
+
+![Thirty rare cards rendered by the actual application](assets/images/fortune-rares.png)
+
+[View the rare envelope and ambient animation](assets/images/fortune-rare-reveal.gif). These are host renders, not device photographs.
 
 ## Continuous letters: choose a story, then keep reading
 
@@ -133,14 +151,16 @@ retain prior-version text as motion examples.
 ## Choose your sound
 
 Short original music-box cues accompany opening, reveal, keeping, and artwork
-changes. Hold UP on a card for volume. UP/DOWN changes it from 10% to 100% in
+changes. Rare cards reveal with a fuller 1.9-second arrival chord, rising bells and sparkling echoes.
+Hold UP on a card for volume. UP/DOWN changes it from 10% to 100% in
 10% steps, with an audition. OK saves and enables sound; hold OK to cancel and
 restore the old volume and mute setting. Default volume is 80%.
 Hold DOWN on a card to mute or restore sound without losing the chosen volume.
 
 <p align="center"><img src="assets/images/fortune-volume.png" alt="Actual rendered volume panel" width="240"></p>
 
-[Listen to the audition](assets/music/fortune-audition.wav). It is exported by
+[Listen to the audition](assets/music/fortune-audition.wav) or
+[compare an ordinary draw with a rare draw](assets/music/fortune-rare-comparison.wav). It is exported by
 the firmware sound generator and excluded from firmware; speaker loudness
 still needs device listening. The lines offer reading, expression, and
 entertainment, without predictions.

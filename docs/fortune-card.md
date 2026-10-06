@@ -83,7 +83,7 @@ crashes or rejected saves. Free heap was 216,520 bytes and the largest block
 PASS; Device tests: PASS for writing and startup only. Physical button feel,
 readability, sound, interrupted-save recovery, repeated-use heap and idle/wake
 remain unverified. This build was submitted to project 914 as revision 2134 on October 6, 2026.
-The revision is pending review; public revision remains 2072. Its matching
+Revision 2134 is approved and public, verified on the same date. Its matching
 firmware source is `3e6522e`, and publication adds no physical-test evidence.
 
 ### 320 combinatorial pixel skins
@@ -229,17 +229,70 @@ and all 220 poetry sources. The 10001 `long_term_target` is a target, not conten
 | Theme offsets and counts | 36 bytes |
 | Read-only content total, before linker alignment | **154444 bytes / 150.8 KiB** |
 | Internal-RAM pixel canvas | **12528 bytes** |
-| NVS state including seen bitset and CRC | **455 bytes** |
+| NVS state including seen bitset, rare progress and CRC | **467 bytes** |
 | Separate sound preferences | **Two one-byte values (mute and volume)** |
 | Previous community application image | **1513840 bytes** |
 | Previous verified merged image | **1579376 bytes** |
 
 Only one record is decoded into a 128-byte buffer; the entire bank is never
 loaded into RAM. The limit is 16384 records. Noto Sans CJK SC and
-`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2312 characters per
+`lv_font_conv 1.5.3` generate 12/20 px, 4 bpp fonts with **2313 characters per
 size**, covering current/legacy text, attribution, and UI literals. The OTF,
 1920 gallery PNGs, and audition WAVs are excluded from firmware. Sources and
 regeneration are in `assets/README.md`.
+
+## Rare encounters
+
+The 2200 common texts and 1920 common appearances keep their existing IDs. Thirty original rare texts use
+`0x20000000..0x2000001D`; ninety appearances follow `FORTUNE_RARE_ART_BASE`. The original six cards retain
+all eighteen appearance IDs; each new card appends three palettes, preserving saved signatures exactly.
+`fortune_rare.h` owns titles, complete text, editorial line breaks and rules; `fortune_pixels.c` draws thirty independent scenes.
+
+`fortune_draw_surprise` checks for a rare before calling the common draw, provided the selected scope has unread common cards.
+A rare consumes no common seen bit; the common deck stays nonrepeating. Optional topic draws also participate, while continuous
+letters and collection browsing do not. The base chance is 1%; the first successful encounter occurs by draw ten and subsequent
+gaps never exceed thirty draws. Each hit resets misses. A separate persisted nonzero xorshift32 stream uses rejection sampling;
+remixing and shuffling cannot reroll it. Undiscovered cards have priority; after completion, selection excludes the previous rare.
+The guarantees increase the effective long-run rate above 1%.
+
+The FTC4 state is 467 bytes: the old album payload plus a PRNG word, 32-bit unlock mask, miss counter,
+last rare ID and two reserved bytes, followed by whole-record CRC. FTC3 / 463-byte saves retain discoveries,
+random state and existing progress; old counters of 30–59 become 29 so the next draw is guaranteed under the new rule.
+FTC2 / 455-byte saves and prior FTC1 migrations remain readable, preserving signatures, favorites, seen records,
+appearances and seeds. Users without prior encounters receive the first-ten guarantee. Audio settings and letter
+bookmarks keep their separate records. New draws operate on a candidate; the complete record must commit before reveal.
+Failed saves leave the screen and draw unchanged for retry. Input during the envelope cannot consume a second draw.
+
+The eleventh type-selector item (ID 10) opens the permanent rare collection. Up/down browse unlocked originals without writing
+Flash; OK saves the original as the displayed signature. Rare discoveries are independent of the 16-slot album and cannot be
+removed. OK on a rare result displays it directly without album eviction. Three color variants preserve identity and original access.
+Gold envelopes use the existing skippable 1250 ms opening. Completion triggers a 1.9-second rare celebration:
+a full chord with a rounded low strike, ascending bells and sparkling echoes. Mute and chosen volume remain effective. Authored line breaks
+keep phrases intact; both font sizes cover all text. Rendering keeps the existing 108 by 58 RGB565 buffer without extra resident images.
+
+Coverage includes 512 simulated users rebooting after every draw, first-ten and later-thirty bounds, thirty distinct discoveries,
+independent base-rate sampling, full albums, old-save migration, CRC and invalid states, commit-failure retry, input during reveal,
+original retrieval after remix, and actual LVGL renders of all thirty cards/ninety palettes, empty collection, skipped reveal sound,
+active glyph coverage and label bounds. Physical display, audio and button feel require visual/audible device acceptance.
+
+Thirty-card validation with the enhanced rare audio on October 6, 2026: Build PASS and Host tests PASS; actual LVGL renders and seven simulator integration tests PASS.
+Application image: 1,568,368 bytes; merged image: 1,633,904 bytes. Full-image SHA-256:
+`4fc4ebf6e59e6ea8902fbfd68a1c63bac245c82d400fbd9fa17a67216d2d9656`; matching ELF SHA-256:
+`fb2b6d3dd00e0cfb38a61a11c2d7d0279d6b24e612d21d93431bce62d07728fb`.
+The archive is `build/firmware/<full-image SHA-256>/`; delivery evidence is in `build/rare-sound/delivery.json`.
+The connected device partition table matched. All three component writes at 0x0, 0x8000 and 0x10000 verified; NVS/PHY were not written.
+Device tests PASS is limited to flash verification and a 20-second startup observation: matching ELF, one boot, rare rules loaded,
+no rejected state or crash, 216144 bytes free heap and a 114688-byte largest block. Physical appearance, controls, sound,
+power-interruption recovery and extended use remain unverified.
+
+This exact merged image was submitted to existing project 914 as revision **2156** on October 6, 2026.
+The submission receipt and subsequent project query both confirm **pending review**;
+approved public revision **2134** remains available. Publisher 1.12.3 submitted bilingual descriptions,
+five-step instructions and this update's release notes as separate fields. The unchanged 3:4 cover
+and all four detail panels were inspected as completed images before upload; the rare panel uses
+actual application host renders. Source URL: `https://github.com/alienzhou/one-line`.
+The server confirmed the full-image hash and all text fields. Local receipts are kept in
+ignored `build/publish-914-rares/`; publication adds no physical acceptance evidence.
 
 ## Firmware and controls
 
@@ -281,17 +334,18 @@ for persistence APIs; physical power-loss behavior remains a device check.
 
 ## Sound and playback ownership
 
-Four original cue types accompany opening (1.15 s), reveal (0.8 s), keeping a
-signature (0.58 s), and changing artwork (0.28 s), each in four related melodic
-variants. The actual LVGL start/completion events trigger the opening and reveal;
+Five original cue types accompany opening (1.15 s), reveal (0.8 s), keeping a
+signature (0.58 s), changing artwork (0.28 s), and rare reveals (1.9 s), each in four related melodic
+variants. Rare cues add a stronger arrival chord, upward flourish and delayed sparkle notes; their mean-square
+PCM energy exceeds the ordinary reveal by at least three times, with tested peaks below 16000/32767. The actual LVGL start/completion events trigger the opening and reveal;
 pressing OK to skip replaces anticipation with exactly one reveal cue. Leaving a
 reveal programmatically cancels it without a completion sound. Music never loops.
 
 `fortune_sound.c` is a pure, allocation-free 16 kHz/16-bit mono renderer. Its
 scores, pitch increments, duration table and interpolated sine table total about
-680 bytes before alignment; samples are generated in 160-frame / 320-byte chunks.
-Each note has an 8 ms attack and a decaying envelope, and each cue ends with
-silence. `fortune_audio.c` owns one 4096-byte worker stack plus a single-slot
+802 bytes before alignment; samples are generated in 160-frame / 320-byte chunks.
+Bells have an 8 ms attack and the rare low strike has a 16 ms attack.
+Both use decaying envelopes, and each cue ends with silence. `fortune_audio.c` owns one 4096-byte worker stack plus a single-slot
 mailbox and a stop acknowledgement; it reuses `bsp_audio_*` without changing BSP,
 pins, codec clocks, partitions, or the dependency lock. The existing BSP allocates
 its I2S DMA buffers when first needed. Default output volume is 80 percent after the first device audition found
@@ -313,11 +367,11 @@ measured current. The externally powered amplifier remains outside software cont
 
 Sound starts enabled. Hold DOWN on a result or signature card to toggle it; the
 muted state is visible in the title. Separate NVS `sound` and `volume` bytes default to enabled and 80%
-for old saves; invalid/out-of-range volume values also use 80%. The 455-byte card format imports existing signatures. Mute preserves the selected volume.
+for old saves; invalid/out-of-range volume values also use 80%. The 467-byte FTC4 card format imports existing signatures. Mute preserves the selected volume.
 Audio failures leave drawing and saving available and show a short notice; later
 play requests retry the BSP path. No microphone capture is used.
 
-Recreate the seven completed audition WAVs with `python3 tools/render_fortune_audio.py`.
+Recreate the ten completed audition WAVs with `python3 tools/render_fortune_audio.py`.
 The WAVs use the actual firmware renderer and are excluded from firmware; preview
 hashes are in `assets/music/fortune-audio.json`. Host playback cannot verify the
 speaker's tone, loudness or electrical clicks.
@@ -333,7 +387,7 @@ phases confirms unchanged rendering of every legacy ID.
 The pixel renderer additionally passed AddressSanitizer and UndefinedBehaviorSanitizer.
 Input tests exercise the actual application controls, volume preview/save/cancel/clamping/reload, failed-save retry, muted-setting reload, legacy
 defaults, return-to-chance controls, stop timeouts and failed-save silence.
-Audio tests exercise all 16 scores for bounded peaks/DC, silent tails, unique
+Audio tests exercise all 20 scores for bounded peaks/DC, silent tails, unique
 samples and arbitrary chunk boundaries. A threaded test runs the actual audio
 worker through mute, replacement of rapid events, drain-before-save, timeout,
 idle/wake and initialization/format/wake/write failures. The synth and worker also
@@ -439,8 +493,8 @@ in ignored `build/favorites/`. Unverified: physical controls, saved-signature/fi
 favorite identity, Chinese readability, animation timing, sound, interrupted
 writes and endurance still require player or instrument checks.
 
-This update is submitted to existing community project 914 as revision 2072,
-pending review; public revision 1967 remains available. Firmware source commit
+At the time of this earlier update's submission to project 914, revision 2072 was
+pending review and public revision 1967 remained available. Firmware source commit
 `22ef0dd` is on the public `alienzhou/one-line` main branch. The submission uses
 the verified merged image above, the inspected existing cover and four completed
 application-rendered detail panels. Bilingual descriptions, five-step instructions

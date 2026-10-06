@@ -6,17 +6,17 @@
     "prompt": "Use case: text-localization. Edit target: the supplied One Fortune community cover. Preserve its beautiful pixel-art night window, glowing envelope, four stamp illustrations, warm paper textures, navy and cream palette, and portrait 3:4 composition. This is the updated cover for the same play, not a device photograph. Keep the large title 一签 unchanged. Replace the main tagline 抽一句懂你的话 with 拆开一句话，看看另一面, making it crisp readable Simplified Chinese and sized to fit. Keep 留作自己的签名. Replace the lower count 2112条完整签文 with 2200条完整签文. Replace the lower subtitle 离线陪伴・像素来信 with 古诗词・冷幽默・生活观察. Replace the small paper note 成为更喜欢的自己 with 生活不止一种说法. Keep the footer 玩法示意・ILLUSTRATION. Everything should be fully finished artwork, without generation or loading text. Exact portrait 3:4, ideally 1152x1536. Do not add hardware devices or logos. Preserve the visual style and all other illustration content.",
     "completion": "Completed tool result; copied file inspected with view_image at original detail",
     "illustration": true,
-    "reuse_inspection": "Exact unchanged cover inspected with view_image before the sixteen-card update submission"
+    "reuse_inspection": "Exact unchanged cover inspected with view_image before the thirty-card rare encounter submission"
   },
   "details": {
     "paths": [
-      "assets/images/community/themes.png",
-      "assets/images/community/poetry.png",
-      "assets/images/community/signature-skins.png",
-      "assets/images/community/collection.png"
+      "assets/images/community/rare-encounters.png",
+      "assets/images/community/collection.png",
+      "assets/images/community/continuous-letters.png",
+      "assets/images/community/signature-skins.png"
     ],
-    "method": "tools/render_fortune_release.py, composing completed application host renders",
-    "completion": "Renderer exited successfully with COMPLETE; all four final upload files inspected with view_image after rendering",
+    "method": "tools/render_fortune_rares.py and prior release renderers, composing completed application host renders",
+    "completion": "Rare renderer exited with COMPLETE; all four exact upload files inspected with view_image before submission",
     "device_photographs": false
   }
 }

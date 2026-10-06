@@ -157,6 +157,14 @@ static void open_album(void) {
 
 static void collect_current(unsigned slot) {
     fortune_state_t candidate=s_state;
+    if (fortune_rare_index(candidate.current.quote)<FORTUNE_RARE_COUNT) {
+        candidate.pinned=candidate.current;
+        if (!commit_candidate(&candidate)) return;
+        s_page=FORTUNE_SHOWCASE; s_keep_feedback=true;
+        s_notice="奇遇已珍藏，也已设为签名";
+        fortune_audio_play(FORTUNE_SOUND_KEEP,candidate.pinned.art);
+        return;
+    }
     bool existed=fortune_favorite_find(&s_state,s_state.current.quote)>=0;
     if (!fortune_favorite_save(&candidate,candidate.current,slot)) return;
     candidate.pinned=candidate.current;
@@ -301,6 +309,22 @@ static void process(input_t in) {
     } else return;
     s_notice = NULL;
     if(s_volume_open) { volume_input(in); return; }
+    if (s_page==FORTUNE_RARE_ALBUM && in.event==BSP_BTN_CLICK) {
+        unsigned count=fortune_rare_owned(&s_state);
+        if (!count) { return_home(); render(); return; }
+        if (in.key==BSP_BTN_OK) {
+            fortune_state_t candidate=s_state;
+            candidate.pinned=fortune_rare_card(fortune_rare_at(&s_state,s_album_index));
+            if (commit_candidate(&candidate)) {
+                s_page=FORTUNE_SHOWCASE; s_keep_feedback=true; s_notice=FT_ALBUM_PINNED;
+                fortune_audio_play(FORTUNE_SOUND_KEEP,candidate.pinned.art);
+            }
+        } else {
+            s_turn_direction=in.key==BSP_BTN_UP?-1:1;
+            s_album_index=(s_album_index+count+s_turn_direction)%count;
+        }
+        render(); return;
+    }
     if (s_page==FORTUNE_MAIL && (in.event==BSP_BTN_CLICK || in.key==BSP_BTN_OK)) { mail_input(in); return; }
     if (album_page() && !(in.event==BSP_BTN_LONG && in.key!=BSP_BTN_OK)) { album_input(in); return; }
     if (in.event == BSP_BTN_LONG) {
@@ -334,17 +358,23 @@ static void process(input_t in) {
         s_topic_candidate=(s_topic_candidate+(in.key==BSP_BTN_UP?FORTUNE_TOPIC_COUNT-1:1))%FORTUNE_TOPIC_COUNT;
     } else if (s_page==FORTUNE_TOPICS && s_topic_candidate==FORTUNE_MAIL_TOPIC) {
         open_mail();
+    } else if (s_page==FORTUNE_TOPICS && s_topic_candidate==FORTUNE_RARE_TOPIC) {
+        s_album_index=0; s_page=FORTUNE_RARE_ALBUM;
     } else if (((s_page == FORTUNE_HOME || s_page==FORTUNE_TOPICS) && in.key == BSP_BTN_OK) ||
                (s_page != FORTUNE_HOME && in.key == BSP_BTN_UP)) {
-        if(s_page==FORTUNE_HOME) fortune_select_topic(&s_state,0);
-        else if(s_page==FORTUNE_TOPICS) fortune_select_topic(&s_state,s_topic_candidate);
-        if (fortune_draw(&s_state)) {
-            save_after_change(); /* Commit seen state before reveal; never store while holding LVGL lock. */
-            s_page = FORTUNE_REVEAL;
-            s_unwrap_requested = true;
+        fortune_state_t candidate=s_state;
+        if(s_page==FORTUNE_HOME) fortune_select_topic(&candidate,0);
+        else if(s_page==FORTUNE_TOPICS) fortune_select_topic(&candidate,s_topic_candidate);
+        if (fortune_draw_surprise(&candidate)) {
+            /* Atomically persist discovery, pity and card before showing it.
+             * Failure leaves the same draw available for a deterministic retry. */
+            if (commit_candidate(&candidate)) {
+                s_page = FORTUNE_REVEAL;
+                s_unwrap_requested = true;
+            }
         } else {
-            s_topic_candidate=s_state.mood;
-            s_page=s_state.mood?FORTUNE_TOPICS:FORTUNE_HOME;
+            s_topic_candidate=candidate.mood;
+            s_page=candidate.mood?FORTUNE_TOPICS:FORTUNE_HOME;
             s_notice = FT_EXHAUSTED_HINT;
         }
     } else if (in.key == BSP_BTN_DOWN) {
@@ -356,7 +386,8 @@ static void process(input_t in) {
         if (commit_candidate(&candidate)) fortune_audio_play(FORTUNE_SOUND_SKIN,card->art);
     } else if (in.key == BSP_BTN_OK) {
         if (s_page == FORTUNE_REVEAL) {
-            if (s_state.favorite_count==FORTUNE_FAVORITE_CAPACITY &&
+            if (fortune_rare_index(s_state.current.quote)==FORTUNE_RARE_NONE &&
+                s_state.favorite_count==FORTUNE_FAVORITE_CAPACITY &&
                 fortune_favorite_find(&s_state,s_state.current.quote)<0) {
                 s_album_index=0; s_page=FORTUNE_ALBUM_REPLACE;
             } else collect_current(s_state.favorite_count);
@@ -401,6 +432,9 @@ void app_main(void) {
     ESP_LOGI(TAG, "Fortune collection: %u complete records, %u procedural appearances",
              FORTUNE_COUNT, FORTUNE_ART_COUNT);
     load();
+    ESP_LOGI(TAG, "Rare encounters: %u/%u unlocked, misses=%u; first<=%u, base=%u%%, pity=%u",
+        fortune_rare_owned(&s_state), FORTUNE_RARE_COUNT, s_state.rare_misses,
+        FORTUNE_RARE_FIRST_PITY, FORTUNE_RARE_PERCENT, FORTUNE_RARE_PITY);
     s_page = s_mail.active?FORTUNE_MAIL:s_state.pinned.quote != FORTUNE_NO_CARD ? FORTUNE_SHOWCASE : FORTUNE_HOME;
     if (bsp_display_init() != ESP_OK || !bsp_lvgl_init()) { ESP_LOGE(TAG, "Display init failed"); return; }
     if (!bsp_lvgl_lock(1000)) return;

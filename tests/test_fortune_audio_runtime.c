@@ -130,7 +130,7 @@ int main(void) {
     assert(atomic_load(&device_volume)==100);
     assert(fortune_audio_quiet()); fortune_audio_resume(); fortune_audio_volume(80);
     fortune_audio_enable(false); assert(fortune_audio_quiet()); fortune_audio_resume();
-    before=atomic_load(&writes); fortune_audio_play(FORTUNE_SOUND_REVEAL,0); delay_us(10000); assert(atomic_load(&writes)==before);
+    before=atomic_load(&writes); fortune_audio_play(FORTUNE_SOUND_RARE,0); delay_us(10000); assert(atomic_load(&writes)==before);
     fortune_audio_enable(true); fortune_audio_play(FORTUNE_SOUND_SKIN,0);
     until_at_least(&writes,before+3); unsigned slept=atomic_load(&sleeps); until_at_least(&sleeps,slept+1);
     assert(!atomic_load(&device_open)); unsigned woke=atomic_load(&wakes);
@@ -139,6 +139,19 @@ int main(void) {
     before=atomic_load(&writes); atomic_store(&hold_write,true); fortune_audio_play(FORTUNE_SOUND_OPEN,0);
     until_at_least(&writes,before+1); assert(!fortune_audio_quiet());
     atomic_store(&hold_write,false); assert(fortune_audio_quiet()); fortune_audio_resume(); stop_fixture();
+    /* The longer rare celebration streams completely, then sleeps; storage can
+     * also interrupt it without losing the normal drain acknowledgement. */
+    assert(fortune_audio_start(true));
+    slept=atomic_load(&sleeps); fortune_audio_play(FORTUNE_SOUND_RARE,0);
+    until_at_least(&sleeps,slept+1); assert(!atomic_load(&device_open));
+    int16_t rare_expected[30400];
+    n=fortune_sound_render(FORTUNE_SOUND_RARE,0,0,rare_expected,30400); assert(n==30400);
+    found=false;
+    for(size_t i=0;i+n<=captured_count;++i) if(!memcmp(captured+i,rare_expected,n*2)) { found=true; break; }
+    assert(found);
+    before=atomic_load(&nonzero_writes); fortune_audio_play(FORTUNE_SOUND_RARE,3);
+    until_at_least(&nonzero_writes,before+4); assert(fortune_audio_quiet());
+    assert(!atomic_load(&device_open)); fortune_audio_resume(); stop_fixture();
     for(unsigned stage=1;stage<=4;++stage) {
         assert(fortune_audio_start(true)); atomic_store(&fail_stage,stage);
         if(stage==3) { fortune_audio_play(FORTUNE_SOUND_SKIN,0); delay_us(50000); assert(fortune_audio_quiet()); fortune_audio_resume(); }

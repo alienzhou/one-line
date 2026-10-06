@@ -52,6 +52,34 @@ int main(void) {
         fortune_pixel_unwrap(guarded+1,2976,step);
         assert(guarded[0]==0xA55A && guarded[N+1]==0x5AA5);
     }
+    for(unsigned id=FORTUNE_RARE_ART_BASE;id<FORTUNE_ART_COUNT;++id) {
+        fortune_pixels(reference,id,0); unsigned total_changed=0;
+        for(unsigned frame=1;frame<64;++frame) {
+            fortune_pixels(guarded+1,id,frame);
+            for(unsigned j=0;j<N;++j) total_changed+=reference[j]!=guarded[j+1];
+            assert(guarded[0]==0xA55A && guarded[N+1]==0x5AA5);
+        }
+        assert(total_changed>0);
+        for(unsigned step=0;step<10;++step) {
+            fortune_pixel_unwrap(guarded+1,id,step);
+            assert(guarded[0]==0xA55A && guarded[N+1]==0x5AA5);
+        }
+    }
+    /* The original six cards must retain the exact eighteen pixel appearances. */
+    uint64_t rare_original=14695981039346656037ULL;
+    for(unsigned id=FORTUNE_RARE_ART_BASE;id<FORTUNE_RARE_ART_BASE+18;++id)
+        for(unsigned f=0;f<5;++f) {
+            fortune_pixels(reference,id,(unsigned[]){0,7,16,31,63}[f]);
+            for(unsigned j=0;j<N;++j) {rare_original^=reference[j];rare_original*=1099511628211ULL;}
+        }
+    assert(rare_original==5471341634771373940ULL);
+    uint64_t rare_twenty=14695981039346656037ULL;
+    for(unsigned id=FORTUNE_RARE_ART_BASE;id<FORTUNE_RARE_ART_BASE+60;++id)
+        for(unsigned f=0;f<5;++f) {
+            fortune_pixels(reference,id,(unsigned[]){0,7,16,31,63}[f]);
+            for(unsigned j=0;j<N;++j) {rare_twenty^=reference[j];rare_twenty*=1099511628211ULL;}
+        }
+    assert(rare_twenty==11488137308271137302ULL);
     printf("Pixel scenes: PASS (%u distinct images, %u scene/subject skins, exact legacy rendering; min subject change %u, max motion %u/%u pixels)\n",unique,FORTUNE_SKIN_COUNT,min_subject_change,max_change,N);
     return 0;
 }

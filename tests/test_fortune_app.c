@@ -76,7 +76,7 @@ void fortune_ui_update(const fortune_state_t *state,fortune_page_t page,int batt
 }
 bool fortune_ui_revealing(void) { assert(locked); return opening; }
 void fortune_ui_begin_reveal(void) { assert(locked); opening=true; fortune_audio_play(FORTUNE_SOUND_OPEN,s_state.current.art); }
-void fortune_ui_finish_reveal(void) { assert(locked); if(opening) fortune_audio_play(FORTUNE_SOUND_REVEAL,s_state.current.art); opening=false; }
+void fortune_ui_finish_reveal(void) { assert(locked); if(opening) fortune_audio_play(fortune_rare_art(s_state.current.art)?FORTUNE_SOUND_RARE:FORTUNE_SOUND_REVEAL,s_state.current.art); opening=false; }
 
 int main(void) {
     load(); assert(s_sound_enabled && s_storage_ready && s_volume==80); s_page=FORTUNE_HOME;
@@ -151,13 +151,17 @@ int main(void) {
     assert(commits>0);
     /* Exercise all 16 slots using actual draw/skip/collect button events. */
     fortune_defaults(&s_state,777); s_page=FORTUNE_HOME; s_volume_open=false;
-    for(unsigned i=0;i<16;++i) {
-        process((input_t){i?BSP_BTN_UP:BSP_BTN_OK,BSP_BTN_CLICK});
+    while(s_state.favorite_count<16) {
+        unsigned i=s_state.favorite_count;
+        process((input_t){s_page==FORTUNE_HOME?BSP_BTN_OK:BSP_BTN_UP,BSP_BTN_CLICK});
         process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); /* Skip only. */
+        bool rare=fortune_rare_index(s_state.current.quote)<FORTUNE_RARE_COUNT;
         process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
-        assert(s_state.favorite_count==i+1 && s_page==FORTUNE_SHOWCASE);
+        assert(s_state.favorite_count==i+(rare?0:1) && s_page==FORTUNE_SHOWCASE);
     }
-    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    do {
+        process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    } while(fortune_rare_index(s_state.current.quote)<FORTUNE_RARE_COUNT);
     fortune_state_t full=s_state;
     process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_ALBUM_REPLACE);
     before=writes;
@@ -213,6 +217,7 @@ int main(void) {
     fortune_state_t deck=s_state; uint8_t volume=s_volume; bool sound=s_sound_enabled;
     before=writes;
     process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_page==FORTUNE_TOPICS);
+    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); assert(s_topic_candidate==FORTUNE_RARE_TOPIC);
     process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); assert(s_topic_candidate==FORTUNE_MAIL_TOPIC);
     process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
     assert(s_page==FORTUNE_MAIL && !s_mail.active && !s_mail_view.reading && writes==before);
@@ -270,5 +275,28 @@ int main(void) {
     assert(s_page==FORTUNE_HOME && s_mail_corrupt && writes==before && !memcmp(corrupt,saved_mail,16));
     assert(!memcmp(&s_state,&deck,sizeof(deck)) && s_volume==volume && s_sound_enabled==sound);
     puts("Continuous letters app: PASS (type selection, non-destructive random preview, confirm/resume, fixed down-for-art, linear OK reading, per-story bookmarks, failure retry, corruption preservation, collection isolation)");
+    /* Pity, unlock and reveal form one transaction. Browsing cannot lose a rare. */
+    fortune_defaults(&s_state,41); s_state.rare_misses=9; s_page=FORTUNE_HOME;
+    for(unsigned i=0;i<16;++i) assert(fortune_favorite_save(&s_state,(fortune_card_t){i,2976},i));
+    fortune_state_t pending=s_state; fail_commit=true;
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_save_error && !opening && s_page==FORTUNE_HOME && !memcmp(&pending,&s_state,sizeof(pending)));
+    fail_commit=false; process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(opening && fortune_rare_owned(&s_state)==1 && s_state.rare_misses==0);
+    fortune_card_t rare=s_state.current; uint32_t random=s_state.rare_random;
+    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); assert(s_state.rare_random==random);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(!opening && sounds[FORTUNE_SOUND_RARE]);
+    process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(s_state.current.art!=rare.art);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_SHOWCASE && s_state.favorite_count==16);
+    assert(!memcmp(s_state.favorites,pending.favorites,sizeof(pending.favorites)));
+    load(); assert(s_state.rare_unlocked && s_state.rare_random==random && s_state.pinned.quote==rare.quote);
+    process((input_t){BSP_BTN_OK,BSP_BTN_LONG});
+    process((input_t){BSP_BTN_UP,BSP_BTN_CLICK}); process((input_t){BSP_BTN_UP,BSP_BTN_CLICK});
+    assert(s_topic_candidate==FORTUNE_RARE_TOPIC);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK}); assert(s_page==FORTUNE_RARE_ALBUM);
+    before=writes; process((input_t){BSP_BTN_DOWN,BSP_BTN_CLICK}); assert(writes==before);
+    process((input_t){BSP_BTN_OK,BSP_BTN_CLICK});
+    assert(s_page==FORTUNE_SHOWCASE && s_state.pinned.art==rare.art && s_state.favorite_count==16);
+    puts("Rare app: PASS (commit failure/retry before reveal, full album independence, repeated key/skin isolation, restart, original retrieval and pin)");
     return 0;
 }

@@ -73,7 +73,7 @@ class Engine:
         except (FileNotFoundError, ValueError):
             self.history = []
         self.state = self._read(); self.last_tick = time.monotonic()
-        self.topics = json.loads((ROOT / 'assets/fortune/corpus.json').read_text())['moods'] + ['连续来信']
+        self.topics = json.loads((ROOT / 'assets/fortune/corpus.json').read_text())['moods'] + ['连续来信', '奇遇珍藏']
 
     def _read(self):
         while True:
@@ -118,12 +118,12 @@ class Engine:
                 self.command(f'key {button} {event}')
             elif action == 'topic':
                 topic = body.get('topic')
-                if type(topic) is not int or not 0 <= topic <= 9:
+                if type(topic) is not int or not 0 <= topic <= 10:
                     raise ValueError('Invalid topic')
                 self.command(f'topic {topic}')
             elif action == 'batch':
-                if self.state['page'] == 9 or (self.state['page'] == 3 and self.state['topic_candidate'] == 9):
-                    raise ValueError('连续来信请用上键换组、确定读信')
+                if self.state['page'] in (9, 10) or (self.state['page'] == 3 and self.state['topic_candidate'] in (9, 10)):
+                    raise ValueError('请返回短句类型后再批量抽签')
                 for _ in range(20):
                     self.command('draw')
             elif action == 'reboot':

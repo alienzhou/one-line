@@ -173,7 +173,7 @@ static void advance(unsigned ms) {
 static void key(bsp_btn_t button,bsp_btn_ev_t event) {
     uint32_t old=s_state.current.quote;
     process((input_t){button,event});
-    if(s_state.current.quote!=old && s_state.current.quote<FORTUNE_COUNT) drawn=true;
+    if(s_state.current.quote!=old && s_state.current.quote!=FORTUNE_NO_CARD) drawn=true;
 }
 static void json_string(const char *text) {
     putchar('"');
@@ -188,7 +188,9 @@ static void card_json(fortune_card_t c) {
     char text[128]; fortune_decode(c.quote,text,sizeof(text));
     printf("{\"id\":%u,\"art\":%u,\"theme\":%u,\"text\":",c.quote,c.art,
            c.quote<FORTUNE_COUNT?FORTUNE_RECORDS[c.quote].mood:0);
-    json_string(text); printf(",\"citation\":"); json_string(fortune_citation(c.quote)); printf("}");
+    json_string(text); printf(",\"rare\":%s,\"rare_title\":",fortune_rare_index(c.quote)<FORTUNE_RARE_COUNT?"true":"false");
+    json_string(fortune_rare_title(fortune_rare_index(c.quote)));
+    printf(",\"citation\":"); json_string(fortune_citation(c.quote)); printf("}");
 }
 static void status(void) {
     write_frame(); unsigned unread[9]={0},seen=0;
@@ -199,6 +201,10 @@ static void status(void) {
     printf("{\"page\":%u,\"topic\":%u,\"seed\":%u,\"cycle\":%u,\"cursor\":%u,\"seen\":%u,\"remaining\":%u,",
            s_page,s_state.mood,s_state.seed,s_state.cycle,s_state.cursor,seen,fortune_remaining(&s_state));
     printf("\"topic_candidate\":%u,",s_topic_candidate);
+    printf("\"rare_total\":%u,",FORTUNE_RARE_COUNT);
+    printf("\"rare_owned\":%u,\"rare_misses\":%u,\"rare_gallery\":[",fortune_rare_owned(&s_state),s_state.rare_misses);
+    for(unsigned i=0;i<fortune_rare_owned(&s_state);++i) { if(i) putchar(','); card_json(fortune_rare_card(fortune_rare_at(&s_state,i))); }
+    printf("],");
     printf("\"mail\":{\"story\":%u,\"page\":%u,\"style\":%u,\"reading\":%s,\"active\":%s,\"selected\":%u,\"error\":%s,\"corrupt\":%s,\"count\":%u,\"title\":",
         s_mail_view.story,s_mail_view.page,s_mail_view.style,s_mail_view.reading?"true":"false",s_mail.active?"true":"false",
         s_mail.selected,s_mail_error?"true":"false",s_mail_corrupt?"true":"false",fortune_mail_pages(s_mail_view.story));
@@ -242,7 +248,7 @@ int main(int argc,char **argv) {
         } else if(!strncmp(line,"draw",4)) {
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
             if(s_volume_open) key(BSP_BTN_OK,BSP_BTN_LONG);
-            while(album_page() || s_page==FORTUNE_MAIL) key(BSP_BTN_OK,BSP_BTN_LONG);
+            while(album_page() || s_page==FORTUNE_MAIL || s_page==FORTUNE_RARE_ALBUM) key(BSP_BTN_OK,BSP_BTN_LONG);
             key(s_page==FORTUNE_HOME||s_page==FORTUNE_TOPICS?BSP_BTN_OK:BSP_BTN_UP,BSP_BTN_CLICK);
             if(fortune_ui_revealing()) key(BSP_BTN_OK,BSP_BTN_CLICK);
         } else if(!strncmp(line,"reboot",6)) {

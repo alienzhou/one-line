@@ -24,6 +24,7 @@ static unsigned s_wipe_step=3;
 static uint32_t s_old_id,s_quote_id=FORTUNE_NO_CARD;
 static fortune_page_t s_page=FORTUNE_HOME;
 static char s_final_quote[128],s_final_caption[128],s_final_help[128],s_final_hint[128];
+static char s_final_meta[96];
 static lv_timer_t *s_timer;
 static void (*s_sound_callback)(fortune_sound_t,unsigned);
 static bool s_sound_enabled=true;
@@ -82,6 +83,20 @@ static void format_quote(const char *in,char out[128]) {
 }
 
 static void artwork(lv_event_t *event) {
+    if (fortune_rare_art(s_id)) {
+        fortune_colors_t p=fortune_pixel_colors(s_id);
+        lv_draw_rect_dsc_t trim; lv_draw_rect_dsc_init(&trim);
+        trim.bg_opa=LV_OPA_TRANSP; trim.border_color=lv_color_hex(p.accent);
+        trim.border_opa=LV_OPA_50; trim.border_width=1; trim.radius=4;
+        lv_area_t outer={7,7,232,274}; lv_draw_rect(lv_event_get_layer(event),&trim,&outer);
+        trim.border_opa=LV_OPA_20; trim.radius=1;
+        lv_area_t inner={10,10,229,271}; lv_draw_rect(lv_event_get_layer(event),&trim,&inner);
+        trim.border_width=0; trim.bg_opa=LV_OPA_COVER; trim.bg_color=lv_color_hex(p.accent);
+        for(int i=0;i<3;++i) {
+            int r=i==1?2:1,x=111+i*9;
+            lv_area_t jewel={x-r,262-r,x+r,262+r}; lv_draw_rect(lv_event_get_layer(event),&trim,&jewel);
+        }
+    }
     lv_draw_image_dsc_t d; lv_draw_image_dsc_init(&d);
     d.src=&s_image; d.scale_x=d.scale_y=512; d.pivot.x=d.pivot.y=0; d.antialias=0;
     static const int turn_offset[]={10,8,6,4,2,1,0,0,0};
@@ -167,24 +182,30 @@ void fortune_ui_kept(void) {
 static void finish_reveal(bool audible) {
     if(!s_revealing) return;
     s_revealing=false;
+    lv_label_set_text(s_meta,s_final_meta);
     lv_label_set_text(s_quote,s_final_quote); lv_label_set_text(s_caption,s_final_caption);
     lv_label_set_text(s_help,s_final_help); lv_label_set_text(s_hint,s_final_hint);
     fortune_pixels(s_pixels,s_id,0); lv_image_cache_drop(&s_image); lv_obj_invalidate(s_root);
-    if(audible && s_sound_callback) s_sound_callback(FORTUNE_SOUND_REVEAL,s_id);
+    if(audible && s_sound_callback)
+        s_sound_callback(fortune_rare_art(s_id)?FORTUNE_SOUND_RARE:FORTUNE_SOUND_REVEAL,s_id);
 }
 void fortune_ui_finish_reveal(void) { finish_reveal(true); }
 void fortune_ui_begin_reveal(void) {
     reset_turn(); s_keep_step=12; lv_timer_set_period(s_timer,125);
     snprintf(s_final_quote,sizeof(s_final_quote),"%s",lv_label_get_text(s_quote));
+    snprintf(s_final_meta,sizeof(s_final_meta),"%s",lv_label_get_text(s_meta));
     snprintf(s_final_caption,sizeof(s_final_caption),"%s",lv_label_get_text(s_caption));
     snprintf(s_final_help,sizeof(s_final_help),"%s",lv_label_get_text(s_help));
     snprintf(s_final_hint,sizeof(s_final_hint),"%s",lv_label_get_text(s_hint));
     s_revealing=true; s_reveal_step=0;
     lv_timer_reset(s_timer);
     s_wipe_step=3;
-    lv_label_set_text(s_quote,"生活来信\n正在路上");
-    lv_label_set_text(s_caption,"给此刻的你 / 待拆封");
-    lv_label_set_text(s_help,"一点未知，一点期待"); lv_label_set_text(s_hint,"按确定可直接拆开");
+    bool rare=fortune_rare_art(s_id);
+    if (rare) lv_label_set_text(s_meta,"一签 / 特别来信");
+    lv_label_set_text(s_quote,rare?"有一封信\n正闪着光":"生活来信\n正在路上");
+    lv_label_set_text(s_caption,rare?"星光邮戳 / 特别来信":"给此刻的你 / 待拆封");
+    lv_label_set_text(s_help,rare?"这一次，遇见一点不平凡":"一点未知，一点期待");
+    lv_label_set_text(s_hint,"按确定可直接拆开");
     fortune_pixel_unwrap(s_pixels,s_id,0); lv_image_cache_drop(&s_image); lv_obj_invalidate(s_root);
     if(s_sound_callback) s_sound_callback(FORTUNE_SOUND_OPEN,s_id);
 }
@@ -256,6 +277,7 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     if (s_page==FORTUNE_MAIL) reset_turn();
     fortune_card_t card=is_album(page) && page!=FORTUNE_ALBUM_CONFIRM && s->favorite_count &&
         s_album_index<s->favorite_count?s->favorites[s_album_index]:page==FORTUNE_SHOWCASE?s->pinned:s->current;
+    if (page==FORTUNE_RARE_ALBUM) card=fortune_rare_card(fortune_rare_at(s,s_album_index));
     if (page==FORTUNE_ALBUM && !s->favorite_count) card.quote=FORTUNE_NO_CARD;
     uint32_t id=page==FORTUNE_HOME||page==FORTUNE_TOPICS||card.quote==FORTUNE_NO_CARD?2976:card.art;
     bool navigation=page!=s_page || card.quote!=s_quote_id || id!=s_id;
@@ -284,14 +306,21 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
         lv_label_set_text_fmt(s_meta,"一签 / 全库%s",s_sound_enabled?"":" · 静音"); lv_label_set_text(s_quote,FT_HOME);
         lv_label_set_text_fmt(s_caption,"短句与连续信 / %lu 张未读",(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_HOME_HELP);
-        lv_label_set_text(s_hint,notice?notice:FT_HOME_HINT);
+        lv_label_set_text(s_hint,notice?notice:s->rare_unlocked?FT_HOME_HINT:"十抽内必遇 · 长确定签册");
     } else if(page==FORTUNE_TOPICS) {
         lv_label_set_text(s_meta,"一签 / 选择类型");
         lv_label_set_text_fmt(s_quote,"< %s >",s->mood?FORTUNE_MOODS[s->mood]:"全库随机");
         if (s->mood==FORTUNE_MAIL_TOPIC) lv_label_set_text(s_caption,"四组连续故事 / 先看看再选定");
+        else if (s->mood==FORTUNE_RARE_TOPIC) lv_label_set_text_fmt(s_caption,"已发现 %u/%u / 永久保留原版",fortune_rare_owned(s),FORTUNE_RARE_COUNT);
         else lv_label_set_text_fmt(s_caption,"%lu 张未读 / 确定才生效",(unsigned long)fortune_remaining(s));
         lv_label_set_text(s_help,FT_TOPICS_HELP);
         lv_label_set_text(s_hint,notice?notice:FT_TOPICS_HINT);
+    } else if (page==FORTUNE_RARE_ALBUM && !s->rare_unlocked) {
+        lv_label_set_text_fmt(s_meta,"一签 / 奇遇珍藏 0/%u",FORTUNE_RARE_COUNT);
+        lv_label_set_text(s_quote,"特别的来信\n会在途中相遇");
+        lv_label_set_text(s_caption,"首次十抽内必得 / 自动珍藏");
+        lv_label_set_text(s_help,"确定回首页，拆一封来信");
+        lv_label_set_text(s_hint,notice?notice:"之后概率 1% · 三十抽保底");
     } else if (page==FORTUNE_ALBUM && !s->favorite_count) {
         lv_label_set_text(s_meta,"一签 / 签册 0/16");
         lv_label_set_text(s_quote,FT_ALBUM_EMPTY);
@@ -310,16 +339,27 @@ void fortune_ui_update(const fortune_state_t *s,fortune_page_t page,int battery,
     } else {
         if(!fortune_decode(card.quote,quote,sizeof(quote))) snprintf(quote,sizeof(quote),"暂无签文");
         char formatted[128]; format_quote(quote,formatted);
+        unsigned rare=fortune_rare_index(card.quote);
         if (is_album(page)) {
             if (page==FORTUNE_ALBUM_CONFIRM) lv_label_set_text_fmt(s_meta,"新签 / 替换第 %02u 张？",s_album_index+1);
             else if (page==FORTUNE_ALBUM_REMOVE) lv_label_set_text_fmt(s_meta,"移出第 %02u 张？",s_album_index+1);
             else lv_label_set_text_fmt(s_meta,"%s / %02u/%02u",page==FORTUNE_ALBUM_REPLACE?"替换":"签册",s_album_index+1,s->favorite_count);
-        } else lv_label_set_text_fmt(s_meta,"一签 / %s%s",s->mood?FORTUNE_MOODS[s->mood]:"全库随机",s_sound_enabled?"":" · 静音");
-        lv_label_set_text(s_quote,formatted);
+        } else if (rare<FORTUNE_RARE_COUNT)
+            lv_label_set_text_fmt(s_meta,"奇遇 / %s",fortune_rare_title(rare));
+        else lv_label_set_text_fmt(s_meta,"一签 / %s%s",s->mood?FORTUNE_MOODS[s->mood]:"全库随机",s_sound_enabled?"":" · 静音");
+        lv_label_set_text(s_quote,rare<FORTUNE_RARE_COUNT?fortune_rare_display_text(rare):formatted);
         const char *citation = fortune_citation(card.quote);
-        if (*citation) lv_label_set_text(s_caption,citation);
+        if (rare<FORTUNE_RARE_COUNT)
+            lv_label_set_text_fmt(s_caption,"珍藏 %02u/%02u / 已发现 %u 款",rare+1,FORTUNE_RARE_COUNT,fortune_rare_owned(s));
+        else if (*citation) lv_label_set_text(s_caption,citation);
         else lv_label_set_text_fmt(s_caption,"NO.%04lu  /  %s",(unsigned long)(card.quote & ~(FORTUNE_LEGACY_QUOTE | FORTUNE_PREVIOUS_QUOTE))+1,card.quote<FORTUNE_COUNT?FORTUNE_MOODS[FORTUNE_RECORDS[card.quote].mood]:"已留签名");
-        if (page==FORTUNE_ALBUM_REMOVE || page==FORTUNE_ALBUM_CONFIRM) {
+        if (page==FORTUNE_RARE_ALBUM) {
+            lv_label_set_text(s_help,"上/下翻阅 · 确定设为签名");
+            lv_label_set_text(s_hint,notice?notice:"原版永久保留 · 长确定首页");
+        } else if (rare<FORTUNE_RARE_COUNT && !is_album(page)) {
+            lv_label_set_text(s_help,page==FORTUNE_REVEAL?"上再抽 · 下换色 · 确定留签":FT_SHOW_HELP);
+            lv_label_set_text(s_hint,notice?notice:page==FORTUNE_REVEAL?"已自动珍藏 · 类型页可找回":FT_SHOW_HINT);
+        } else if (page==FORTUNE_ALBUM_REMOVE || page==FORTUNE_ALBUM_CONFIRM) {
             lv_label_set_text_fmt(s_help,"%s取消    %s%s",s_album_confirm?"  ":"> ",s_album_confirm?"> ":"  ",
                 page==FORTUNE_ALBUM_REMOVE?"移出签册":"确定替换");
             lv_label_set_text(s_hint,notice?notice:"上/下选择 · 长确定返回");

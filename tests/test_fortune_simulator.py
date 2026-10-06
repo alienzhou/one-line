@@ -29,12 +29,12 @@ class SimulatorTests(unittest.TestCase):
         self.engine.action(dict(action='batch'))
         batch = [h['id'] for h in self.engine.history]
         self.assertEqual(len(set(batch)), 20)
-        self.assertEqual(self.engine.response()['history_counts'][2], 4)
+        self.assertTrue(any(h.get('rare') for h in self.engine.history[:10]))
         self.engine.action(dict(action='fresh', seed=42))
         for i in range(20):
             self.key('ok' if i == 0 else 'up'); self.key('ok') # Reveal skip.
         self.assertEqual(batch, [h['id'] for h in self.engine.history])
-        self.assertEqual(self.engine.state['seen'], 20)
+        self.assertEqual(self.engine.state['seen'], sum(not h.get('rare') for h in self.engine.history))
         self.assertTrue((Path(self.temp.name) / 'frame.bmp').read_bytes().startswith(b'BM'))
 
     def test_letters_preview_confirm_restart_and_independent_bookmarks(self):
@@ -82,7 +82,7 @@ class SimulatorTests(unittest.TestCase):
         self.assertEqual(self.engine.state['topic'], 0)
         self.engine.action(dict(action='topic', topic=1))
         self.engine.action(dict(action='batch'))
-        self.assertTrue(all(h['theme'] == 1 for h in self.engine.history))
+        self.assertTrue(all(h.get('rare') or h['theme'] == 1 for h in self.engine.history))
         self.key('ok'); pinned = self.engine.state['pinned']
         self.key('up', 'long'); self.key('down'); self.key('ok')
         self.assertEqual(self.engine.state['volume'], 70)
@@ -94,7 +94,7 @@ class SimulatorTests(unittest.TestCase):
         self.assertEqual(self.engine.state['topic'], 0)
         self.assertEqual(self.engine.state['volume'], 70)
         self.assertEqual(self.engine.state['pinned'], pinned)
-        self.assertEqual(self.engine.state['seen'], 20)
+        self.assertEqual(self.engine.state['seen'], sum(not h.get('rare') for h in self.engine.history))
         self.key('up')
         self.assertEqual(self.engine.state['topic'], 0)
         self.assertNotIn(self.engine.state['current']['id'], [h['id'] for h in self.engine.history[:-1]])
@@ -116,7 +116,7 @@ class SimulatorTests(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(req)
             self.assertEqual(error.exception.code, 403)
             self.assertEqual(len(self.engine.history), 20)
-            req = urllib.request.Request(base + '/api/action', data=b'{"action":"topic","topic":10}')
+            req = urllib.request.Request(base + '/api/action', data=b'{"action":"topic","topic":11}')
             with self.assertRaises(urllib.error.HTTPError) as error: urllib.request.urlopen(req)
             self.assertEqual(error.exception.code, 400)
         finally:
@@ -127,12 +127,45 @@ class SimulatorTests(unittest.TestCase):
         self.engine.close()
         self.assertIsNotNone(self.engine.process.poll())
 
+    def test_rare_first_ten_restart_and_permanent_gallery(self):
+        self.engine.action(dict(action='topic', topic=10)); self.key('ok')
+        self.assertEqual((self.engine.state['page'], self.engine.state['rare_owned']), (10, 0))
+        with self.assertRaises(ValueError): self.engine.action(dict(action='batch'))
+        self.key('ok', 'long')
+        rare = None
+        for draw in range(10):
+            self.engine.command('draw')
+            if self.engine.state['current']['rare']:
+                rare = self.engine.state['current'].copy()
+                self.assertEqual(self.engine.state['sound'], 5) # Actual rare reveal score.
+                break
+            if draw == 4:
+                misses = self.engine.state['rare_misses']
+                self.engine.action(dict(action='reboot'))
+                self.assertEqual(self.engine.state['rare_misses'], misses)
+        self.assertIsNotNone(rare)
+        self.assertEqual(self.engine.state['favorite_count'], 0)
+        self.key('down')
+        self.assertNotEqual(self.engine.state['current']['art'], rare['art'])
+        self.engine.action(dict(action='reboot'))
+        self.assertEqual(self.engine.state['rare_owned'], 1)
+        self.engine.action(dict(action='topic', topic=10)); self.key('ok')
+        self.assertEqual(self.engine.state['rare_gallery'], [rare])
+        saved = (Path(self.temp.name) / 'state.bin').read_bytes()
+        self.key('up'); self.key('down')
+        self.assertEqual((Path(self.temp.name) / 'state.bin').read_bytes(), saved)
+        self.key('ok')
+        self.assertEqual(self.engine.state['pinned'], rare)
+        self.assertEqual(self.engine.state['favorite_count'], 0)
+
     def test_collection_full_replace_remove_and_restart(self):
-        for _ in range(16):
+        while self.engine.state['favorite_count'] < 16:
             self.engine.command('draw'); self.key('ok')
         self.assertEqual(self.engine.state['favorite_count'], 16)
         original = self.engine.state['favorites'][:]
-        self.engine.command('draw'); new = self.engine.state['current']
+        self.engine.command('draw')
+        while self.engine.state['current'].get('rare'): self.engine.command('draw')
+        new = self.engine.state['current']
         self.key('ok'); self.assertEqual(self.engine.state['page'], 7)
         self.key('down'); self.key('ok')
         self.assertFalse(self.engine.state['album_confirm'])

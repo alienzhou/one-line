@@ -39,7 +39,9 @@ with tempfile.TemporaryDirectory() as tmp:
         _fields_=[('corpus_id',ctypes.c_uint32),('seed',ctypes.c_uint32),('cursor',ctypes.c_uint32),
                   ('art_cursor',ctypes.c_uint32),('cycle',ctypes.c_uint32),('current',Card),('pinned',Card),
                   ('mood',ctypes.c_uint8),('style',ctypes.c_uint8),('seen',ctypes.c_uint8*275),
-                  ('favorite_count',ctypes.c_uint8),('favorites',Card*16)]
+                  ('favorite_count',ctypes.c_uint8),('favorites',Card*16),
+                  ('rare_random',ctypes.c_uint32),('rare_unlocked',ctypes.c_uint32),
+                  ('rare_misses',ctypes.c_uint8),('rare_last',ctypes.c_uint8)]
     model.fortune_decode_state.argtypes=[ctypes.POINTER(State),ctypes.c_char_p,ctypes.c_size_t]
     model.fortune_decode_state.restype=ctypes.c_bool
     model.fortune_encode_state.argtypes=[ctypes.POINTER(State),ctypes.c_char_p,ctypes.c_size_t]
@@ -65,10 +67,10 @@ with tempfile.TemporaryDirectory() as tmp:
             assert mapping[old_id]==current_ids[text]
         else:
             assert (mapping[old_id]&0xc0000000)==0x40000000
-        encoded=ctypes.create_string_buffer(455)
-        assert model.fortune_encode_state(ctypes.byref(state),encoded,455)==455
+        encoded=ctypes.create_string_buffer(467)
+        assert model.fortune_encode_state(ctypes.byref(state),encoded,467)==467
         restored=State()
-        assert model.fortune_decode_state(ctypes.byref(restored),encoded,455)
+        assert model.fortune_decode_state(ctypes.byref(restored),encoded,467)
         assert restored.pinned.quote==state.pinned.quote
     previous_texts={r[2] for r in previous}
     expected_seen={i for t,i in current_ids.items() if t in previous_texts}

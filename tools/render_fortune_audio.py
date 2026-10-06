@@ -54,6 +54,11 @@ def main():
         skin = cue(4)
         export('fortune-keep.wav', keep)
         export('fortune-skin.wav', skin)
+        rare = cue(5)
+        export('fortune-rare.wav', rare)
+        rare_draw = cue(1) + bytes(RATE // 10 * 2) + rare
+        export('fortune-rare-draw.wav', rare_draw)
+        export('fortune-rare-comparison.wav', opening[0] + bytes(RATE // 2 * 2) + rare_draw)
         export('fortune-audition.wav', opening[0] + bytes(RATE // 2 * 2) + keep +
                bytes(RATE // 2 * 2) + skin)
     (destination / 'fortune-audio.json').write_text(json.dumps({

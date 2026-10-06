@@ -21,10 +21,14 @@ void fortune_defaults(fortune_state_t *s, uint32_t seed) {
     s->style = FORTUNE_ANY_STYLE;
     s->art_cursor = FORTUNE_LEGACY_ART_COUNT;
     s->current = s->pinned = (fortune_card_t){FORTUNE_NO_CARD, 0};
+    s->rare_random = seed ^ 0xB5297A4DU;
+    if (!s->rare_random) s->rare_random = 1;
+    s->rare_last = FORTUNE_RARE_NONE;
 }
 
 static bool valid_quote(uint32_t quote) {
     if (quote==FORTUNE_NO_CARD || quote<FORTUNE_COUNT) return true;
+    if (fortune_rare_index(quote)<FORTUNE_RARE_COUNT) return true;
     if ((quote & 0xC0000000U)==FORTUNE_LEGACY_QUOTE)
         return (quote & ~FORTUNE_LEGACY_QUOTE)<FORTUNE_LEGACY_COUNT;
     if ((quote & 0xC0000000U)==FORTUNE_PREVIOUS_QUOTE)
@@ -33,16 +37,30 @@ static bool valid_quote(uint32_t quote) {
 }
 
 static bool valid_card(fortune_card_t c) {
-    return valid_quote(c.quote) && c.art < FORTUNE_ART_COUNT;
+    unsigned rare=fortune_rare_index(c.quote);
+    if (rare<FORTUNE_RARE_COUNT)
+        return fortune_rare_art_index(c.art)==rare;
+    return valid_quote(c.quote) && c.art < FORTUNE_COMMON_ART_COUNT;
 }
 
 bool fortune_valid(const fortune_state_t *s) {
     if (!(s && s->corpus_id == FORTUNE_CORPUS_ID && s->mood <= 8 &&
         s->style <= FORTUNE_ANY_STYLE && s->cursor < FORTUNE_COUNT &&
-        s->art_cursor < FORTUNE_ART_COUNT && valid_card(s->current) && valid_card(s->pinned) &&
+        s->art_cursor < FORTUNE_COMMON_ART_COUNT && valid_card(s->current) && valid_card(s->pinned) &&
         s->favorite_count <= FORTUNE_FAVORITE_CAPACITY)) return false;
+    if (!s->rare_random || (s->rare_unlocked & ~FORTUNE_RARE_MASK) ||
+        s->rare_misses >= (s->rare_unlocked ? FORTUNE_RARE_PITY : FORTUNE_RARE_FIRST_PITY)) return false;
+    if (s->rare_unlocked ? (s->rare_last>=FORTUNE_RARE_COUNT ||
+        !(s->rare_unlocked & (1U<<s->rare_last))) : s->rare_last!=FORTUNE_RARE_NONE) return false;
+    fortune_card_t displayed[]={s->current,s->pinned};
+    for (unsigned i=0;i<2;++i) {
+        unsigned rare=fortune_rare_index(displayed[i].quote);
+        if (rare<FORTUNE_RARE_COUNT && !(s->rare_unlocked & (1U<<rare))) return false;
+    }
     for (unsigned i=0; i<s->favorite_count; ++i) {
         if (!valid_card(s->favorites[i]) || s->favorites[i].quote==FORTUNE_NO_CARD) return false;
+        unsigned rare=fortune_rare_index(s->favorites[i].quote);
+        if (rare<FORTUNE_RARE_COUNT && !(s->rare_unlocked & (1U<<rare))) return false;
         for (unsigned j=0; j<i; ++j)
             if (s->favorites[i].quote==s->favorites[j].quote) return false;
     }
@@ -80,6 +98,12 @@ bool fortune_decode(uint32_t id, char *out, size_t cap) {
     if (!out || !cap) return false;
     out[0] = 0;
     if (!valid_quote(id) || id==FORTUNE_NO_CARD) return false;
+    unsigned rare=fortune_rare_index(id);
+    if (rare<FORTUNE_RARE_COUNT) {
+        const char *text=fortune_rare_text(rare);
+        if (strlen(text)>=cap) return false;
+        memcpy(out,text,strlen(text)+1); return true;
+    }
     bool legacy = (id & FORTUNE_LEGACY_QUOTE) != 0;
     bool previous = (id & FORTUNE_PREVIOUS_QUOTE) != 0;
     id &= ~(FORTUNE_LEGACY_QUOTE | FORTUNE_PREVIOUS_QUOTE);
@@ -160,6 +184,12 @@ static uint32_t shuffled(uint32_t x, uint32_t count, uint32_t key) {
 }
 
 void fortune_remix(fortune_state_t *s, fortune_card_t *c) {
+    unsigned rare=fortune_rare_index(c->quote);
+    if (rare<FORTUNE_RARE_COUNT) {
+        unsigned tone=fortune_rare_art_tone(c->art);
+        c->art=fortune_rare_art_id(rare,(tone+1)%FORTUNE_RARE_PALETTES);
+        return;
+    }
     /* Upgrade the old cursor lazily; quote history, current card and pin survive. */
     uint32_t cursor = s->art_cursor < FORTUNE_LEGACY_ART_COUNT ? 0 :
         s->art_cursor - FORTUNE_LEGACY_ART_COUNT;
@@ -201,6 +231,50 @@ bool fortune_draw(fortune_state_t *s) {
     return false;
 }
 
+fortune_card_t fortune_rare_card(unsigned index) {
+    return index<FORTUNE_RARE_COUNT ?
+        (fortune_card_t){FORTUNE_RARE_QUOTE+index,fortune_rare_art_id(index,0)} :
+        (fortune_card_t){FORTUNE_NO_CARD,0};
+}
+unsigned fortune_rare_owned(const fortune_state_t *s) {
+    unsigned count=0;
+    for (unsigned i=0;i<FORTUNE_RARE_COUNT;++i) count+=(s->rare_unlocked>>i)&1U;
+    return count;
+}
+unsigned fortune_rare_at(const fortune_state_t *s,unsigned position) {
+    for (unsigned i=0;i<FORTUNE_RARE_COUNT;++i)
+        if ((s->rare_unlocked & (1U<<i)) && position--==0) return i;
+    return FORTUNE_RARE_NONE;
+}
+/* Separate, persisted PRNG: skin changes and text shuffles cannot reroll pity.
+ * Rejection sampling removes modulo bias from the nonzero xorshift domain. */
+static uint32_t rare_below(fortune_state_t *s,uint32_t bound) {
+    uint32_t x;
+    do {
+        x=s->rare_random; x^=x<<13; x^=x>>17; x^=x<<5;
+        s->rare_random=x;
+    } while (x>UINT32_MAX-UINT32_MAX%bound);
+    return (x-1)%bound;
+}
+bool fortune_draw_surprise(fortune_state_t *s) {
+    if (!s || !fortune_remaining(s)) return false;
+    unsigned limit=s->rare_unlocked?FORTUNE_RARE_PITY:FORTUNE_RARE_FIRST_PITY;
+    bool hit=rare_below(s,100)<FORTUNE_RARE_PERCENT;
+    if (++s->rare_misses>=limit || hit) {
+        uint32_t choices=FORTUNE_RARE_MASK & ~s->rare_unlocked;
+        if (!choices) choices=FORTUNE_RARE_MASK & ~(1U<<s->rare_last);
+        unsigned count=0;
+        for (unsigned i=0;i<FORTUNE_RARE_COUNT;++i) count+=(choices>>i)&1U;
+        unsigned slot=rare_below(s,count),index=0;
+        for (;index<FORTUNE_RARE_COUNT;++index)
+            if ((choices & (1U<<index)) && slot--==0) break;
+        s->rare_last=(uint8_t)index; s->rare_unlocked|=1U<<index;
+        s->rare_misses=0; s->current=fortune_rare_card(index);
+        return true;
+    }
+    return fortune_draw(s);
+}
+
 void fortune_reset_deck(fortune_state_t *s) {
     memset(s->seen, 0, sizeof(s->seen));
     ++s->cycle;
@@ -230,7 +304,7 @@ size_t fortune_encode_state(const fortune_state_t *s, uint8_t *out, size_t cap) 
     const size_t n = FORTUNE_STATE_BYTES;
     if (cap < n || !fortune_valid(s)) return 0;
     memset(out, 0, n);
-    put32(out, 0x46544332U); put32(out+4, s->corpus_id);
+    put32(out, 0x46544334U); put32(out+4, s->corpus_id);
     put32(out+8, s->seed); put32(out+12, s->cursor);
     put32(out+16, s->art_cursor); put32(out+20, s->cycle);
     put32(out+24, s->current.quote); put32(out+28, s->current.art);
@@ -243,24 +317,31 @@ size_t fortune_encode_state(const fortune_state_t *s, uint8_t *out, size_t cap) 
         put32(out+album+4+8*i,s->favorites[i].quote);
         put32(out+album+8+8*i,s->favorites[i].art);
     }
+    put32(out+n-16,s->rare_random); put32(out+n-12,s->rare_unlocked);
+    out[n-8]=s->rare_misses; out[n-7]=s->rare_last;
     put32(out+n-4, fortune_crc(out, n-4));
     return n;
 }
 
 bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
     if (!s || !data || n < 48 ||
-        (get32(data)!=0x46544331U && get32(data)!=0x46544332U) ||
+        (get32(data)!=0x46544331U && get32(data)!=0x46544332U &&
+         get32(data)!=0x46544333U && get32(data)!=0x46544334U) ||
         get32(data+n-4) != fortune_crc(data, n-4)) return false;
-    bool album_format=get32(data)==0x46544332U;
-    if (album_format && (n!=FORTUNE_STATE_BYTES || get32(data+4)!=FORTUNE_CORPUS_ID)) return false;
+    bool expanded_format=get32(data)==0x46544334U;
+    bool rare_format=expanded_format || get32(data)==0x46544333U;
+    bool album_format=rare_format || get32(data)==0x46544332U;
+    size_t expected=expanded_format?FORTUNE_STATE_BYTES:rare_format?FORTUNE_V3_STATE_BYTES:FORTUNE_V2_STATE_BYTES;
+    if (album_format && (n!=expected ||
+        get32(data+4)!=FORTUNE_CORPUS_ID)) return false;
     if (get32(data+4) == FORTUNE_LEGACY_CORPUS_ID &&
         FORTUNE_LEGACY_CORPUS_ID != FORTUNE_CORPUS_ID) {
         if (n != 48 + (FORTUNE_LEGACY_COUNT+7)/8 || get32(data+12)>=FORTUNE_LEGACY_COUNT ||
-            get32(data+16)>=FORTUNE_ART_COUNT || data[40]>8 || data[41]>FORTUNE_ANY_STYLE) return false;
+            get32(data+16)>=FORTUNE_COMMON_ART_COUNT || data[40]>8 || data[41]>FORTUNE_ANY_STYLE) return false;
         uint32_t current = get32(data+24), pinned = get32(data+32);
         if ((current!=FORTUNE_NO_CARD && current>=FORTUNE_LEGACY_COUNT) ||
             (pinned!=FORTUNE_NO_CARD && pinned>=FORTUNE_LEGACY_COUNT) ||
-            get32(data+28)>=FORTUNE_ART_COUNT || get32(data+36)>=FORTUNE_ART_COUNT) return false;
+            get32(data+28)>=FORTUNE_COMMON_ART_COUNT || get32(data+36)>=FORTUNE_COMMON_ART_COUNT) return false;
         fortune_state_t migrated;
         fortune_defaults(&migrated, get32(data+8));
         migrated.art_cursor = get32(data+16); migrated.cycle = get32(data+20);
@@ -280,8 +361,8 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
     if (get32(data+4) == FORTUNE_PREVIOUS_CORPUS_ID) {
         if (n != 48+(FORTUNE_PREVIOUS_SOURCE_COUNT+7)/8 ||
             get32(data+12)>=FORTUNE_PREVIOUS_SOURCE_COUNT || data[40]>8 || data[41]>FORTUNE_ANY_STYLE ||
-            get32(data+16)>=FORTUNE_ART_COUNT || get32(data+28)>=FORTUNE_ART_COUNT ||
-            get32(data+36)>=FORTUNE_ART_COUNT) return false;
+            get32(data+16)>=FORTUNE_COMMON_ART_COUNT || get32(data+28)>=FORTUNE_COMMON_ART_COUNT ||
+            get32(data+36)>=FORTUNE_COMMON_ART_COUNT) return false;
         uint32_t quotes[2] = {get32(data+24),get32(data+32)};
         for (unsigned i=0;i<2;++i) {
             if (quotes[i]==FORTUNE_NO_CARD) continue;
@@ -305,8 +386,9 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
         *s=migrated;
         return true;
     }
-    if (n != (album_format ? FORTUNE_STATE_BYTES : 48 + FORTUNE_SEEN_BYTES)) return false;
-    fortune_state_t candidate = {0};
+    if (n != (album_format ? expected : 48 + FORTUNE_SEEN_BYTES)) return false;
+    fortune_state_t candidate;
+    fortune_defaults(&candidate,get32(data+8));
     candidate.corpus_id = get32(data+4); candidate.seed = get32(data+8);
     candidate.cursor = get32(data+12); candidate.art_cursor = get32(data+16);
     candidate.cycle = get32(data+20);
@@ -321,6 +403,18 @@ bool fortune_decode_state(fortune_state_t *s, const uint8_t *data, size_t n) {
             data[album+2] || data[album+3]) return false;
         for (unsigned i=0; i<candidate.favorite_count; ++i)
             candidate.favorites[i]=(fortune_card_t){get32(data+album+4+8*i),get32(data+album+8+8*i)};
+    }
+    if (expanded_format) {
+        candidate.rare_random=get32(data+n-16); candidate.rare_unlocked=get32(data+n-12);
+        candidate.rare_misses=data[n-8]; candidate.rare_last=data[n-7];
+        if (data[n-6] || data[n-5]) return false;
+    } else if (rare_format) {
+        candidate.rare_random=get32(data+n-12);
+        candidate.rare_misses=data[n-8]; candidate.rare_unlocked=data[n-7]; candidate.rare_last=data[n-6];
+        if (data[n-5] || candidate.rare_unlocked>=1U<<FORTUNE_FIRST_RARE_COUNT ||
+            candidate.rare_misses >= (candidate.rare_unlocked?60U:FORTUNE_RARE_FIRST_PITY)) return false;
+        /* A previously accrued 30..59 misses earns the next draw immediately. */
+        if (candidate.rare_misses>=FORTUNE_RARE_PITY) candidate.rare_misses=FORTUNE_RARE_PITY-1;
     }
     if (!fortune_valid(&candidate)) return false;
     candidate.style=FORTUNE_ANY_STYLE;

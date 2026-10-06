@@ -7,7 +7,7 @@
 #define FORTUNE_MAIL_PAGES_PER_LETTER 6U
 #define FORTUNE_MAIL_BYTES 16U
 #define FORTUNE_MAIL_TOPIC 9U
-#define FORTUNE_TOPIC_COUNT 10U
+#define FORTUNE_TOPIC_COUNT 11U
 #define FORTUNE_MAIL_NONE 255U
 
 /* One bookmark per story: 0 unread, page+1 reading, count+1 finished. */

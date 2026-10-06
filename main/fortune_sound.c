@@ -10,6 +10,15 @@ static const note_t opening[] = {
 static const note_t reveal[] = {{0,640,5,3300},{65,630,7,2900},{140,610,9,2400}};
 static const note_t keep[] = {{0,300,2,2600},{90,440,5,3000}};
 static const note_t skin[] = {{0,150,5,1600},{65,180,7,1700}};
+/* A full arrival chord, an ascending flourish, then falling sparkle echoes.
+ * Only a rare reveal gets this 1.9-second celebration; ordinary cues stay soft. */
+static const note_t rare[] = {
+    {0,1200,0,4400},{0,1160,2,3300},{0,1100,3,3400},{0,1000,5,3600},
+    {120,450,5,4300},{240,450,7,4200},{360,480,8,4300},
+    {480,520,10,4500},{600,450,11,3000},{720,900,10,4100},
+    {800,950,7,2800},{880,920,5,2600},
+    {1080,650,10,1600},{1200,600,7,1400},{1360,480,10,1200}
+};
 /* C/D/E/G/A across three octaves, as 32-bit phase increments at 16 kHz. */
 static const uint32_t pitches[] = {
     70230768U,78828756U,88484379U,105226698U,118111600U,140458852U,157660196U,176966074U,210453397U,236223201U,280917704U,315320392U,353934833U,420901426U,472446402U
@@ -41,7 +50,7 @@ static int32_t wave(uint32_t phase) {
     return sine[index]+(sine[index+1]-sine[index])*(int32_t)fraction/256;
 }
 uint32_t fortune_sound_samples(fortune_sound_t sound) {
-    static const uint16_t ms[]={0,1150,800,580,280};
+    static const uint16_t ms[]={0,1150,800,580,280,1900};
     return sound>FORTUNE_SOUND_NONE && sound<FORTUNE_SOUND_COUNT ? ms[sound]*16U : 0;
 }
 size_t fortune_sound_render(fortune_sound_t sound, unsigned variant,
@@ -54,6 +63,7 @@ size_t fortune_sound_render(fortune_sound_t sound, unsigned variant,
         case FORTUNE_SOUND_REVEAL: notes=reveal; count=3; break;
         case FORTUNE_SOUND_KEEP: notes=keep; count=2; break;
         case FORTUNE_SOUND_SKIN: notes=skin; count=2; break;
+        case FORTUNE_SOUND_RARE: notes=rare; count=sizeof(rare)/sizeof(*rare); break;
         default: return 0;
     }
     variant%=FORTUNE_SOUND_VARIANTS;
@@ -79,6 +89,21 @@ size_t fortune_sound_render(fortune_sound_t sound, unsigned variant,
             int32_t envelope=(int32_t)((1280U-t)*128U/1280U);
             if(t<128) envelope=envelope*(int32_t)t/128;
             mixed+=paper*envelope/512;
+        }
+        /* A rounded low strike gives the chord weight; a brief shimmering
+         * transient gives it a clear edge. Both start at zero and decay. */
+        if(sound==FORTUNE_SOUND_RARE && t<4160) {
+            int32_t envelope=(int32_t)((4160U-t)*32767U/4160U);
+            envelope=envelope*envelope/32767;
+            if(t<256) envelope=envelope*(int32_t)t/256;
+            mixed+=(wave(t*(pitches[variant]/2U))*envelope/32767)*3000/32767;
+            if(t<2400) {
+                uint32_t noise=(t/2U+101U)*747796405U+2891336453U;
+                int32_t sparkle=(int32_t)((noise>>20)&1023U)-512;
+                int32_t fade=(int32_t)((2400U-t)*500U/2400U);
+                if(t<128) fade=fade*(int32_t)t/128;
+                mixed+=sparkle*fade/512;
+            }
         }
         pcm[i]=(int16_t)mixed; /* Scores bound the sum well below int16 limits. */
     }

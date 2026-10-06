@@ -46,6 +46,10 @@ run_static_checks() {
         tests/test_fortune_model.c main/fortune_model.c main/fortune_data.c main/fortune_legacy_data.c main/fortune_previous_data.c \
         -o "${test_dir}/test_fortune_model"
     "${test_dir}/test_fortune_model"
+    "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -Imain \
+        tests/test_fortune_rare.c main/fortune_model.c main/fortune_data.c main/fortune_legacy_data.c main/fortune_previous_data.c \
+        -o "${test_dir}/test_fortune_rare"
+    "${test_dir}/test_fortune_rare"
     PYTHONDONTWRITEBYTECODE=1 python3 tests/test_fortune_inventory.py
     "${CC:-cc}" -O2 -std=c11 -Wall -Wextra -Werror -Imain \
         tests/test_fortune_pixels.c main/fortune_pixels.c \

@@ -15,9 +15,16 @@
 固件只链接 12/20 px、4 bpp、未压缩的生成子集；16 MB 原始 OTF 是开发素材，不进入固件。
 使用 1.5.3 版转换器运行 `python3 tools/generate_fortune_fonts.py --converter /path/to/lv_font_conv` 可重建。
 脚本收集当前与旧签文、诗词出处及所有界面文本，字符清单为 `fonts/fortune-characters.txt`。
-两个字号各覆盖 2312 个字符，包含签册的收藏、整理和确认页，以及
+两个字号各覆盖 2313 个字符，包含签册的收藏、整理和确认页，以及
 `main/fortune_mail.c` 中的四组完整原创连续来信（MIT）。
 LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2200 条当前和 2112 条旧版文字布局；真机中文显示仍未验证。
+
+三十条原创奇遇短句和手工断行位于 `main/fortune_rare.h`（MIT），
+三十个独立像素场景及三组配色由 `main/fortune_pixels.c` 绘制，专属和弦、上升铃音及星光余音由
+`main/fortune_sound.c` 合成，复用现有 2313 字符字体。
+`tools/render_fortune_rares.py` 将实际主机渲染打包为 `images/fortune-rares.png`、
+`images/fortune-rare-reveal.gif` 和竖版社区详情图 `images/community/rare-encounters.png`；
+它们是已完成的预览资料，非设备照片，也不作为位图资源链接进固件。
 
 ## 签文内容
 
@@ -64,6 +71,7 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 | `images/fortune-simulator.jpg` | 578 × 984，JPEG | Mac 本地模拟器浏览器截图，设备画面为实际 LVGL 帧缓冲；非设备照片；MIT。 |
 | [`images/fortune-cover-v2.png`](images/fortune-cover-v2.png) | 1086 × 1448，PNG | 2200 条新版社区封面；内置 imagegen 编辑的玩法示意，MIT。 |
 | `images/community/*.png` | 1152 × 1536，PNG | 当前八主题、诗词、留签换肤和 16 格签册详情图；实际程序主机渲染与说明，MIT；用 `tools/render_fortune_release.py` 重建。旧 `controls-volume.png` 作为历史图保留。 |
+| [`images/community/rare-encounters.png`](images/community/rare-encounters.png) | 1152 × 1536，PNG | 三十款奇遇签详情图，包含四张实际程序主机渲染；MIT，由 `tools/render_fortune_rares.py` 生成，提交前已检查成品。 |
 | [`images/fortune-cover.png`](images/fortune-cover.png) | 1086 × 1448，PNG | 一签社区封面，原创 AI 玩法示意图。 |
 | [`images/fortune-letters.png`](images/fortune-letters.png) | 1086 × 1448，PNG | 拆信玩法示意图。 |
 | [`images/fortune-voices.png`](images/fortune-voices.png) | 1086 × 1448，PNG | 历史版本口吻与心情示意图，现版已取消口吻筛选。 |
@@ -95,7 +103,9 @@ LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部
 原创音乐盒音效由 `main/fortune_sound.c` 实时合成，采用仓库 MIT 许可证。
 `tools/render_fortune_audio.py` 将已经完成的 16 kHz、16-bit 单声道 WAV 试听导出到
 `music/`：`fortune-draw-1.wav` 至 `fortune-draw-4.wav`、`fortune-keep.wav`、
-`fortune-skin.wav`，以及组合试听 `fortune-audition.wav`。`fortune-audio.json` 记录完成状态、
+`fortune-skin.wav`，以及组合试听 `fortune-audition.wav`。另有奇遇揭晓 `fortune-rare.wav`、
+完整奇遇拆信 `fortune-rare-draw.wav` 和普通后接奇遇的对比试听 `fortune-rare-comparison.wav`。
+`fortune-audio.json` 记录完成状态、
 长度和哈希。没有下载采样或第三方乐曲。固件只链接紧凑乐谱与正弦表，试听 WAV 仅为
 开发和展示素材，不嵌入固件；试听不包含实体音频芯片和扬声器的音染。
 

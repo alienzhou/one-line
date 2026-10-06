@@ -12,10 +12,11 @@ LV_FONT_DECLARE(fortune_font_12);
 LV_FONT_DECLARE(fortune_font_20);
 static uint16_t s_pixels[240*320];
 static uint8_t s_draw[240*40*2];
-static unsigned s_open_count,s_reveal_count;
+static unsigned s_open_count,s_reveal_count,s_rare_count;
 static void sound_event(fortune_sound_t cue,unsigned variant) {
     assert(variant<FORTUNE_ART_COUNT);
     if(cue==FORTUNE_SOUND_OPEN) ++s_open_count;
+    else if(cue==FORTUNE_SOUND_RARE) ++s_rare_count;
     else { assert(cue==FORTUNE_SOUND_REVEAL); ++s_reveal_count; }
 }
 static void advance(unsigned milliseconds) {
@@ -291,6 +292,37 @@ int main(int argc, char **argv) {
         snapshot(argv[1],name); check_labels(); advance(40);
     }
     printf("Collection UI: PASS (empty, 1..16 entries/all indexes/actions/confirmations/notices; turn/reversal/navigation and saved seal; fonts/bounds)\n");
+    fortune_defaults(&s,42); fortune_ui_album(0,0,false);
+    fortune_ui_update(&s,FORTUNE_RARE_ALBUM,88,NULL); check_labels(); snapshot(argv[1],"rare-empty");
+    s.rare_unlocked=FORTUNE_RARE_MASK; s.rare_last=0;
+    for(unsigned rare=0;rare<FORTUNE_RARE_COUNT;++rare) {
+        s.current=fortune_rare_card(rare); fortune_ui_sound_callback(sound_event);
+        fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); check_labels();
+        fortune_ui_begin_reveal(); check_labels();
+        for(unsigned f=0;f<10;++f) {
+            if(!rare) { char name[64]; snprintf(name,sizeof(name),"rare-opening-%02u",f); snapshot(argv[1],name); }
+            advance(125);
+        }
+        assert(!fortune_ui_revealing());
+        for(unsigned tone=0;tone<FORTUNE_RARE_PALETTES;++tone) {
+            fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); check_labels();
+            char name[64]; snprintf(name,sizeof(name),"rare-%u-%u",rare,tone); snapshot(argv[1],name);
+            if(tone==0) for(unsigned f=0;f<16;++f) {
+                fortune_ui_tick(); snprintf(name,sizeof(name),"rare-motion-%u-%02u",rare,f); snapshot(argv[1],name);
+            }
+            fortune_remix(&s,&s.current);
+        }
+        fortune_ui_album(rare,0,false);
+        fortune_ui_update(&s,FORTUNE_RARE_ALBUM,100,NULL); check_labels();
+        fortune_ui_update(&s,FORTUNE_RARE_ALBUM,-1,FT_SAVE_ERROR); check_labels();
+    }
+    assert(s_rare_count==FORTUNE_RARE_COUNT);
+    fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); fortune_ui_begin_reveal();
+    advance(250); fortune_ui_finish_reveal(); fortune_ui_finish_reveal(); advance(1500);
+    assert(!fortune_ui_revealing() && s_rare_count==FORTUNE_RARE_COUNT+1);
+    fortune_defaults(&s,42); fortune_ui_album(0,0,false);
+    printf("Rare UI: PASS (%u original scenes, %u palettes, jewel envelope/skip/chime, permanent gallery, errors, active glyphs and label bounds)\n",
+           FORTUNE_RARE_COUNT,FORTUNE_RARE_COUNT*FORTUNE_RARE_PALETTES);
     bool gallery=argc==3 && !strcmp(argv[2],"--skins");
     FILE *catalog=NULL;
     if(gallery) {

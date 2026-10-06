@@ -33,6 +33,21 @@
       "frames": 4480,
       "sample_rate": 16000
     },
+    "fortune-rare.wav": {
+      "sha256": "2f14578f8a0e41c9ff1856563599f75652cd3a2cb0a1f534af050694a0d8248f",
+      "frames": 30400,
+      "sample_rate": 16000
+    },
+    "fortune-rare-draw.wav": {
+      "sha256": "d4aee9dbbce649e5fd1d278d5eaad7f9abc684ece3c78c682889d27ba51cb9af",
+      "frames": 50400,
+      "sample_rate": 16000
+    },
+    "fortune-rare-comparison.wav": {
+      "sha256": "d7dfda03afa49fb4ec44055cec458527086b9ce7c58722118315ce27f2318286",
+      "frames": 91200,
+      "sample_rate": 16000
+    },
     "fortune-audition.wav": {
       "sha256": "fb2fce59cc519b39ce8a9d114e9d41db35102a19f4e7b988f4bcf759cdd222f7",
       "frames": 62560,
