@@ -1,0 +1,66 @@
+main/fortune_pixels.c
+  s_0276270f6aadae::t_a7a297ac61efde 829-830,840-841,899-900,945-946,1097-1100,1288-1292
+  s_0276270f6aadae::t_7a0452ef16b562 304,688
+  s_0276270f6aadae::t_87f2bea900a7df 1275,1286-1287,1293,1302,1307,1310,1313,1321,1326,1343,1348,1354,1365-1368,1378-1379,1384,1406-1412,1416-1417
+  s_0276270f6aadae::t_d747d577a66259 980-981,1084-1090,1096,1101
+  s_0276270f6aadae::t_f30ba265fd4049 5,9,786-797,799-800,1251-1252,1387,1398,1421
+  s_0276270f6aadae::t_948d0e062d6669 811,819-821,828,831,848-850,860,866,879,889,891,898,914,917-918,923,933,943,958,973-974,989-990,1003,1019,1021-1022,1036-1038,1056-1057,1071,1078-1079,1102,1116-1117,1131,1136-1141,1151,1159,1161,1166,1171-1172,1185,1196,1201-1202,1212-1213,1218,1240
+docs/fortune-card.zh_CN.md
+  s_0276270f6aadae::t_37ea5b74b414e7 231-237
+  s_0276270f6aadae::t_9979b4820365da 210-229,300-304,307
+  s_0276270f6aadae::t_4400f618f5c584 238-243,245
+  s_0276270f6aadae::t_7da9b92ceefdd2 244
+  s_0276270f6aadae::t_84076047914988 230
+assets/README.zh_CN.md
+  s_0276270f6aadae::t_9979b4820365da 23-24,28-29
+tests/test_fortune_sound.c
+  s_0276270f6aadae::t_a2d5f146b04323 2,43-66
+tests/test_fortune_pixels.c
+  s_0276270f6aadae::t_852fd75111e699 57-68,80-94
+tools/render_fortune_arrivals.py
+  s_0276270f6aadae::t_ac783a3ddf52bd 1-29,31-80
+  s_0276270f6aadae::t_b2be4b60bc1437 30
+tests/test_fortune_simulator.py
+  s_0276270f6aadae::t_1aedfaadb61569 43
+  s_0276270f6aadae::t_d747d577a66259 28-42,44-58
+docs/fortune-card.md
+  s_0276270f6aadae::t_9979b4820365da 269-292,379-385,389
+  s_0276270f6aadae::t_4400f618f5c584 303-312
+  s_0276270f6aadae::t_37ea5b74b414e7 294-302
+  s_0276270f6aadae::t_51177c4ea543de 293
+main/fortune_audio.c
+  s_0276270f6aadae::t_852fd75111e699 113-115
+tests/test_fortune_audio_runtime.c
+  s_0276270f6aadae::t_1d79b5621e3921 2
+  s_0276270f6aadae::t_a2d5f146b04323 146,148,151
+  s_0276270f6aadae::t_7554c40f8272cf 147
+main/fortune_sound.c
+  s_0276270f6aadae::t_f0ec4b2e4e46b0 2,23-36,84-87,98-99,101-104
+main/fortune_pixels.h
+  s_0276270f6aadae::t_f30ba265fd4049 6-9
+tools/render_fortune_rares.py
+  s_0276270f6aadae::t_ac783a3ddf52bd 33,36
+tests/test_fortune_ui.c
+  s_0276270f6aadae::t_a2d5f146b04323 302-313,315,319,333-344
+  s_0276270f6aadae::t_1aedfaadb61569 314
+assets/README.md
+  s_0276270f6aadae::t_9979b4820365da 60-61,66-67
+main/fortune_ui.c
+  s_0276270f6aadae::t_7a0452ef16b562 22,189,191,202,229-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ade7d225e99b9a5ed84a569b29b3e45fad351d77",
+  "prompts": {},
+  "sessions": {
+    "s_0276270f6aadae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12aa9-0660-7701-89fc-cf523717aa1f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "周鸿轩 <zhouhongxuan@BakMacBook-Pro.local>"
+    }
+  }
+}
