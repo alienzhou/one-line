@@ -300,6 +300,29 @@ The archive is `build/firmware/<full-image SHA-256>/`; delivery details are in
 `build/fortune-arrival-delivery.json`. No device was connected or flashed. Physical frame timing,
 display, speaker loudness and button feel remain unverified.
 
+October 12, 2026: rebuilt the same `ade7d22` firmware on the second computer using
+ESP-IDF 5.5.3. Build PASS (complete gate and merged-image verification), Host tests
+PASS (actual LVGL checks and eight simulator integration checks), and archive
+verification PASS. Application: 1,582,496 bytes; merged image: 1,648,032 bytes.
+Full-image SHA-256: `e0326d43518d205a0ec57f58d9a51ecfbdde1f6656f4a8ea8bd1a99c236f2fbd`;
+matching ELF SHA-256: `e614d24a79233b749bfef7bccd29dfc4e41031a55efe6fa092f2ca1178808906`.
+The matching bundle is `build/firmware/<full-image SHA-256>/`; the local delivery
+record is `build/fortune-arrival-delivery.json`. Generated files and private logs
+remain outside Git.
+
+Device tests PASS: after explicit authorization, the ESP32-C3 revision 1.1 device
+reported 8 MB Flash and an identical partition table. Verified component images
+were written at `0x0`, `0x8000` and `0x10000`; all three write hashes matched.
+The erased sectors excluded NVS and PHY, and no whole-chip erase was performed.
+A 20-second startup observation matched version `ade7d22` and ELF fingerprint
+`e614d24a7`, with one boot, no crash/watchdog or incompatible-save warning,
+216,408 free heap bytes and a 114,688-byte largest block. The serial port was released.
+The developer then confirmed on-device preservation of the old signature and
+collections, smooth rare arrivals, OK skipping, sound/volume and button behavior.
+These are user-reported physical results, not instrument measurements.
+Unverified: measured frame rate and sound pressure, and exhaustive on-device
+coverage of all thirty arrivals and ninety palette appearances.
+
 To continue on another computer, pull the `main` branch of `alienzhou/one-line` and open the
 repository root. Prepare ESP-IDF 5.5.3 using the [environment setup guide](development/engineering/environment-setup.md),
 then run `./tools/validate.sh` to generate a verified firmware/debug bundle on that computer.
@@ -308,8 +331,8 @@ with a pull. A new build has its own image/ELF identity; retain its matching man
 After connecting the device, identify its port and confirm the firmware to flash. Use the verified
 segments with the unchanged partition layout when existing signatures and collections must be kept,
 following the [stored-data policy](development/engineering/firmware-layout.md#flashing-and-stored-data).
-On-device acceptance still needs display/arrival timing, skip behavior, sound/mute, buttons and
-signature/collection recovery after restart.
+For each new build, repeat on-device acceptance of display/arrival timing, skip behavior,
+sound/mute, buttons and signature/collection recovery after restart.
 
 Coverage includes 512 simulated users rebooting after every draw, first-ten and later-thirty bounds, thirty distinct discoveries,
 independent base-rate sampling, full albums, old-save migration, CRC and invalid states, commit-failure retry, input during reveal,

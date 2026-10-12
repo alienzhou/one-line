@@ -7,12 +7,10 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-The four-story Continuous Letters revision **2134** is public and approved, verified on
-October 6, 2026. The thirty-card rare encounter update with enhanced celebration audio
-was submitted as revision **2156**, **pending review** when checked on the same date.
-Public revision remains **2134**. Description, five-step instructions and release
-notes are separate fields. [Bilingual submission copy](assets/fortune/community-copy.json)
-retains the current text. The Mac simulator is available in this source repository.
+The thirty-card rare encounter revision **2156** is public and approved, verified on
+October 12, 2026. Description, five-step instructions and release notes are separate
+fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the
+submission text. The Mac simulator is available in this source repository.
 
 One Fortune is a pocket text surprise box. Choose reassurance when you need it,
 or explore everyday observations, dry humor, surreal ideas, small insights,
@@ -72,6 +70,11 @@ Thirty individually authored rare cards pair exclusive lines with distinct pixel
 Every card has gold ornament, ambient animation, a special reveal score, and three palettes
 (90 appearances in total).
 
+Each original now has its own arrival: a whale rises from the sea, the last train
+enters the platform, or a puddle reflects a rainbow. Six scene scores accompany
+the entrance, which settles into quiet ambient motion. OK skips the reveal;
+draw probabilities, collection rules and existing signatures stay unchanged.
+
 - The first rare arrives **within 10 successful new draws**, possibly earlier. Upgrading users who have not yet discovered a rare also receive this first guarantee.
 - Later draws have a **1% base chance** and a **30-draw maximum gap**. Every rare resets the counter. Guarantees raise the long-run effective rate above the base chance.
 - The first thirty encounters prioritize undiscovered cards. After completion, encounters do not repeat consecutively.
@@ -130,12 +133,10 @@ cancel is selected by default. Hold OK to step back. Recollecting the same quote
 updates its artwork without taking another slot. Existing signatures migrate into
 slot one with their exact words, artwork, read history and sound settings intact.
 Turns take about 200 ms; successful collection shows a 480 ms bookmark seal.
-Animation frames never write Flash. The album is available in public revision 2072; physical button feel, frame timing, interrupted saves and endurance await testing.
-Build and Host tests PASS for this change; the application is 1,519,760 bytes
-and the merged image 1,585,296 bytes. Device tests PASS for three component write
-hashes and a 20-second startup observation only. NVS and PHY were excluded;
-matching ELF, one boot, 216684 free heap bytes and a 114688-byte largest block
-were observed, with no crash or rejected state. Physical acceptance remains pending.
+Animation frames never write Flash. The album debuted in public revision 2072.
+On October 12, 2026, the developer confirmed preserved signatures and collections
+and normal button behavior on the current firmware. Interrupted-save fault
+injection passes on the host; physical power-loss and endurance tests remain open.
 
 ## Give the words a different setting
 
@@ -162,7 +163,8 @@ retain prior-version text as motion examples.
 ## Choose your sound
 
 Short original music-box cues accompany opening, reveal, keeping, and artwork
-changes. Rare cards reveal with a fuller 1.9-second arrival chord, rising bells and sparkling echoes.
+changes. Rare arrivals use six 1.9-second scene scores: tide, railway, rain,
+garden, starlight and clockwork, following the chosen volume and mute settings.
 Hold UP on a card for volume. UP/DOWN changes it from 10% to 100% in
 10% steps, with an audition. OK saves and enables sound; hold OK to cancel and
 restore the old volume and mute setting. Default volume is 80%.
@@ -215,18 +217,24 @@ A merged write can overwrite stored data; preserving old signatures requires com
 writing. This update used verified component images and left NVS and PHY untouched.
 See the [flashing and data policy](docs/development/engineering/firmware-layout.md#flashing-and-stored-data).
 
-| Check | Previous community iteration, before favorites |
+| Check | Current arrival firmware `ade7d22`, October 12, 2026 |
 | --- | --- |
 | Build | **PASS** — ESP-IDF 5.5.3 complete gate and verified 0x0 merged image |
-| Host tests | PASS — exact decoding, proportions and poetry sources, legacy migration, input and storage; active fonts and all text layouts, 1,920 artwork renders |
-| Device tests | **PASS for write/startup only** — `00878f6`, three verified component writes and 20 seconds of startup observation; matching ELF, no crash or rejected save |
-| Unverified | Physical theme selection and Chinese readability, old-signature recovery, volume/mute recovery, sound quality, animation smoothness, interrupted writes, idle/wake, battery reporting and endurance; perceived text repetition |
+| Host tests | **PASS** — static gate, actual LVGL rendering and eight simulator integration checks; thirty arrivals, ninety palettes, skip/audio/storage behavior |
+| Device tests | **PASS** — three verified segmented writes, matching partition table and ELF, one boot during 20 seconds; developer confirmed old signature/collections, smooth arrivals, OK skip, sound/volume and buttons |
+| Unverified | Measured frame rate and sound pressure; every rare/palette on hardware; physical power-loss recovery, battery/endurance and full sleep/wake coverage |
+
+The application is **1,582,496 bytes**; the merged image is **1,648,032 bytes**.
+The matching bundle and SHA-256 values are recorded in the
+[arrival validation notes](docs/fortune-card.md#rare-encounters) and locally in
+`build/fortune-arrival-delivery.json`. The automated gate and user-reported physical
+checks are distinguished there. NVS and PHY were not written.
 
 The active encoded text bank takes **67.0 KiB**, plus attribution and legacy
 compatibility data. The **57.3 KiB** old bank serves saved signatures only and is
 excluded from new draws. A further **18.5 KiB** retains the 312 replaced lines
 and their migration table. Both font sizes cover **2,304 characters**; the whole
-bank is never loaded into RAM. The 16-card save is **455 bytes**, importing older 323/312-byte saves, with separate
+bank is never loaded into RAM. The card save with rare progress is **467 bytes**, importing older 455/323/312-byte saves, with separate
 one-byte volume and mute preferences. Procedural artwork retains its
 12,528-byte canvas; gallery images stay out of firmware.
 The previous community application is **1,513,840 bytes**; its merged image is **1,579,376 bytes**.
@@ -236,16 +244,17 @@ and compatibility boundaries.
 ## Community gameplay images
 
 These images are from the preceding community submission: whole-bank draws,
-the explicit selector and the sixteen-card album. They do not show the later continuous-letter type.
+the explicit selector, signatures and artwork. They do not show the later continuous-letter type.
 
-The updated cover uses built-in imagegen editing. Four detail images use actual
+The updated cover uses built-in imagegen editing. Three detail images use actual
 application host renders, not device photographs. [Methods and cover prompt](assets/fortune/community-artwork.json) retain their provenance.
+The old collection graphic has an outdated long-press caption and is omitted;
+the current signature-to-album shortcut is a short OK press.
 
 <p align="center">
   <img src="assets/images/community/themes.png" alt="Eight themes and four representative notes" width="160">
   <img src="assets/images/community/poetry.png" alt="Attributed poetry and chance-mode behavior" width="160">
   <img src="assets/images/community/signature-skins.png" alt="Saved signatures and random artwork" width="160">
-  <img src="assets/images/community/collection.png" alt="Sixteen-card album and collection actions" width="160">
 </p>
 
 ## Explore or extend
