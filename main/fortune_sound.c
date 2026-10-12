@@ -1,4 +1,5 @@
 #include "fortune_sound.h"
+#include "fortune_rare.h"
 
 typedef struct { uint16_t start, length; uint8_t note; uint16_t gain; } note_t;
 /* The opening leaves room for the visual reveal at 1250 ms. A separate reveal
@@ -18,6 +19,20 @@ static const note_t rare[] = {
     {480,520,10,4500},{600,450,11,3000},{720,900,10,4100},
     {800,950,7,2800},{880,920,5,2600},
     {1080,650,10,1600},{1200,600,7,1400},{1360,480,10,1200}
+};
+/* Tide, railway, rain, garden, starlight and clockwork phrases share the
+ * arrival chord. Their register follows the card's palette, never its ID
+ * modulo four. All scores retain the same bounded 1.9-second PCM envelope. */
+static const uint8_t rare_phrases[6][11] = {
+    {5,3,5,7,5,8,7,5,7,5,3},
+    {5,5,7,7,8,10,8,7,8,7,5},
+    {10,8,7,5,7,8,5,3,7,5,3},
+    {3,5,7,5,8,7,8,5,10,7,5},
+    {5,7,8,10,11,10,7,5,10,7,10},
+    {5,8,7,10,8,11,10,7,8,5,7}
+};
+static const uint8_t rare_voices[FORTUNE_RARE_COUNT] = {
+    0,1,2,4,3,4,3,0,4,0,0,4,0,2,3,5,0,5,4,4,4,3,5,5,0,4,3,0,5,1
 };
 /* C/D/E/G/A across three octaves, as 32-bit phase increments at 16 kHz. */
 static const uint32_t pitches[] = {
@@ -66,7 +81,10 @@ size_t fortune_sound_render(fortune_sound_t sound, unsigned variant,
         case FORTUNE_SOUND_RARE: notes=rare; count=sizeof(rare)/sizeof(*rare); break;
         default: return 0;
     }
-    variant%=FORTUNE_SOUND_VARIANTS;
+    unsigned rare_index=fortune_rare_art_index(variant);
+    bool authored=sound==FORTUNE_SOUND_RARE && rare_index<FORTUNE_RARE_COUNT;
+    unsigned voice=authored?rare_voices[rare_index]:4;
+    variant=authored?fortune_rare_art_tone(variant):variant%FORTUNE_SOUND_VARIANTS;
     size_t frames=capacity<length-offset?capacity:length-offset;
     for(size_t i=0;i<frames;++i) {
         uint32_t t=offset+(uint32_t)i; int32_t mixed=0;
@@ -77,9 +95,13 @@ size_t fortune_sound_render(fortune_sound_t sound, unsigned variant,
             int32_t envelope=(int32_t)((duration-age)*32767U/duration);
             envelope=envelope*envelope/32767;
             if(age<128) envelope=envelope*(int32_t)age/128; /* 8 ms attack. */
-            uint32_t step=pitches[notes[v].note+variant];
+            unsigned note=authored && v>=4?rare_phrases[voice][v-4]:notes[v].note;
+            uint32_t step=pitches[note+variant];
             uint32_t phase=age*step;
-            int32_t bell=(wave(phase)*8+wave(phase*3U)+wave(phase*5U)/2)/10;
+            int32_t bell;
+            if(authored && voice==0) bell=(wave(phase)*9+wave(phase*2U))/10;
+            else if(authored && voice==2) bell=(wave(phase)*8+wave(phase*4U)+wave(phase*7U)/2)/10;
+            else bell=(wave(phase)*8+wave(phase*3U)+wave(phase*5U)/2)/10;
             mixed+=(bell*envelope/32767)*(int32_t)notes[v].gain/32767;
         }
         /* A quiet, decaying paper texture, not a loud white-noise burst. */

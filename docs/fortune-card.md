@@ -266,9 +266,50 @@ Failed saves leave the screen and draw unchanged for retry. Input during the env
 The eleventh type-selector item (ID 10) opens the permanent rare collection. Up/down browse unlocked originals without writing
 Flash; OK saves the original as the displayed signature. Rare discoveries are independent of the 16-slot album and cannot be
 removed. OK on a rare result displays it directly without album eviction. Three color variants preserve identity and original access.
-Gold envelopes use the existing skippable 1250 ms opening. Completion triggers a 1.9-second rare celebration:
-a full chord with a rounded low strike, ascending bells and sparkling echoes. Mute and chosen volume remain effective. Authored line breaks
-keep phrases intact; both font sizes cover all text. Rendering keeps the existing 108 by 58 RGB565 buffer without extra resident images.
+Gold envelopes open in 1250 ms, followed by a two-second scene authored for each of the thirty originals.
+The whale rises before its constellation lights; the moon train enters before the cat appears;
+the puddle reflects the rainbow before the sky. Other scenes grow their fireflies, open a pearl shell,
+light windows, part doors, lift a balloon or set a music box in motion. At 1500 ms into the scene,
+the complete line appears; the scene settles into the original ambient rendering at 2000 ms.
+The saved original and every palette retain their existing appearance and IDs.
+
+The scene entrance triggers one 1.9-second score: tide, railway, rain, garden, starlight or clockwork,
+with three palette registers. OK (short or long) skips either phase; skipping after the entrance never
+replays the cue. Up/down cannot redraw, remix or save during either phase. Battery refresh and ambient
+callbacks cannot end the arrival. Chosen volume and mute remain effective. Collection browsing and
+signature startup go directly to the ambient card, without repeatedly staging its entrance.
+
+The sequence is view-only: no new draw rules, rarity levels, card categories, persistence fields or
+Flash writes. It uses the existing 108 by 58 RGB565 buffer and LVGL timer, integer movement and clipping,
+with no additional image buffer or task. All text uses existing covered glyphs.
+
+Host checks cover every arrival step in all ninety appearances, exact final-frame convergence,
+reflection-before-sky ordering, all skip points, single sound delivery, interruption/navigation,
+unchanged storage during animation and restart into the saved signature. Audio checks use full artwork
+IDs through the worker and arbitrary PCM chunk boundaries for all ninety appearances.
+After `./tools/test_fortune_ui.sh`, run `python3 tools/render_fortune_arrivals.py` to produce an offline
+review at `build/fortune-preview/arrivals/index.html`, with thirty selectable animations and actual PCM.
+This review does not connect to a device or change simulator saves.
+
+October 11, 2026 arrival validation: ESP-IDF 5.5.3 full gate PASS, actual LVGL checks PASS,
+eight simulator integration checks PASS, verified archive PASS. Application: 1,582,496 bytes;
+merged image: 1,648,032 bytes. Full-image SHA-256:
+`cbe4cf7f5867af359e0fd0c33703eeef47157380ce2e594f73885847667e75a0`; matching ELF SHA-256:
+`258ca8fbd8b8de028c37c14d7130e48823c524f367fe351f3210100baa5b3dc8`.
+The archive is `build/firmware/<full-image SHA-256>/`; delivery details are in
+`build/fortune-arrival-delivery.json`. No device was connected or flashed. Physical frame timing,
+display, speaker loudness and button feel remain unverified.
+
+To continue on another computer, pull the `main` branch of `alienzhou/one-line` and open the
+repository root. Prepare ESP-IDF 5.5.3 using the [environment setup guide](development/engineering/environment-setup.md),
+then run `./tools/validate.sh` to generate a verified firmware/debug bundle on that computer.
+The local `build/` directory, preview files and delivery JSON are ignored by Git and do not transfer
+with a pull. A new build has its own image/ELF identity; retain its matching manifest for device checks.
+After connecting the device, identify its port and confirm the firmware to flash. Use the verified
+segments with the unchanged partition layout when existing signatures and collections must be kept,
+following the [stored-data policy](development/engineering/firmware-layout.md#flashing-and-stored-data).
+On-device acceptance still needs display/arrival timing, skip behavior, sound/mute, buttons and
+signature/collection recovery after restart.
 
 Coverage includes 512 simulated users rebooting after every draw, first-ten and later-thirty bounds, thirty distinct discoveries,
 independent base-rate sampling, full albums, old-save migration, CRC and invalid states, commit-failure retry, input during reveal,
@@ -335,15 +376,17 @@ for persistence APIs; physical power-loss behavior remains a device check.
 ## Sound and playback ownership
 
 Five original cue types accompany opening (1.15 s), reveal (0.8 s), keeping a
-signature (0.58 s), changing artwork (0.28 s), and rare reveals (1.9 s), each in four related melodic
-variants. Rare cues add a stronger arrival chord, upward flourish and delayed sparkle notes; their mean-square
-PCM energy exceeds the ordinary reveal by at least three times, with tested peaks below 16000/32767. The actual LVGL start/completion events trigger the opening and reveal;
-pressing OK to skip replaces anticipation with exactly one reveal cue. Leaving a
-reveal programmatically cancels it without a completion sound. Music never loops.
+signature (0.58 s), changing artwork (0.28 s), and rare arrivals (1.9 s).
+Ordinary cues retain four melodic variants; rare cards select six scene phrases and three palette
+registers. Tide has a rounder timbre, rain has brighter overtones, and the remaining phrases distinguish
+railway, garden, starlight and clockwork motifs. All tested peaks remain below 16000/32767.
+The actual LVGL events trigger opening and reveal; the rare cue starts when the envelope gives way
+to the scene. Skipping before that event plays the cue once; skipping afterward never repeats it.
+Leaving a reveal programmatically emits no additional completion sound. Music never loops.
 
 `fortune_sound.c` is a pure, allocation-free 16 kHz/16-bit mono renderer. Its
 scores, pitch increments, duration table and interpolated sine table total about
-802 bytes before alignment; samples are generated in 160-frame / 320-byte chunks.
+898 bytes before alignment; samples are generated in 160-frame / 320-byte chunks.
 Bells have an 8 ms attack and the rare low strike has a 16 ms attack.
 Both use decaying envelopes, and each cue ends with silence. `fortune_audio.c` owns one 4096-byte worker stack plus a single-slot
 mailbox and a stop acknowledgement; it reuses `bsp_audio_*` without changing BSP,

@@ -20,11 +20,13 @@
 LVGL 主机测试检查字体覆盖、实际控件字体、缺字负例和全部 2200 条当前和 2112 条旧版文字布局；真机中文显示仍未验证。
 
 三十条原创奇遇短句和手工断行位于 `main/fortune_rare.h`（MIT），
-三十个独立像素场景及三组配色由 `main/fortune_pixels.c` 绘制，专属和弦、上升铃音及星光余音由
-`main/fortune_sound.c` 合成，复用现有 2313 字符字体。
+三十个独立像素场景、每款两秒专属登场及三组配色由 `main/fortune_pixels.c` 绘制；
+六种配套情境旋律由 `main/fortune_sound.c` 合成，复用现有 2313 字符字体。
 `tools/render_fortune_rares.py` 将实际主机渲染打包为 `images/fortune-rares.png`、
 `images/fortune-rare-reveal.gif` 和竖版社区详情图 `images/community/rare-encounters.png`；
 它们是已完成的预览资料，非设备照片，也不作为位图资源链接进固件。
+`tools/render_fortune_arrivals.py` 将三十款实际动画和 PCM 整理为离线预览，
+位于 `build/fortune-preview/arrivals/index.html`，生成文件不进入固件。
 
 ## 签文内容
 

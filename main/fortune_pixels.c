@@ -2,10 +2,11 @@
 #include "fortune_rare.h"
 #include <stdlib.h>
 
-typedef struct { uint16_t *p; int x1,x2; } canvas_t;
+typedef struct { uint16_t *p; int x1,x2,dx,dy; } canvas_t;
 static uint16_t rgb(uint32_t v) { return ((v>>8)&0xF800)|((v>>5)&0x7E0)|((v>>3)&31); }
 static uint32_t mix(uint32_t n) { n ^= n>>16; n *= 0x7feb352dU; n ^= n>>15; n *= 0x846ca68bU; return n^(n>>16); }
 static void dot(canvas_t c,int x,int y,uint32_t v) {
+    x+=c.dx; y+=c.dy;
     if(x>=c.x1 && x<c.x2 && y>=0 && y<FORTUNE_PIXEL_H) c.p[y*FORTUNE_PIXEL_W+x]=rgb(v);
 }
 static void box(canvas_t c,int x,int y,int w,int h,uint32_t v) {
@@ -300,7 +301,7 @@ static void night_scene(canvas_t c,unsigned layout,unsigned tone,uint32_t seed,f
     uint32_t sky=skies[tone]; box(c,0,0,108,58,p.paper);
     switch(layout) {
     case 0: /* room, lamp and the night through a broad window */
-        window(c,4,3,58,39,sky,p); moon(c,44,12,sky,p); skyline((canvas_t){c.p,c.x1<6?6:c.x1,c.x2>60?60:c.x2},seed,40,p);
+        window(c,4,3,58,39,sky,p); moon(c,44,12,sky,p); skyline((canvas_t){c.p,c.x1<6?6:c.x1,c.x2>60?60:c.x2,0,0},seed,40,p);
         box(c,31,5,2,35,p.muted); books(c,66,4,34,20,p);
         box(c,0,51,108,7,0x705646); box(c,5,45,50,3,p.accent);
         box(c,11,48,3,10,p.muted); box(c,45,48,3,10,p.muted);
@@ -684,7 +685,7 @@ static void work_scene(canvas_t c,unsigned layout,uint32_t seed,fortune_colors_t
         books(c,8,4,48,12,p);for(int x=17;x<57;x+=16) {line(c,x,17,x,23,p.ink);disc(c,x,30,7,p.muted);disc(c,x,30,4,p.accent);}
         box(c,12,39,42,4,p.muted);break;
     case 5:
-        window(c,8,5,46,33,0x324F58,p);stars((canvas_t){c.p,c.x1<11?11:c.x1,c.x2>51?51:c.x2},103,p.ink,9,24);
+        window(c,8,5,46,33,0x324F58,p);stars((canvas_t){c.p,c.x1<11?11:c.x1,c.x2>51?51:c.x2,0,0},103,p.ink,9,24);
         box(c,12,39,38,5,p.muted);line(c,19,42,43,24,p.accent);box(c,44,23,8,4,p.accent);break;
     case 6:
         box(c,9,7,49,32,p.muted);for(int y=11;y<37;y+=12) {for(int x=13;x<56;x+=13) {box(c,x,y,9,9,p.ink);star(c,x+4,y+4,2,p.accent);}}
@@ -782,8 +783,21 @@ static void rare_ellipse(canvas_t c,int x,int y,int rx,int ry,uint32_t color) {
         if(i*i*ry*ry+j*j*rx*rx<=rx*rx*ry*ry) dot(c,x+i,y+j,color);
 }
 
+/* Integer easing, local to an illustration. No extra canvas or saved state. */
+static unsigned arrival_progress(unsigned step,unsigned start,unsigned end) {
+    if(step<=start) return 0;
+    if(step>=end) return 16;
+    return (step-start)*16/(end-start);
+}
+static canvas_t arriving(canvas_t c,unsigned progress,int dx,int dy) {
+    int remaining=(int)(16-progress)*(int)(16-progress);
+    c.dx+=dx*remaining/256; c.dy+=dy*remaining/256;
+    return c;
+}
+
 /* Additional originals: each composition has its own subject and visual story. */
-static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors_t p,uint32_t horizon) {
+static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors_t p,uint32_t horizon,unsigned step) {
+    canvas_t base=c;
     uint32_t gold=p.accent,light=p.ink;
     switch(kind) {
     case 6: { /* Moon caught in a stag's branched constellation antlers. */
@@ -794,6 +808,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             for(int j=0;j<3;++j) roof(c,x-6,y+j*6,14,8,0x305567);
         }
         box(c,3,47,102,9,0x182D40);
+        c=arriving(base,arrival_progress(step,0,10),-75,0);
         rare_ellipse(c,45,37,14,6,0xD5A875); box(c,55,25,6,13,0xEBC18B);
         rare_ellipse(c,61,25,6,3,light); line(c,66,25,70,23,light); dot(c,63,24,p.paper);
         for(int i=0;i<4;++i) line(c,34+i*7,40,33+i*7,52,gold);
@@ -801,15 +816,19 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         line(c,59,23,53,11,gold); line(c,61,23,70,10,gold);
         line(c,55,16,46,12,gold); line(c,55,16,56,7,gold);
         line(c,67,15,78,13,gold); line(c,67,15,67,6,gold);
-        star(c,46,12,2,light); star(c,56,7,1,light); star(c,78,13,2,light);
+        if(step>=8) star(c,46,12,2,light);
+        if(step>=10) { star(c,56,7,1,light); star(c,78,13,2,light); }
+        c=base;
         for(int i=0;i<8;++i) star(c,16+i*11,49+(i*3)%5,((frame/4+i)%9==0)?1:0,gold);
         break;
     }
     case 7: { /* A lighthouse sends a beam over an ocean of clouds. */
         for(int x=3;x<105;++x) {
             int y=24+abs(x-72)/6;
-            if((frame/8)%2) box(c,x,19-(x-53)/8,1,4,blend(horizon,light,3));
-            else box(c,x,19+(x-53)/8,1,4,blend(horizon,light,3));
+            if(step>=3 && abs(x-53)<=(int)arrival_progress(step,3,12)*54/16) {
+                if((frame/8)%2) box(c,x,19-(x-53)/8,1,4,blend(horizon,light,3));
+                else box(c,x,19+(x-53)/8,1,4,blend(horizon,light,3));
+            }
             box(c,x,y+22,1,12,blend(horizon,0xBDCCDF,4));
         }
         for(int i=0;i<8;++i) rare_ellipse(c,5+i*15,44+i%3,15,5,0x9AAFC8);
@@ -818,13 +837,17 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         box(c,45,18,16,3,gold); box(c,47,11,12,7,0x72969F);
         box(c,49,12,8,5,light); roof(c,44,5,18,7,gold); box(c,46,27,14,2,gold);
         line(c,29,47,40,44,gold); line(c,68,46,78,49,gold);
-        star(c,53,15,2,light); star(c,83,14,2,gold);
+        if(step>=3) star(c,53,15,2,light);
+        star(c,83,14,2,gold);
         break;
     }
     case 8: { /* Three firework blooms mirrored in the river. */
         static const int rays[8][2]={{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};
         for(int i=0;i<3;++i) {
             int x=23+i*30,y=18+(i==1?6:0),r=8+(frame/3+i)%5;
+            unsigned bloom=arrival_progress(step,1+(unsigned)i*3,7+(unsigned)i*3);
+            if(!bloom) continue;
+            r=r*(int)bloom/16;
             uint32_t color=i==0?0xEDABCB:i==1?gold:0x91DDE4;
             for(int j=0;j<8;++j) {
                 int dx=rays[j][0],dy=rays[j][1];
@@ -834,12 +857,13 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             star(c,x,y,1,light); line(c,x,37,x,y+8,blend(horizon,color,3));
         }
         box(c,3,41,102,15,0x172D47);
-        for(int i=0;i<16;++i) box(c,8+(i*23)%92,43+i%11,5+i%7,1,i%3?0xA691AF:gold);
+        for(int i=0;i<(int)arrival_progress(step,4,14);++i) box(c,8+(i*23)%92,43+i%11,5+i%7,1,i%3?0xA691AF:gold);
         box(c,3,38,102,3,0x352943); box(c,5,33,3,5,gold); box(c,100,33,3,5,gold);
         break;
     }
     case 9: { /* Translucent jellyfish with long, dancing ribbons. */
         for(int i=0;i<3;++i) {
+            c=arriving(base,arrival_progress(step,(unsigned)i*2,10+(unsigned)i),0,55);
             int x=24+i*30,y=18+(i%2)*7,r=10-i%2;
             uint32_t color=i==0?0xCCA5E1:i==1?0x92DBD3:0xF0BFBA;
             for(int yy=-r;yy<=2;++yy) for(int xx=-r;xx<=r;++xx)
@@ -852,6 +876,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             }
             star(c,x-3,y-5,1,light);
         }
+        c=base;
         for(int i=0;i<10;++i) {
             int x=9+i*10,y=51-(frame/2+i*7)%44;
             disc(c,x,y,1,0x6E9BBD); dot(c,x,y-1,light);
@@ -861,14 +886,18 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
     case 10: { /* Two cups on a terrace, the moon sitting opposite. */
         for(int x=8;x<101;++x) { int y=6+abs(x-54)/4; dot(c,x,y,gold); }
         box(c,8,18,2,37,gold); box(c,99,17,2,38,gold);
+        c=arriving(base,arrival_progress(step,0,9),0,32);
         disc(c,74,18,10,blend(horizon,gold,3)); disc(c,74,18,7,light); disc(c,77,16,7,blend(p.paper,horizon,2));
+        c=base;
         rare_ellipse(c,51,43,34,6,0x98738C); rare_ellipse(c,51,41,34,5,gold);
         line(c,29,46,25,55,gold); line(c,73,46,78,55,gold);
         for(int i=0;i<2;++i) {
             int x=32+i*29; rare_ellipse(c,x+5,40,9,2,light);
             box(c,x,33,11,7,light); box(c,x+11,34,3,4,gold);
             box(c,x+1,33,9,2,0x936F72);
-            line(c,x+4,29,x+5+(frame/4)%2,25,gold); dot(c,x+5,22-(frame/5)%2,light);
+            if(step>=7U+(unsigned)i*2) {
+                line(c,x+4,29,x+5+(frame/4)%2,25,gold); dot(c,x+5,22-(frame/5)%2,light);
+            }
         }
         star(c,35,15,2,gold); star(c,23,25,1,light);
         break;
@@ -882,13 +911,16 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             dot(c,x,y+14,gold);
         }
         line(c,59,32,59,49,gold);
+        c=arriving(base,arrival_progress(step,2,12),0,-35);
         line(c,53,29,47,20,gold); line(c,47,20,64,13,gold); line(c,64,13,80,19,gold);
         star(c,47,20,2,light); star(c,64,13,3,gold); star(c,80,19,1,light);
-        for(int i=0;i<8;++i) dot(c,48+(i*11)%31,29-(i*7+(int)frame/2)%23,light);
+        c=base;
+        for(int i=0;i<(int)arrival_progress(step,4,12)/2;++i) dot(c,48+(i*11)%31,29-(i*7+(int)frame/2)%23,light);
         break;
     }
     case 12: { /* A galleon sails between clouds, its gilded sails open. */
         for(int i=0;i<5;++i) rare_ellipse(c,6+i*24,47+(i%2)*4,20,5,0x798FAB);
+        c=arriving(base,arrival_progress(step,0,12),90,-15);
         for(int y=40;y<47;++y) box(c,25+(y-40),y,61-(y-40)*2,1,y<43?gold:0xBE8991);
         line(c,53,8,53,41,gold); line(c,76,17,76,42,gold);
         for(int y=11;y<37;++y) {
@@ -898,6 +930,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         line(c,30,40,53,11,gold); line(c,77,19,85,40,gold);
         for(int i=0;i<4;++i) box(c,37+i*11,42,3,2,p.paper);
         box(c,54,8,10,3,0xD89CB7); dot(c,64,8+(frame/4)%2,light);
+        c=base;
         star(c,16,19,2,light); star(c,94,12,2,gold);
         break;
     }
@@ -907,9 +940,10 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             int x=19+i*32,y=35+(i==1?10:0);
             rare_ellipse(c,x,y+4,15,4,0x628698); rare_ellipse(c,x,y+2,15,3,0xD5E5E1);
             box(c,x-7,y-10,14,12,0x8B7380); roof(c,x-10,y-19,20,10,light);
-            box(c,x-3,y-6,5,6,gold); box(c,x+4,y-5,3,7,0x443B52);
+            box(c,x-3,y-6,5,6,step>=3U+(unsigned)i*4?gold:0x443B52); box(c,x+4,y-5,3,7,0x443B52);
             box(c,x+5,y-18,2,5,gold); dot(c,x+5+(frame/6)%2,y-21,light);
-            box(c,x-4,y+10,9,1,gold); box(c,x-2,y+13,5,1,0x8EA8A5);
+            if(step>=3U+(unsigned)i*4) box(c,x-4,y+10,9,1,gold);
+            box(c,x-2,y+13,5,1,0x8EA8A5);
         }
         for(int i=0;i<18;++i) dot(c,5+(i*37)%98,4+(i*13+(int)frame/3)%30,light);
         break;
@@ -921,7 +955,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             rare_ellipse(c,x,12,13,7,0x2B565C); rare_ellipse(c,x+8,8,10,5,0x3F6F6B);
         }
         for(int y=38;y<56;++y) { int x=52+(y-38)*(y-38)/40; box(c,x,y,2+(y-38)/3,1,0xBDCAAF); }
-        for(int i=0;i<22;++i) {
+        for(int i=0;i<(int)arrival_progress(step,0,14)*22/16;++i) {
             int x=8+(i*31)%92,y=18+(i*17)%35;
             uint32_t glow=(frame/3+i)%7<3?light:gold;
             if((frame/3+i)%7<3) disc(c,x,y,2,blend(horizon,gold,2));
@@ -936,13 +970,15 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         line(c,40,11,67,11,light); line(c,40,11,54,29,0xBAABC9); line(c,67,11,54,29,0xBAABC9);
         line(c,54,29,40,46,0xBAABC9); line(c,54,29,67,46,0xBAABC9); line(c,40,46,67,46,light);
         for(int y=18;y<27;++y) box(c,46+(y-18)/2,y,17-(y-18),1,gold);
-        for(int y=40;y<46;++y) box(c,53-(y-40)*2,y,3+(y-40)*4,1,gold);
-        for(int y=29;y<40;++y) if((y+(int)frame/2)%3==0) dot(c,54,y,light);
+        for(int y=46-(int)arrival_progress(step,7,14)*6/16;y<46;++y) box(c,53-(y-40)*2,y,3+(y-40)*4,1,gold);
+        for(int y=29;y<29+(int)arrival_progress(step,0,7)*11/16;++y) if((y+(int)frame/2)%3==0) dot(c,54,y,light);
         star(c,18,23,2,light); star(c,89,35,2,gold);
         break;
     }
     case 16: { /* A long-finned goldfish swims out of an ornate picture frame. */
         box(c,18,9,63,42,gold); box(c,20,11,59,38,light); box(c,22,13,55,34,0x354E69);
+        /* Peek beyond the right frame edge, then settle into the saved print. */
+        c.dx+=step<8?(int)step*3:(16-(int)step)*3;
         rare_ellipse(c,59,29,17,8,0xE6B17D); rare_ellipse(c,58,28,14,5,0xF7D1A1);
         for(int i=0;i<17;++i) {
             int spread=i/2;
@@ -950,7 +986,8 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         }
         for(int i=0;i<13;++i) { dot(c,55+i,20-i/3,gold); dot(c,57+i,36+i/3,0xE8BEA5); }
         dot(c,70,27,p.paper); dot(c,70,26,light);
-        for(int i=0;i<5;++i) disc(c,80+i*4,22-i*4-(frame/7)%2,1,light);
+        c=base;
+        for(int i=0;i<(int)arrival_progress(step,6,14)*5/16;++i) disc(c,80+i*4,22-i*4-(frame/7)%2,1,light);
         star(c,20,11,2,light); star(c,79,49,2,light); star(c,94,41,2,gold);
         break;
     }
@@ -963,6 +1000,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         line(c,9,55,52,35,0xAF97A3); line(c,98,55,57,35,0xAF97A3);
         for(int i=0;i<3;++i) {
             int x=25+i*28,top=9+i%2*5,shift=(int)((frame/5+i)%3)-1;
+            if(step<16) shift+=(int[]){0,3,5,3,0,-3,-5,-3,0,2,3,2,0,-1,-1,0}[step];
             line(c,x,top,x+shift,top+7,light);
             disc(c,x+shift,top+11,4,i==1?0x9ACDCD:0xECC1AA);
             box(c,x+shift-5,top+12,11,2,gold);
@@ -978,8 +1016,10 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             box(c,x+4,y+3,4,5,gold); box(c,x+12,y+3,4,5,0xCCAF99);
         }
         int x=74-(frame/3)%12,y=13+(frame/3)%12/3;
+        c=arriving(base,arrival_progress(step,0,12),40,-14);
         for(int i=0;i<18;++i) dot(c,x+i,y-i/3,blend(horizon,gold,8-(unsigned)i/3));
-        star(c,x,y,3,light); line(c,57,29,57,35,gold); box(c,54,28,7,7,light);
+        star(c,x,y,3,light); c=base;
+        line(c,57,29,57,35,gold); box(c,54,28,7,7,step>=10?light:0x5F506A);
         star(c,21,17,1,gold); star(c,92,25,1,light);
         break;
     }
@@ -993,6 +1033,9 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         for(int x=68;x<81;++x) box(c,x,17-(x-68)/3,1,34+(x-68)/2,0x655278);
         line(c,42,18,42,48,gold); line(c,68,18,68,48,gold);
         box(c,37,30,2,5,light); box(c,72,30,2,5,light);
+        /* Closed doors part to expose the sunrise already behind them. */
+        int cover=(int)(16-arrival_progress(step,1,12))*14/16;
+        box(c,42,17,cover,32,0x655278); box(c,68-cover,17,cover,32,0x655278);
         star(c,14,22,2,gold); star(c,95,38,2,light);
         for(int i=0;i<7;++i) dot(c,46+i*3,40+(i*3+(int)frame/3)%13,light);
         break;
@@ -1010,7 +1053,8 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             if(d<=202500 && d>155000 && y>=0) dot(c,54+x,31+y+x/6,y%3?gold:light);
         }
         box(c,43,17,23,16,0x504668); roof(c,39,10,31,8,0xBA939C);
-        box(c,46,20,4,5,light); box(c,58,20,4,5,light); box(c,52,26,5,7,gold);
+        box(c,46,20,4,5,step>=5?light:0x504668);
+        box(c,58,20,4,5,step>=9?light:0x504668); box(c,52,26,5,7,step>=11?gold:0x504668);
         line(c,69,9,69,19,gold); box(c,70,9,7,4,0xE0ADB5);
         star(c,19,14,2,light); star(c,88,14,1,gold);
         dot(c,31+(frame/6)%3,43,light);
@@ -1024,27 +1068,38 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             box(c,x+4,y+8,2,22,0x42577C); roof(c,x-2,y,14,15,0x769EB4);
             roof(c,x-4,y+10,18,12,0x93B8C5); line(c,x-2,y+11,x+11,y+11,light);
         }
+        c=arriving(base,arrival_progress(step,7,13),65,0);
         rare_ellipse(c,62,40,18,8,0xD79676); rare_ellipse(c,58,44,16,5,0xF2BB8D);
         rare_ellipse(c,48,40,8,5,light); disc(c,74,33,8,0xE5A67C);
         roof(c,66,20,7,10,0xD58E74); roof(c,76,19,7,11,0xD58E74);
         roof(c,68,23,3,6,0x6C4F66); roof(c,78,22,3,6,0x6C4F66);
         line(c,69,35,75,40,light); line(c,82,34,75,40,light); dot(c,75,39,p.paper);
         line(c,69,33,72,33,p.paper); line(c,78,32,81,32,p.paper);
-        for(int i=0;i<5;++i) { dot(c,91-i*10,52-i%2*2,0x68889F); dot(c,93-i*10,53-i%2*2,0x68889F); }
+        c=base;
+        for(int i=0;i<(int)arrival_progress(step,0,8)*5/16;++i) { dot(c,91-i*10,52-i%2*2,0x68889F); dot(c,93-i*10,53-i%2*2,0x68889F); }
         for(int i=0;i<12;++i) dot(c,7+(i*31)%94,5+(i*13+(int)frame/4)%29,light);
         break;
     }
     case 22: { /* An open music box with a tiny dancer and a turning star. */
-        box(c,22,15,61,24,gold); box(c,24,17,57,20,0x645377); box(c,28,20,49,13,0x8C7998);
-        for(int x=29;x<76;++x) dot(c,x,29-abs(x-53)/4,0xD4AFB0);
+        int top=37-(int)arrival_progress(step,0,7)*22/16;
+        box(c,22,top,61,39-top,gold); box(c,24,top+2,57,35-top,0x645377);
+        box(c,28,top+5,49,28-top,0x8C7998);
+        for(int x=29;x<76;++x) {
+            int y=29-abs(x-53)/4;
+            if(y>=top+5) dot(c,x,y,0xD4AFB0);
+        }
         rare_ellipse(c,54,46,35,7,0x583F61);
         box(c,22,38,62,12,0xBA859D); box(c,22,38,62,3,gold); box(c,25,48,56,2,gold);
         rare_ellipse(c,53,38,28,4,light); rare_ellipse(c,53,38,22,2,0xC7ADC5);
         box(c,49,47,8,5,gold); dot(c,53,49,p.paper);
         line(c,84,42,91,42,gold); disc(c,94,39,3,gold); disc(c,94,45,3,gold);
-        disc(c,53,22,3,light); line(c,53,25,53,31,gold);
-        line(c,53,27,44,24,light); line(c,53,27,61,21,light);
-        roof(c,45,28,17,6,0xE6AFCB); line(c,51,33,54,38,gold); line(c,56,33,59,36,gold);
+        if(step>=8) {
+            c=arriving(base,arrival_progress(step,8,12),0,-15);
+            disc(c,53,22,3,light); line(c,53,25,53,31,gold);
+            line(c,53,27,44,24,light); line(c,53,27,61,21,light);
+            roof(c,45,28,17,6,0xE6AFCB); line(c,51,33,54,38,gold); line(c,56,33,59,36,gold);
+        }
+        c=base;
         star(c,63,13,2+(frame/6)%2,light); star(c,15,27,1,gold); star(c,90,19,2,gold);
         break;
     }
@@ -1058,7 +1113,8 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             line(c,x,y,55+points[(i+1)%12][0],27+points[(i+1)%12][1],gold);
             line(c,55,27,x,y,0xAD91B3);
             box(c,x-2,y,5,5,i%3?0xB992BB:0x83C1C6);
-            box(c,x-1,y+1,3,2,(i+(int)frame/3)%4?light:gold);
+            box(c,x-1,y+1,3,2,(unsigned)i<arrival_progress(step,0,13)*12/16?
+                ((i+(int)frame/3)%4?light:gold):0x574667);
         }
         disc(c,55,27,3,gold); star(c,55,27,1,light);
         box(c,5,48,20,7,0x574667); roof(c,3,43,24,6,0xC89BAA);
@@ -1072,12 +1128,17 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         }
         for(int x=30;x<=78;++x) {
             int top=15+abs(x-54)*abs(x-54)/45;
+            top=46-(46-top)*(int)arrival_progress(step,0,9)/16;
             line(c,54,48,x,top,x%4?0xB898C3:0xF0C3D3);
             disc(c,x,top,1,gold);
         }
         rare_ellipse(c,54,49,28,5,0xDBABC1); rare_ellipse(c,54,47,25,4,light);
-        disc(c,54,33,11,blend(0xB898C3,light,3)); disc(c,54,33,8,0xF6DFBC);
-        disc(c,52,30,4,light); star(c,48,27,2,light); star(c,65,39,1,gold);
+        unsigned pearl=arrival_progress(step,6,13);
+        if(pearl) {
+            disc(c,54,33,11*(int)pearl/16,blend(0xB898C3,light,3));
+            disc(c,54,33,8*(int)pearl/16,0xF6DFBC);
+            if(step>=11) { disc(c,52,30,4,light); star(c,48,27,2,light); star(c,65,39,1,gold); }
+        }
         for(int i=0;i<6;++i) {
             int x=84+i%2*7,y=47-(i*7+(int)frame/3)%40;
             disc(c,x,y,1,0x7CA5C3); dot(c,x,y-1,light);
@@ -1087,6 +1148,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
     }
     case 25: { /* A balloon post office carries envelopes above the cloud line. */
         for(int i=0;i<7;++i) rare_ellipse(c,5+i*17,51+(i%2)*3,14,4,0x8E9DB7);
+        c=arriving(base,arrival_progress(step,0,12),0,60);
         rare_ellipse(c,52,21,18,17,0xCC93AC);
         for(int y=-16;y<=16;++y) for(int x=-17;x<=17;++x)
             if(x*x*289+y*y*324<93636)
@@ -1094,15 +1156,20 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         line(c,41,32,46,44,gold); line(c,63,32,58,44,gold);
         box(c,45,42,14,9,0xA97D96); box(c,44,41,16,2,gold);
         box(c,48,45,8,5,light); line(c,48,45,52,48,0xBD8D9F); line(c,56,45,52,48,0xBD8D9F);
+        c=base;
         for(int i=0;i<3;++i) {
+            c=arriving(base,arrival_progress(step,4,14),0,40);
             int x=13+i*32,y=28+(i%2)*9+(frame/8+i)%2;
             if(i==1) continue;
             box(c,x,y,10,7,light); line(c,x,y,x+5,y+4,0xB38EA8); line(c,x+9,y,x+5,y+4,0xB38EA8);
         }
+        c=base;
         star(c,20,12,2,light); star(c,88,17,2,gold);
         break;
     }
     case 26: { /* A butterfly's velvet wings hold two mirrored constellations. */
+        unsigned spread=arrival_progress(step,0,12);
+        if(spread<16) { c.x1=54-(int)spread*36/16; c.x2=55+(int)spread*36/16; }
         for(int side=-1;side<=1;side+=2) {
             rare_ellipse(c,54+side*16,23,17,14,0x9371B5);
             rare_ellipse(c,54+side*16,23,14,11,0x6586B9);
@@ -1115,6 +1182,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
             star(c,54+side*21,16,1,light); star(c,54+side*15,42,1,light);
             for(int i=0;i<6;++i) dot(c,54+side*(20+i),12+i*3,gold);
         }
+        c=base;
         box(c,53,23,3,18,gold); disc(c,54,22,2,light);
         line(c,54,22,49,15,gold); line(c,54,22,59,15,gold);
         for(int i=0;i<8;++i) star(c,8+(i*31)%91,8+(i*17)%43,((frame/4+i)%7==0)?1:0,light);
@@ -1125,13 +1193,13 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         for(int y=24;y<44;++y) box(c,25+(y-24)*3/2,y,60-(y-24)*3,1,(y%5<3)?0x736A93:0x555476);
         rare_ellipse(c,54,23,31,6,0x5E9B8E); rare_ellipse(c,54,21,30,4,0xA2C8AD);
         box(c,43,12,2,10,gold); roof(c,35,8,18,10,0x78AAA3); roof(c,38,4,12,8,0xB0D0AD);
-        for(int y=23;y<53;++y) {
+        for(int y=23;y<23+(int)arrival_progress(step,1,12)*30/16;++y) {
             int x=59+(y-23)/14;
             box(c,x,y,11-(y-23)/13,1,0x8ED2D9);
             dot(c,x+2,y,(y+(int)frame/2)%7<3?light:0xA9E3E0); dot(c,x+7,y,light);
         }
-        rare_ellipse(c,65,52,16,2,light);
-        for(int i=0;i<7;++i) dot(c,53+i*4,47-(i*3+(int)frame/3)%9,0xCFEAE4);
+        if(step>=12) rare_ellipse(c,65,52,16,2,light);
+        for(int i=0;i<(int)arrival_progress(step,10,14)*7/16;++i) dot(c,53+i*4,47-(i*3+(int)frame/3)%9,0xCFEAE4);
         star(c,16,18,2,gold); disc(c,89,13,4,light);
         break;
     }
@@ -1141,12 +1209,13 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         rare_ellipse(c,49,39,23,5,0x28253E); rare_ellipse(c,49,39,18,3,0x5C507B);
         rare_ellipse(c,49,39,7,2,gold); dot(c,49,38,light);
         for(int y=19;y<34;++y) box(c,70-(y-19)/2,y,3,1,gold);
-        line(c,64,34,62,39,gold); line(c,62,39,53,39,gold);
+        c=arriving(base,arrival_progress(step,0,7),0,-9);
+        line(c,64,34,62,39,gold); line(c,62,39,53,39,gold); c=base;
         for(int x=43;x<74;++x) {
             int radius=3+(73-x)/3; box(c,x,19-radius,1,radius*2+1,x%4?gold:0xD09C8B);
         }
         rare_ellipse(c,43,19,5,13,0xF2D2A5); rare_ellipse(c,43,19,3,10,0x73536E);
-        for(int i=0;i<3;++i) {
+        for(int i=0;i<(int)arrival_progress(step,5,14)*3/16;++i) {
             int x=16+i*7,y=19-i*5+(frame/6+i)%2;
             line(c,x,y,x,y+5,light); box(c,x,y,3,1,light); rare_ellipse(c,x-1,y+6,2,1,light);
         }
@@ -1168,6 +1237,7 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
         disc(c,96,11,5,light);
         for(int i=0;i<9;++i) {
             int x=7+(i*19)%87,y=26+(i*7+(int)frame/5)%19;
+            c=arriving(base,arrival_progress(step,(unsigned)i/3,14),9,-40);
             line(c,x,y,x+1,y+1,i%2?gold:0xE8AC86);
         }
         break;
@@ -1178,7 +1248,8 @@ static void rare_extended(canvas_t c,unsigned kind,uint32_t frame,fortune_colors
 
 /* Thirty authored scenes, never assembled from the common scene/subject pool.
  * Jewel skies, illuminated focal subjects and gold tracery at native 108x58. */
-static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
+static void rare_scene(canvas_t c,uint32_t id,uint32_t frame,unsigned step) {
+    canvas_t base=c;
     unsigned kind=fortune_rare_art_index(id);
     fortune_colors_t p=fortune_pixel_colors(id);
     uint32_t gold=p.accent,light=p.ink;
@@ -1201,6 +1272,7 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
             for(int x=5;x<104;x+=17) box(c,x+(y*7+(int)frame/3)%9,y,8,1,blend(horizon,light,2));
         }
         int bob=(frame/8)%4==2?1:0;
+        c=arriving(base,arrival_progress(step,0,10),0,35);
         for(int y=-9;y<=9;++y) for(int x=-25;x<=25;++x)
             if(x*x*81+y*y*625<50625)
                 dot(c,49+x,31+y+bob,y>3?0xB5E4EB:blend(0x397DA4,0x8EDCD9,(unsigned)(y+9)/3));
@@ -1211,10 +1283,14 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
         }
         line(c,40,37+bob,48,43+bob,0x75B9D0); line(c,41,37+bob,49,42+bob,light);
         dot(c,33,29+bob,p.paper); dot(c,33,28+bob,light);
-        line(c,42,26+bob,42,16,0x7CD9D8); line(c,42,17,36,12,gold); line(c,42,17,47,10,gold);
-        star(c,36,12,2,light); star(c,48,9,2,gold); star(c,41,8,1,light);
-        line(c,44,27,53,24,gold); line(c,53,24,62,28,gold);
-        star(c,44,27,1,light); star(c,53,24,1,light); star(c,62,28,1,light);
+        c=base;
+        if(step>=8) {
+            line(c,42,26+bob,42,16,0x7CD9D8); line(c,42,17,36,12,gold); line(c,42,17,47,10,gold);
+            star(c,36,12,2,light);
+            if(step>=10) { star(c,48,9,2,gold); star(c,41,8,1,light); }
+            line(c,44,27,53,24,gold); line(c,53,24,62,28,gold);
+            star(c,44,27,1,light); star(c,53,24,1,light); star(c,62,28,1,light);
+        }
     } else if (kind==1) { /* Brass moon train, cat passenger, tracks into the sky. */
         disc(c,80,15,11,blend(horizon,gold,3)); disc(c,80,15,8,light);
         disc(c,84,12,8,blend(p.paper,horizon,1));
@@ -1223,16 +1299,18 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
             dot(c,x,y,gold); dot(c,x,y+3,light);
             if(x%5==0) line(c,x,y-1,x+1,y+4,0xAD7896);
         }
+        c=arriving(base,arrival_progress(step,1,11),98,0);
         box(c,17,29,66,16,0xAD7085); box(c,19,26,60,3,gold);
         box(c,20,29,59,2,light); box(c,19,43,62,2,gold);
         box(c,80,32,7,10,0xAD7085); box(c,84,34,4,4,light);
         for(int i=0;i<4;++i) {
-            int x=23+i*14; box(c,x,32,10,9,gold); box(c,x+1,33,8,7,0xFFE4B3);
+            int x=23+i*14; box(c,x,32,10,9,gold); box(c,x+1,33,8,7,step>=5U+(unsigned)i?0xFFE4B3:0x523D59);
             box(c,x+4,32,1,9,0xAD7085);
         }
-        box(c,40,35,5,4,0x523D59); dot(c,40,34,0x523D59); dot(c,44,34,0x523D59);
+        if(step>=10) { box(c,40,35,5,4,0x523D59); dot(c,40,34,0x523D59); dot(c,44,34,0x523D59); }
         for(int i=0;i<4;++i) { disc(c,27+i*15,46,3,p.paper); dot(c,27+i*15,46,gold); }
         for(int i=0;i<5;++i) star(c,10+i*4,33-i*3-(frame/4)%3,1,i%2?gold:light);
+        c=base;
         box(c,7,20,2,32,gold); box(c,5,20,7,2,light); disc(c,8,17,3,gold);
     } else if (kind==2) { /* Rainbow already reflected while rainclouds part. */
         static const uint32_t rainbow[]={0xF9B6A3,0xF5D18B,0xEAE8B0,0x83D2BD,0x8CB8E1,0xB7A3E0};
@@ -1240,12 +1318,12 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
             int d=(x-57)*(x-57)+(y-40)*(y-40);
             for(int band=0;band<6;++band) {
                 int r=33-band*2;
-                if(d<=r*r && d>(r-2)*(r-2)) dot(c,x,y,rainbow[band]);
+                if(d<=r*r && d>(r-2)*(r-2) && (unsigned)band<arrival_progress(step,8,14)*6/16) dot(c,x,y,rainbow[band]);
             }
         }
         for(int i=0;i<5;++i) { disc(c,12+i*7,17+(i%2)*3,6,0x748DA2); disc(c,84+i*5,22-i%3,5,0x9AB8C1); }
         box(c,3,42,102,13,0x2C5269);
-        for(int y=0;y<8;++y) box(c,33+y*2,45+y,54-y*4,1,rainbow[y%6]);
+        for(int y=0;y<(int)arrival_progress(step,1,7)*8/16;++y) box(c,33+y*2,45+y,54-y*4,1,rainbow[y%6]);
         box(c,11,43,3,8,gold); box(c,10,51,6,2,gold);
         for(int i=0;i<12;++i) box(c,8+i,37-abs(i-6)/2,1,5,0xF5B192);
         for(int i=0;i<7;++i) {
@@ -1262,16 +1340,18 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
             box(c,x+4,y+3,3,4,gold); box(c,x+10,y+3,3,4,light);
         }
         for(int i=0;i<9;++i) {
+            c=arriving(base,arrival_progress(step,(unsigned)i/2,12),0,55);
             int x=12+(i*29)%86,y=6+(i*11)%25-(frame/10+i)%2;
             box(c,x-1,y+1,7,7,blend(horizon,gold,2)); box(c,x,y,5,7,gold);
             box(c,x+1,y+1,3,4,light); line(c,x+1,y+7,x+3,y+9,gold); dot(c,x+2,y+10,light);
         }
+        c=base;
         star(c,54,16,2,light);
     } else if (kind==4) { /* Aurora curtains, a glasshouse and night-blooming flowers. */
         for(int x=4;x<104;++x) {
             int crest=8+abs((x+(int)(frame/5)%3)%40-20)/3;
             for(int y=crest;y<crest+13;++y)
-                dot(c,x,y,blend(horizon,x%30<15?0x76E5C4:0xB6A0E8,(unsigned)(13-y+crest)/2));
+                dot(c,x,y,blend(horizon,x%30<15?0x76E5C4:0xB6A0E8,(unsigned)(13-y+crest)/2*arrival_progress(step,0,8)/16));
         }
         box(c,3,43,102,13,0x173F48);
         box(c,38,30,31,19,0x34666C);
@@ -1282,8 +1362,10 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
         for(int i=0;i<14;++i) {
             int x=7+(i*23)%94,y=46+(i*7)%8;
             line(c,x,y,x,y+3,0x6AA68D);
-            star(c,x,y,1,i%3?0xEBC2E4:light);
-            if((frame/3+i)%13==0) star(c,x,y-2,1,gold);
+            if((unsigned)i<arrival_progress(step,6,14)*14/16) {
+                star(c,x,y,1,i%3?0xEBC2E4:light);
+                if((frame/3+i)%13==0) star(c,x,y-2,1,gold);
+            }
         }
     } else if (kind==5) { /* An illuminated envelope beneath a spiral galaxy. */
         for(int i=0;i<80;++i) {
@@ -1293,14 +1375,16 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
         }
         disc(c,60,24,10,blend(horizon,0xC9A2DD,3));
         disc(c,60,24,6,blend(horizon,gold,5)); disc(c,60,24,3,light);
-        line(c,32,38,58,27,gold); line(c,59,26,79,16,gold);
+        if(step>=8) { line(c,32,38,58,27,gold); line(c,59,26,79,16,gold); }
+        c=arriving(base,arrival_progress(step,0,10),-60,18);
         box(c,27,35,27,17,gold); box(c,29,37,23,13,light);
         line(c,29,37,41,45,0xA87C88); line(c,41,45,51,37,0xA87C88);
         line(c,29,49,37,43,0xA87C88); line(c,44,43,51,49,0xA87C88);
         disc(c,41,45,3,gold); star(c,41,45,1,light);
+        c=base;
         star(c,77,37,3,gold); star(c,86,29,2,light);
         for(int i=0;i<5;++i) star(c,55+i*4,35-i*4-(frame/4)%2,1,light);
-    } else rare_extended(c,kind,frame,p,horizon);
+    } else rare_extended(c,kind,frame,p,horizon,step);
     /* Etched corners and tiny moving highlights frame every original. */
     line(c,2,2,22,2,gold); line(c,2,2,2,15,gold);
     line(c,85,2,105,2,gold); line(c,105,2,105,15,gold);
@@ -1311,7 +1395,7 @@ static void rare_scene(canvas_t c,uint32_t id,uint32_t frame) {
 }
 
 static void scene(canvas_t c,uint32_t id,uint32_t frame) {
-    if(fortune_rare_art(id)){rare_scene(c,id,frame);return;}
+    if(fortune_rare_art(id)){rare_scene(c,id,frame,FORTUNE_ARRIVAL_STEPS);return;}
     if(id>=FORTUNE_LEGACY_ART_COUNT){expanded_scene(c,id,frame);return;}
     unsigned family=id%4,tone=(id/4)%6; uint32_t seed=id/24;
     fortune_colors_t p=fortune_pixel_colors(id);
@@ -1319,16 +1403,22 @@ static void scene(canvas_t c,uint32_t id,uint32_t frame) {
         case 2: space(c,seed,tone,frame,p); break; default: garden(c,seed,tone,frame,p); break; }
 }
 void fortune_pixels(uint16_t *pixels,uint32_t id,uint32_t frame) {
-    scene((canvas_t){pixels,0,FORTUNE_PIXEL_W},id,frame);
+    scene((canvas_t){pixels,0,FORTUNE_PIXEL_W,0,0},id,frame);
+}
+void fortune_pixel_arrival(uint16_t *pixels,uint32_t id,unsigned step) {
+    if(!fortune_rare_art(id) || step>=FORTUNE_ARRIVAL_STEPS) {
+        fortune_pixels(pixels,id,0); return;
+    }
+    rare_scene((canvas_t){pixels,0,FORTUNE_PIXEL_W,0,0},id,0,step);
 }
 void fortune_pixel_wipe(uint16_t *pixels,uint32_t old_id,uint32_t new_id,unsigned step) {
     int width=step>=3?FORTUNE_PIXEL_W:(int)step*FORTUNE_PIXEL_W/3;
-    scene((canvas_t){pixels,0,width},new_id,0);
-    scene((canvas_t){pixels,width,FORTUNE_PIXEL_W},old_id,0);
+    scene((canvas_t){pixels,0,width,0,0},new_id,0);
+    scene((canvas_t){pixels,width,FORTUNE_PIXEL_W,0,0},old_id,0);
 }
 
 void fortune_pixel_unwrap(uint16_t *pixels,uint32_t id,unsigned step) {
-    canvas_t c={pixels,0,FORTUNE_PIXEL_W}; fortune_colors_t p=fortune_pixel_colors(id);
+    canvas_t c={pixels,0,FORTUNE_PIXEL_W,0,0}; fortune_colors_t p=fortune_pixel_colors(id);
     box(c,0,0,108,58,p.paper);
     int shift=step<4 ? (int[]){0,-1,1,0}[step] : 0;
     int x=28+shift,y=22;

@@ -19,6 +19,7 @@ static const lv_image_dsc_t s_image = {
 static uint32_t s_id=UINT32_MAX, s_frame;
 static bool s_motion=true;
 static bool s_revealing;
+static bool s_reveal_sounded;
 static unsigned s_reveal_step, s_timer_step;
 static unsigned s_wipe_step=3;
 static uint32_t s_old_id,s_quote_id=FORTUNE_NO_CARD;
@@ -185,8 +186,9 @@ static void finish_reveal(bool audible) {
     lv_label_set_text(s_meta,s_final_meta);
     lv_label_set_text(s_quote,s_final_quote); lv_label_set_text(s_caption,s_final_caption);
     lv_label_set_text(s_help,s_final_help); lv_label_set_text(s_hint,s_final_hint);
+    s_frame=0;
     fortune_pixels(s_pixels,s_id,0); lv_image_cache_drop(&s_image); lv_obj_invalidate(s_root);
-    if(audible && s_sound_callback)
+    if(audible && !s_reveal_sounded && s_sound_callback)
         s_sound_callback(fortune_rare_art(s_id)?FORTUNE_SOUND_RARE:FORTUNE_SOUND_REVEAL,s_id);
 }
 void fortune_ui_finish_reveal(void) { finish_reveal(true); }
@@ -197,7 +199,7 @@ void fortune_ui_begin_reveal(void) {
     snprintf(s_final_caption,sizeof(s_final_caption),"%s",lv_label_get_text(s_caption));
     snprintf(s_final_help,sizeof(s_final_help),"%s",lv_label_get_text(s_help));
     snprintf(s_final_hint,sizeof(s_final_hint),"%s",lv_label_get_text(s_hint));
-    s_revealing=true; s_reveal_step=0;
+    s_revealing=true; s_reveal_sounded=false; s_reveal_step=0;
     lv_timer_reset(s_timer);
     s_wipe_step=3;
     bool rare=fortune_rare_art(s_id);
@@ -224,8 +226,26 @@ static void timer_tick(lv_timer_t *timer) {
         if(++s_keep_step==12) lv_timer_set_period(s_timer,125);
         lv_area_t area={188,120,213,154}; lv_obj_invalidate_area(s_root,&area);
     } else if(s_revealing) {
-        if(++s_reveal_step>=10) { fortune_ui_finish_reveal(); return; }
-        fortune_pixel_unwrap(s_pixels,s_id,s_reveal_step);
+        ++s_reveal_step;
+        bool rare=fortune_rare_art(s_id);
+        unsigned end=rare?10+FORTUNE_ARRIVAL_STEPS:10;
+        if(s_reveal_step>=end) { fortune_ui_finish_reveal(); return; }
+        if(rare && s_reveal_step>=10) {
+            unsigned arrival=s_reveal_step-10;
+            if(!arrival) {
+                lv_label_set_text(s_meta,s_final_meta);
+                lv_label_set_text(s_caption,""); lv_label_set_text(s_quote,"");
+                s_reveal_sounded=true;
+                if(s_sound_callback) s_sound_callback(FORTUNE_SOUND_RARE,s_id);
+            }
+            /* Let the event unfold before its line lands. Input may skip the
+             * whole sequence; battery refresh and ambient ticks cannot cut it. */
+            if(arrival==12) {
+                lv_label_set_text(s_quote,s_final_quote);
+                lv_label_set_text(s_caption,s_final_caption);
+            }
+            fortune_pixel_arrival(s_pixels,s_id,arrival);
+        } else fortune_pixel_unwrap(s_pixels,s_id,s_reveal_step);
         lv_image_cache_drop(&s_image);
         lv_area_t area={12,38,227,153}; lv_obj_invalidate_area(s_root,&area);
     } else if(s_wipe_step<3) {

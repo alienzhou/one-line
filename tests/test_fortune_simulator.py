@@ -25,6 +25,37 @@ class SimulatorTests(unittest.TestCase):
     def key(self, button, event='click'):
         return self.engine.action(dict(action='key', button=button, event=event))
 
+    def test_rare_arrival_input_storage_sound_and_resume(self):
+        # Real input path and LVGL timing; no diagnostic draw/skip shortcut.
+        for draw in range(10):
+            state = self.engine.command('key ok click' if not draw else 'key up click')
+            if state['current']['rare']:
+                break
+            self.engine.command('key ok click')
+        self.assertTrue(state['current']['rare'])
+        self.assertTrue(state['opening'])
+        card = state['current'].copy()
+        saved = (Path(self.temp.name) / 'state.bin').read_bytes()
+        state = self.engine.command('tick 1250')
+        self.assertTrue(state['opening'])
+        self.assertEqual(state['sound'], 5)
+        sound_id = state['sound_id']
+        for command in ('key up click', 'key down click', 'key up long', 'tick 1500'):
+            state = self.engine.command(command)
+            self.assertTrue(state['opening'])
+            self.assertEqual(state['current'], card)
+            self.assertEqual((Path(self.temp.name) / 'state.bin').read_bytes(), saved)
+        state = self.engine.command('tick 500')
+        self.assertFalse(state['opening'])
+        self.assertEqual(state['sound_id'], sound_id)
+        self.assertEqual((Path(self.temp.name) / 'state.bin').read_bytes(), saved)
+        self.engine.command('key ok click')
+        self.engine.close()
+        self.engine = Engine(BUILD / 'fortune_simulator', self.temp.name, 999)
+        self.assertEqual(self.engine.state['pinned'], card)
+        self.assertFalse(self.engine.state['opening'])
+        self.assertIn(card, self.engine.state['rare_gallery'])
+
     def test_batch_matches_real_button_sequence(self):
         self.engine.action(dict(action='batch'))
         batch = [h['id'] for h in self.engine.history]

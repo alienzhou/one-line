@@ -1,4 +1,5 @@
 #include "fortune_sound.h"
+#include "fortune_rare.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,29 @@ int main(void) {
         hashes[hcount++]=h;
         printf("cue=%u variant=%u frames=%u peak=%d max_step=%d\n",sound,v,n,peak,max_step);
     }
-    puts("Fortune sound: PASS (all distinct scores including rare reveal, bounded gain/DC, zero tails, arbitrary chunk boundaries)");
+    uint64_t voices[6]={0};
+    for(unsigned kind=0;kind<FORTUNE_RARE_COUNT;++kind) for(unsigned tone=0;tone<FORTUNE_RARE_PALETTES;++tone) {
+        unsigned art=fortune_rare_art_id(kind,tone),n=fortune_sound_samples(FORTUNE_SOUND_RARE);
+        assert(fortune_sound_render(FORTUNE_SOUND_RARE,art,0,whole,32001)==n);
+        memset(chunks,0x5A,sizeof(chunks));
+        for(unsigned offset=0;offset<n;) {
+            size_t written=fortune_sound_render(FORTUNE_SOUND_RARE,art,offset,chunks+offset,127);
+            assert(written && written<=127); offset+=(unsigned)written;
+        }
+        assert(!memcmp(whole,chunks,n*sizeof(*whole)) && chunks[n]==0x5A5A);
+        int peak=0; int64_t dc=0; uint64_t hash=14695981039346656037ULL;
+        for(unsigned i=0;i<n;++i) {
+            int a=abs(whole[i]); if(a>peak) peak=a;
+            dc+=whole[i]; hash^=(uint16_t)whole[i]; hash*=1099511628211ULL;
+        }
+        assert(peak>500 && peak<16000 && llabs(dc)/(int64_t)n<20);
+        assert(whole[0]==0);
+        for(unsigned i=n-160;i<n;++i) assert(!whole[i]);
+        /* Six actual scene scores, including a high-numbered artwork ID. */
+        const unsigned exemplars[]={0,1,2,4,5,15};
+        for(unsigned v=0;v<6;++v) if(kind==exemplars[v] && !tone) voices[v]=hash;
+    }
+    for(unsigned i=0;i<6;++i) for(unsigned j=i+1;j<6;++j) assert(voices[i] && voices[i]!=voices[j]);
+    puts("Fortune sound: PASS (six scene scores / 90 rare appearances, bounded gain/DC, zero tails, arbitrary chunk boundaries)");
     return 0;
 }

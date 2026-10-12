@@ -30,10 +30,10 @@ def main():
     draw.text((28, height - 34), '实际程序渲染 · 非设备照片 · 原版自动永久珍藏',
               font=ImageFont.truetype(font, 16), fill='#a9a38f')
     poster.save(output / 'fortune-rares.png', optimize=True)
-    frames = [Image.open(source / f'rare-opening-{i:02}.ppm').convert('RGB') for i in range(10)]
+    frames = [Image.open(source / f'rare-arrival-00-{i:02}.ppm').convert('RGB') for i in range(26)]
     frames += [Image.open(source / f'rare-motion-0-{i:02}.ppm').convert('RGB') for i in range(16)]
     frames[0].save(output / 'fortune-rare-reveal.gif', save_all=True, append_images=frames[1:],
-                   duration=[125] * 10 + [250] * 15 + [1200], loop=0)
+                   duration=[125] * 26 + [250] * 15 + [1200], loop=0)
     selected = (0, 4, 7, 24)
     for rare in selected:
         with Image.open(source / f'rare-{rare}-0.ppm') as card:

@@ -57,12 +57,14 @@ The previous `fortune-collections.png` poster is retained as first-release histo
 
 Thirty additional original rare sentences and editorial line breaks live in
 `main/fortune_rare.h` (MIT). Their thirty independent pixel scenes and three palettes
-are drawn in `main/fortune_pixels.c`; the special chord, rising-bell and sparkle-echo score is synthesized
-in `main/fortune_sound.c`. They reuse the existing 2313-glyph subsets.
+are drawn in `main/fortune_pixels.c`, including a two-second entrance authored for every scene.
+Six matching sound phrases are synthesized in `main/fortune_sound.c`. They reuse the existing 2313-glyph subsets.
 `tools/render_fortune_rares.py` packages actual host captures as
 `images/fortune-rares.png`, `images/fortune-rare-reveal.gif` and the portrait community
 panel `images/community/rare-encounters.png`; these are completed previews,
 not device photographs or runtime bitmap resources.
+`tools/render_fortune_arrivals.py` builds an offline review of all thirty arrivals and their actual PCM
+at `build/fortune-preview/arrivals/index.html`; its generated review files remain outside the firmware.
 
 Store reusable font files and generated font sources in `fonts/`.
 

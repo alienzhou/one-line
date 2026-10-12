@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include "fortune_rare.h"
 #include "fortune_audio_stubs/platform.h"
 #include <assert.h>
 #include <errno.h>
@@ -142,10 +143,12 @@ int main(void) {
     /* The longer rare celebration streams completely, then sleeps; storage can
      * also interrupt it without losing the normal drain acknowledgement. */
     assert(fortune_audio_start(true));
-    slept=atomic_load(&sleeps); fortune_audio_play(FORTUNE_SOUND_RARE,0);
+    /* The worker must preserve the full artwork ID for the authored score. */
+    unsigned tide_art=fortune_rare_art_id(0,2);
+    slept=atomic_load(&sleeps); fortune_audio_play(FORTUNE_SOUND_RARE,tide_art);
     until_at_least(&sleeps,slept+1); assert(!atomic_load(&device_open));
     int16_t rare_expected[30400];
-    n=fortune_sound_render(FORTUNE_SOUND_RARE,0,0,rare_expected,30400); assert(n==30400);
+    n=fortune_sound_render(FORTUNE_SOUND_RARE,tide_art,0,rare_expected,30400); assert(n==30400);
     found=false;
     for(size_t i=0;i+n<=captured_count;++i) if(!memcmp(captured+i,rare_expected,n*2)) { found=true; break; }
     assert(found);

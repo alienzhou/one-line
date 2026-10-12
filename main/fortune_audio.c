@@ -110,7 +110,9 @@ bool fortune_audio_start(bool enabled) {
 void fortune_audio_play(fortune_sound_t sound,unsigned variant) {
     if(!s_mailbox || !atomic_load(&s_enabled) || atomic_load(&s_paused) ||
        sound<=FORTUNE_SOUND_NONE || sound>=FORTUNE_SOUND_COUNT) return;
-    command_t command={sound,variant%FORTUNE_SOUND_VARIANTS,0};
+    /* Keep the artwork ID: rare scores select their scene before transposing.
+     * The pure renderer bounds ordinary variants and palette registers. */
+    command_t command={sound,variant,0};
     xQueueOverwrite(s_mailbox,&command);
 }
 void fortune_audio_enable(bool enabled) {

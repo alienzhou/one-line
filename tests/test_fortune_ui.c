@@ -299,11 +299,24 @@ int main(int argc, char **argv) {
         s.current=fortune_rare_card(rare); fortune_ui_sound_callback(sound_event);
         fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); check_labels();
         fortune_ui_begin_reveal(); check_labels();
-        for(unsigned f=0;f<10;++f) {
-            if(!rare) { char name[64]; snprintf(name,sizeof(name),"rare-opening-%02u",f); snapshot(argv[1],name); }
+        fortune_state_t saved=s;
+        unsigned sound_before=s_rare_count;
+        for(unsigned f=0;f<10+FORTUNE_ARRIVAL_STEPS;++f) {
+            assert(fortune_ui_revealing());
+            fortune_ui_update(&s,FORTUNE_REVEAL,f%2?88:-1,NULL);
+            fortune_ui_tick(); /* Neither a battery refresh nor ambient tick skips it. */
+            assert(fortune_ui_revealing()); check_labels();
+            assert(!memcmp(&saved,&s,sizeof(s)));
+            const char *quote=lv_label_get_text(lv_obj_get_child(lv_screen_active(),2));
+            if(f>=10 && f<22) assert(!*quote);
+            if(f>=22) assert(!strcmp(quote,fortune_rare_display_text(rare)));
+            assert(s_rare_count==sound_before+(f>=10));
+            fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL);
+            char name[64]; snprintf(name,sizeof(name),"rare-arrival-%02u-%02u",rare,f); snapshot(argv[1],name);
             advance(125);
         }
         assert(!fortune_ui_revealing());
+        { char name[64]; snprintf(name,sizeof(name),"rare-arrival-%02u-26",rare); snapshot(argv[1],name); }
         for(unsigned tone=0;tone<FORTUNE_RARE_PALETTES;++tone) {
             fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); check_labels();
             char name[64]; snprintf(name,sizeof(name),"rare-%u-%u",rare,tone); snapshot(argv[1],name);
@@ -317,9 +330,18 @@ int main(int argc, char **argv) {
         fortune_ui_update(&s,FORTUNE_RARE_ALBUM,-1,FT_SAVE_ERROR); check_labels();
     }
     assert(s_rare_count==FORTUNE_RARE_COUNT);
-    fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); fortune_ui_begin_reveal();
-    advance(250); fortune_ui_finish_reveal(); fortune_ui_finish_reveal(); advance(1500);
-    assert(!fortune_ui_revealing() && s_rare_count==FORTUNE_RARE_COUNT+1);
+    for(unsigned f=0;f<26;++f) {
+        unsigned before=s_rare_count;
+        fortune_ui_update(&s,FORTUNE_REVEAL,88,NULL); fortune_ui_begin_reveal();
+        advance(f*125); fortune_ui_finish_reveal(); fortune_ui_finish_reveal(); advance(3500);
+        assert(!fortune_ui_revealing() && s_rare_count==before+1);
+    }
+    /* Navigating away must leave no late label, image, or sound update. */
+    fortune_ui_begin_reveal(); advance(1500);
+    fortune_ui_update(&s,FORTUNE_HOME,88,NULL);
+    unsigned before=s_rare_count; advance(3500);
+    assert(!fortune_ui_revealing() && s_rare_count==before);
+    assert(!strcmp(lv_label_get_text(lv_obj_get_child(lv_screen_active(),2)),FT_HOME));
     fortune_defaults(&s,42); fortune_ui_album(0,0,false);
     printf("Rare UI: PASS (%u original scenes, %u palettes, jewel envelope/skip/chime, permanent gallery, errors, active glyphs and label bounds)\n",
            FORTUNE_RARE_COUNT,FORTUNE_RARE_COUNT*FORTUNE_RARE_PALETTES);

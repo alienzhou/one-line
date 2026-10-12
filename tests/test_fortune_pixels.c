@@ -54,6 +54,18 @@ int main(void) {
     }
     for(unsigned id=FORTUNE_RARE_ART_BASE;id<FORTUNE_ART_COUNT;++id) {
         fortune_pixels(reference,id,0); unsigned total_changed=0;
+        unsigned beats=0;
+        fortune_pixel_arrival(phase,id,0);
+        for(unsigned step=0;step<=FORTUNE_ARRIVAL_STEPS;++step) {
+            fortune_pixel_arrival(guarded+1,id,step);
+            assert(guarded[0]==0xA55A && guarded[N+1]==0x5AA5);
+            beats+=memcmp(phase,guarded+1,sizeof(phase))!=0;
+            memcpy(phase,guarded+1,sizeof(phase));
+        }
+        assert(beats>=3); /* Every original has an event, not just a static reveal. */
+        assert(!memcmp(phase,reference,sizeof(phase)));
+        fortune_pixel_arrival(phase,id,UINT32_MAX);
+        assert(!memcmp(phase,reference,sizeof(phase)));
         for(unsigned frame=1;frame<64;++frame) {
             fortune_pixels(guarded+1,id,frame);
             for(unsigned j=0;j<N;++j) total_changed+=reference[j]!=guarded[j+1];
@@ -65,6 +77,21 @@ int main(void) {
             assert(guarded[0]==0xA55A && guarded[N+1]==0x5AA5);
         }
     }
+    /* The puddle knows first: reflected rainbow before any sky rainbow. */
+    uint32_t rain=fortune_rare_art_id(2,0);
+    fortune_pixel_arrival(phase,rain,0);
+    fortune_pixel_arrival(reference,rain,7);
+    unsigned sky_change=0,water_change=0;
+    for(unsigned y=0;y<58;++y) for(unsigned x=0;x<108;++x) {
+        if(y>=45) water_change+=phase[y*108+x]!=reference[y*108+x];
+        if(y<40) sky_change+=phase[y*108+x]!=reference[y*108+x];
+    }
+    assert(water_change>100 && sky_change==0);
+    fortune_pixel_arrival(phase,rain,14);
+    sky_change=0;
+    for(unsigned y=0;y<40;++y) for(unsigned x=0;x<108;++x)
+        sky_change+=phase[y*108+x]!=reference[y*108+x];
+    assert(sky_change>100);
     /* The original six cards must retain the exact eighteen pixel appearances. */
     uint64_t rare_original=14695981039346656037ULL;
     for(unsigned id=FORTUNE_RARE_ART_BASE;id<FORTUNE_RARE_ART_BASE+18;++id)
