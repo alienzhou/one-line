@@ -7,10 +7,12 @@
 <p align="center"><img src="assets/images/fortune-cover-v2.png" alt="Updated One Fortune community cover, a gameplay illustration" width="320"></p>
 
 [Community play](https://ai-passport.folotoy.cn/plays/914/) · project **914**.
-The thirty-card rare encounter revision **2156** is public and approved, verified on
-October 12, 2026. Description, five-step instructions and release notes are separate
-fields. [Bilingual submission copy](assets/fortune/community-copy.json) retains the
-submission text. The Mac simulator is available in this source repository.
+The thirty-card rare encounter revision **2156** is public and approved. The authored
+arrival update was submitted as revision **2641**, **pending review** when checked
+on October 12, 2026; the public revision remains **2156**. Description, five-step
+instructions and release notes are separate fields.
+[Bilingual submission copy](assets/fortune/community-copy.json) retains the text
+and receipt. The Mac simulator is available in this source repository.
 
 One Fortune is a pocket text surprise box. Choose reassurance when you need it,
 or explore everyday observations, dry humor, surreal ideas, small insights,

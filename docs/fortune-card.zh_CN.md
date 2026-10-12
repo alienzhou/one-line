@@ -252,6 +252,13 @@ Device tests PASS：获得明确授权后，核对设备为 ESP32-C3 revision 1.
 这些是用户实测确认，不是仪器测量结果。
 Unverified：帧速与声压的仪器测量，以及全部三十款登场、九十种配色的逐一真机覆盖。
 
+同日，社区项目 **914** 基于公开版本 **2156** 提交新版本 **2641**，状态为**待审核**。
+回执查询确认 2156 仍为已通过的公开版本。发布助手 1.12.3 提交了上述已验证合并镜像、
+已查看的 3:4 封面及三张仍适用的已有玩法图；旧签册图因签名快捷键说明过时而省略。
+中英文简介、五步使用方法（中文 240 字）及仅含本次变化的更新日志作为独立字段提交，
+当前源码地址为 `https://github.com/alienzhou/one-line`。提交文本和公开回执保存在
+[`community-copy.json`](../assets/fortune/community-copy.json)；凭据与私有授权响应留在仓库外。
+
 换到另一台电脑后，拉取 `alienzhou/one-line` 的 `main` 分支并打开仓库根目录。
 按照[环境准备指南](development/engineering/environment-setup.zh_CN.md)配置 ESP-IDF 5.5.3，
 再运行 `./tools/validate.sh`，在新电脑生成经过验证的固件与调试归档。

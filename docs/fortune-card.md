@@ -323,6 +323,17 @@ These are user-reported physical results, not instrument measurements.
 Unverified: measured frame rate and sound pressure, and exhaustive on-device
 coverage of all thirty arrivals and ninety palette appearances.
 
+On the same date, community project **914** was updated from public revision **2156**
+to submitted revision **2641**, **pending review**. A receipt query confirmed that
+2156 remained public and approved. Publisher 1.12.3 submitted the verified merged
+image above, the inspected 3:4 cover and three suitable existing gameplay images.
+The old collection graphic was omitted because its signature shortcut caption was
+outdated. The bilingual description, five-step instructions (240 Chinese characters)
+and this-update-only release notes were submitted as separate fields; the current
+source URL is `https://github.com/alienzhou/one-line`. The submitted text and public
+receipt are retained in [`community-copy.json`](../assets/fortune/community-copy.json).
+Credentials and private authorization responses remain outside the repository.
+
 To continue on another computer, pull the `main` branch of `alienzhou/one-line` and open the
 repository root. Prepare ESP-IDF 5.5.3 using the [environment setup guide](development/engineering/environment-setup.md),
 then run `./tools/validate.sh` to generate a verified firmware/debug bundle on that computer.
